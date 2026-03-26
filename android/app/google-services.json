@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "707239675439",
+    "project_id": "riderapp-47092",
+    "storage_bucket": "riderapp-47092.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:707239675439:android:8e75d13bb9f501c4d7a8da",
+        "android_client_info": {
+          "package_name": "com.mighty.taxirider"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyColm1tQuepkswTQscdOsdDICRthJ6QJ0Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -30,17 +30,17 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "com.mighty.taxirider"
-    compileSdkVersion 35
+    compileSdkVersion 36
     ndkVersion flutter.ndkVersion
 
-//    compileOptions {
-//        sourceCompatibility JavaVersion.VERSION_17
-//        targetCompatibility JavaVersion.VERSION_17
-//    }
-//
-//    kotlinOptions {
-//        jvmTarget = '17'
-//    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -49,7 +49,7 @@ android {
     defaultConfig {
         applicationId "com.mighty.taxirider"
         minSdkVersion 24
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode 30
         versionName '7.0.0'
         multiDexEnabled true
