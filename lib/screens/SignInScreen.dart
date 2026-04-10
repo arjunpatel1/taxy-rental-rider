@@ -5,7 +5,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:geolocator/geolocator.dart';
-
 import '../../components/OTPDialog.dart';
 import '../../main.dart';
 import '../../network/RestApis.dart';

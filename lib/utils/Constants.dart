@@ -7,11 +7,13 @@ const mAppName = 'Mighty Rider';
 //endregion
 
 // region Google map key
-const GOOGLE_MAP_API_KEY = 'YOUR_MAP_KEY';
+// const GOOGLE_MAP_API_KEY = 'YOUR_MAP_KEY';
+const GOOGLE_MAP_API_KEY = 'AIzaSyColm1tQuepkswTQscdOsdDICRthJ6QJ0Y';
 //endregion
 
 //region DomainUrl
-const DOMAIN_URL = 'YOUR_BASE_URL'; // Don't add slash at the end of the url
+// const DOMAIN_URL = 'YOUR_BASE_URL'; // Don't add slash at the end of the url
+const DOMAIN_URL = 'http://192.168.100.250:8000'; // Don't add slash at the end of the url
 //endregion
 
 //region OneSignal Keys
@@ -26,12 +28,18 @@ const mOneSignalRiderChannelID = 'YOUR_ONESIGNAL_CHANNEL_ID_RIDER';
 //endregion
 
 //region firebase configuration
-const projectId = 'YOUR_FIREBASE_PROJECT_ID';
-const appIdAndroid = 'YOUR_FIREBASE_ANDROID_APP_ID';
-const apiKeyFirebase = 'YOUR_FIREBASE_API_KEY';
-const messagingSenderId = 'YOUR_FIREBASE_SENDER_ID';
-const storageBucket = '$projectId.appspot.com';
-const authDomain = "$projectId.firebaseapp.com";
+// const projectId = 'YOUR_FIREBASE_PROJECT_ID';
+// const appIdAndroid = 'YOUR_FIREBASE_ANDROID_APP_ID';
+// const apiKeyFirebase = 'YOUR_FIREBASE_API_KEY';
+// const messagingSenderId = 'YOUR_FIREBASE_SENDER_ID';
+// const storageBucket = '$projectId.appspot.com';
+// const authDomain = "$projectId.firebaseapp.com";
+const projectId = 'riderapp-47092';
+const appIdAndroid = '1:707239675439:android:8e75d13bb9f501c4d7a8da';
+const apiKeyFirebase = 'AIzaSyColm1tQuepkswTQscdOsdDICRthJ6QJ0Y';
+const messagingSenderId = '707239675439';
+const storageBucket = 'riderapp-47092.firebasestorage.app';
+const authDomain = "riderapp-47092.firebaseapp.com";
 //endregion
 
 //region Currency & country code

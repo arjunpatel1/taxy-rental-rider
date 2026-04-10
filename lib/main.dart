@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'firebase_options.dart'; // ✅ ADD THIS LINE
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -12,7 +12,6 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '/model/FileModel.dart';
 import '../network/RestApis.dart';
 import '../utils/Extensions/dataTypeExtensions.dart';
@@ -63,22 +62,9 @@ String sourceLocationTitle = '';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   sharedPref = await SharedPreferences.getInstance();
-  if (Platform.isIOS) {
-    await Firebase.initializeApp();
-  } else {
-    try {
-      await Firebase.initializeApp(
-          options: FirebaseOptions(
-        apiKey: apiKeyFirebase,
-        appId: appIdAndroid,
-        messagingSenderId: messagingSenderId,
-        projectId: projectId,
-        storageBucket: storageBucket,
-      ));
-    } catch (e) {
-      await Firebase.initializeApp();
-    }
-  }
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, // ✅ UPDATED
+  );
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   appStore.setLanguage(sharedPref.getString(SELECTED_LANGUAGE_CODE) ?? defaultLanguageCode);
   await appStore.setLoggedIn(sharedPref.getBool(IS_LOGGED_IN) ?? false, isInitializing: true);
