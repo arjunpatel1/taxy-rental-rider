@@ -1,18 +1,4 @@
-import 'package:dotted_line/dotted_line.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-
-import '../../main.dart';
-import '../../network/RestApis.dart';
-import '../../screens/RideDetailScreen.dart';
-import '../model/RiderModel.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../manage_imports.dart';
 
 class CreateTabScreen extends StatefulWidget {
   final String? status;
@@ -35,7 +21,9 @@ class CreateTabScreenState extends State<CreateTabScreen> {
     super.initState();
     init();
     scrollController.addListener(() {
-      if (scrollController.position.pixels == scrollController.position.maxScrollExtent && !appStore.isLoading) {
+      if (scrollController.position.pixels ==
+              scrollController.position.maxScrollExtent &&
+          !appStore.isLoading) {
         if (currentPage != totalPage) {
           appStore.setLoading(true);
           currentPage++;
@@ -52,7 +40,11 @@ class CreateTabScreenState extends State<CreateTabScreen> {
   }
 
   getRideList() async {
-    await getRiderRequestList(page: currentPage, status: widget.status, riderId: sharedPref.getInt(USER_ID)).then((value) {
+    await getRiderRequestList(
+            page: currentPage,
+            status: widget.status,
+            riderId: sharedPref.getInt(USER_ID))
+        .then((value) {
       currentPage = value.pagination!.currentPage!;
       totalPage = value.pagination!.totalPages!;
       if (currentPage == 1) {
@@ -81,7 +73,8 @@ class CreateTabScreenState extends State<CreateTabScreen> {
             child: ListView.builder(
                 itemCount: riderData.length,
                 controller: scrollController,
-                padding: EdgeInsets.only(top: 8, bottom: 8, left: 16, right: 16),
+                padding:
+                    EdgeInsets.only(top: 8, bottom: 8, left: 16, right: 16),
                 itemBuilder: (_, index) {
                   RiderModel data = riderData[index];
                   return AnimationConfiguration.staggeredList(
@@ -98,7 +91,8 @@ class CreateTabScreenState extends State<CreateTabScreen> {
             visible: appStore.isLoading,
             child: loaderWidget(),
           ),
-          if (riderData.isEmpty) appStore.isLoading ? SizedBox() : emptyWidget(),
+          if (riderData.isEmpty)
+            appStore.isLoading ? SizedBox() : emptyWidget(),
         ],
       );
     });
@@ -108,7 +102,8 @@ class CreateTabScreenState extends State<CreateTabScreen> {
     return inkWellWidget(
       onTap: () {
         if (data.status != CANCELED) {
-          launchScreen(context, RideDetailScreen(orderId: data.id!), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+          launchScreen(context, RideDetailScreen(orderId: data.id!),
+              pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
         }
       },
       child: Container(
@@ -126,15 +121,18 @@ class CreateTabScreenState extends State<CreateTabScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(Ionicons.calendar, color: textSecondaryColorGlobal, size: 16),
+                    Icon(Ionicons.calendar,
+                        color: textSecondaryColorGlobal, size: 16),
                     SizedBox(width: 4),
                     Padding(
                       padding: EdgeInsets.only(top: 2),
-                      child: Text('${printDate(data.createdAt.validate())}', style: primaryTextStyle(size: 14)),
+                      child: Text('${printDate(data.createdAt.validate())}',
+                          style: primaryTextStyle(size: 14)),
                     ),
                   ],
                 ),
-                Text('${language.rideId} #${data.id}', style: boldTextStyle(size: 14)),
+                Text('${language.rideId} #${data.id}',
+                    style: boldTextStyle(size: 14)),
               ],
             ),
             Divider(height: 16, thickness: 0.5),
@@ -145,7 +143,9 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                     children: [
                       Icon(Icons.near_me, color: Colors.green, size: 18),
                       SizedBox(width: 4),
-                      Expanded(child: Text(data.startAddress.validate(), style: primaryTextStyle(size: 14), maxLines: 2)),
+                      Expanded(
+                          child: Text(data.startAddress.validate(),
+                              style: primaryTextStyle(size: 14), maxLines: 2)),
                     ],
                   ),
                   SizedBox(height: 2),
@@ -169,7 +169,9 @@ class CreateTabScreenState extends State<CreateTabScreen> {
                     children: [
                       Icon(Icons.location_on, color: Colors.red, size: 18),
                       SizedBox(width: 4),
-                      Expanded(child: Text(data.endAddress.validate(), style: primaryTextStyle(size: 14), maxLines: 2)),
+                      Expanded(
+                          child: Text(data.endAddress.validate(),
+                              style: primaryTextStyle(size: 14), maxLines: 2)),
                     ],
                   ),
                 ],

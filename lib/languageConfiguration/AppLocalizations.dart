@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-
-import 'BaseLanguage.dart';
-import 'LanguageDataConstant.dart';
+import '../manage_imports.dart';
 
 class AppLocalizations extends LocalizationsDelegate<BaseLanguage> {
   const AppLocalizations();
@@ -17,7 +14,8 @@ class AppLocalizations extends LocalizationsDelegate<BaseLanguage> {
   }
 
   @override
-  bool isSupported(Locale locale) => getSupportedLocales().contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      getSupportedLocales().contains(locale.languageCode);
 
   @override
   bool shouldReload(LocalizationsDelegate<BaseLanguage> old) => false;

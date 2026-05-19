@@ -1,31 +1,4 @@
-import 'package:dotted_line/dotted_line.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:taxi_booking/utils/images.dart';
-
-import '../components/AboutWidget.dart';
-import '../components/RideAcceptWidget.dart';
-import '../main.dart';
-import '../model/ComplaintModel.dart';
-import '../model/CurrentRequestModel.dart';
-import '../model/DriverRatting.dart';
-import '../model/OrderHistory.dart';
-import '../model/RiderModel.dart';
-import '../model/UserDetailModel.dart';
-import '../network/RestApis.dart';
-import '../screens/ComplaintScreen.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
-import 'ChatScreen.dart';
-import 'DashBoardScreen.dart';
-import 'PDF_Screen.dart';
-import 'RideHistoryScreen.dart';
+import '../manage_imports.dart';
 
 class RideDetailScreen extends StatefulWidget {
   final int orderId;
@@ -40,6 +13,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
   RiderModel? riderModel;
   List<RideHistory> rideHistory = [];
   DriverRatting? driverRatting;
+  DriverRatting? riderRatting;
   ComplaintModel? complaintData;
   Payment? payment;
   UserData? userData;
@@ -67,8 +41,11 @@ class RideDetailScreenState extends State<RideDetailScreen> {
       riderModel = value.data!;
       riderModel!.ride_has_bids = value.ride_has_bids;
       rideHistory.addAll(value.rideHistory!);
-      if (driverRatting != null) {
+      if (value.driverRatting != null) {
         driverRatting = value.driverRatting!;
+      }
+      if (value.riderRatting != null) {
+        riderRatting = value.riderRatting;
       }
       complaintData = value.complaintModel;
       payment = value.payment;
@@ -96,6 +73,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore:deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         if (Navigator.canPop(context)) {
@@ -141,9 +119,15 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                     SizedBox(height: 12),
                     if (riderModel!.otherRiderData != null) otherRiderInfoComponent(),
                     if (riderModel!.otherRiderData != null) SizedBox(height: 12),
+                    if (driverRatting!.comment != null) driverRatingDetailWidget(),
+                    if (driverRatting!.comment != null) SizedBox(height: 12),
                     addressComponent(),
                     SizedBox(height: 12),
                     priceDetailComponent(),
+                    if (riderModel!.extraChargesAmount != 0 && riderModel!.extraCharges!.isNotEmpty) ...[
+                      SizedBox(height: 12),
+                      extraChargeWidget(),
+                    ],
                     SizedBox(height: 12),
                     paymentDetail(),
                     Visibility(
@@ -177,7 +161,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
 
   Widget addressComponent() {
     return Container(
-      decoration: BoxDecoration(color: Colors.transparent, border: Border.all(color: dividerColor.withOpacity(0.5)), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(color: Colors.transparent, border: Border.all(color: dividerColor.withValues(alpha: 0.5)), borderRadius: BorderRadius.circular(8)),
       padding: EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,13 +301,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                     ],
                   ),
                   onTap: () {
-                    showOnlyDropLocationsDialog(
-                        context,
-                        riderModel!.multiDropLocation!
-                            .map(
-                              (e) => e.address,
-                            )
-                            .toList());
+                    showOnlyDropLocationsDialog(context, riderModel!.multiDropLocation!);
                   },
                 )
             ],
@@ -348,7 +326,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
 
   Widget paymentDetail() {
     return Container(
-      decoration: BoxDecoration(color: Colors.transparent, border: Border.all(color: dividerColor.withOpacity(0.5)), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(color: Colors.transparent, border: Border.all(color: dividerColor.withValues(alpha: 0.5)), borderRadius: BorderRadius.circular(8)),
       padding: EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,7 +359,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
       children: [
         Container(
           width: MediaQuery.of(context).size.width,
-          decoration: BoxDecoration(color: Colors.transparent, border: Border.all(color: dividerColor.withOpacity(0.5)), borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(color: Colors.transparent, border: Border.all(color: dividerColor.withValues(alpha: 0.5)), borderRadius: BorderRadius.circular(8)),
           padding: EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,6 +381,52 @@ class RideDetailScreenState extends State<RideDetailScreen> {
     );
   }
 
+  Widget driverRatingDetailWidget() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            border: Border.all(color: dividerColor.withValues(alpha: 0.5).withValues(alpha: 0.5)),
+            borderRadius: radius(),
+          ),
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("${language.riderReview}", style: boldTextStyle()),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Text(riderRatting?.comment ?? "", style: primaryTextStyle()).expand(),
+                  20.width,
+                  RatingBar.builder(
+                    direction: Axis.horizontal,
+                    glow: false,
+                    allowHalfRating: false,
+                    ignoreGestures: true,
+                    wrapAlignment: WrapAlignment.spaceBetween,
+                    itemCount: 5,
+                    itemSize: 16,
+                    initialRating: double.parse(riderRatting!.rating.toString()),
+                    itemPadding: EdgeInsets.symmetric(horizontal: 0),
+                    itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
+                    onRatingUpdate: (rating) {
+                      //
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget driverInformationComponent() {
     return InkWell(
       onTap: () {
@@ -417,7 +441,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
       child: Container(
         width: MediaQuery.of(context).size.width,
         decoration: BoxDecoration(
-          border: Border.all(color: dividerColor.withOpacity(0.5)),
+          border: Border.all(color: dividerColor.withValues(alpha: 0.5)),
           borderRadius: BorderRadius.circular(defaultRadius),
         ),
         padding: EdgeInsets.all(12),
@@ -434,6 +458,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                       context: context,
                       builder: (_) => AlertDialog(
                         contentPadding: EdgeInsets.zero,
+                        backgroundColor: Colors.white,
                         content: AboutWidget(userData: userData),
                       ),
                     );
@@ -451,33 +476,51 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                   child: commonCachedNetworkImage(riderModel!.driverProfileImage.validate(), height: 50, width: 50, fit: BoxFit.cover),
                 ),
                 SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(riderModel!.driverName.validate(), style: boldTextStyle()),
-                      SizedBox(height: 2),
-                      if (driverRatting != null)
-                        RatingBar.builder(
-                          direction: Axis.horizontal,
-                          glow: false,
-                          allowHalfRating: false,
-                          ignoreGestures: true,
-                          wrapAlignment: WrapAlignment.spaceBetween,
-                          itemCount: 5,
-                          itemSize: 16,
-                          initialRating: double.parse(driverRatting!.rating.toString()),
-                          itemPadding: EdgeInsets.symmetric(horizontal: 0),
-                          itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
-                          onRatingUpdate: (rating) {
-                            //
-                          },
-                        ),
-                      if (driverRatting != null) SizedBox(height: 2),
-                    ],
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(riderModel!.driverName.validate(), style: boldTextStyle()),
+                    // SizedBox(height: 2),
+                    if (riderModel!.status != COMPLETED) Text(riderModel!.driverContactNumber.validate()),
+                    SizedBox(height: 1),
+                    if (driverRatting != null)
+                      RatingBar.builder(
+                        direction: Axis.horizontal,
+                        glow: false,
+                        allowHalfRating: false,
+                        ignoreGestures: true,
+                        wrapAlignment: WrapAlignment.spaceBetween,
+                        itemCount: 5,
+                        itemSize: 16,
+                        initialRating: double.parse(driverRatting!.rating.toString()),
+                        itemPadding: EdgeInsets.symmetric(horizontal: 0),
+                        itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
+                        onRatingUpdate: (rating) {
+                          //
+                        },
+                      ),
+                    if (driverRatting != null) SizedBox(height: 2),
+                  ],
                 ),
                 SizedBox(width: 12),
+                Spacer(),
+                if (riderModel!.status != COMPLETED)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: InkWell(
+                      onTap: () {
+                        launchUrl(Uri.parse('tel:${riderModel!.driverContactNumber.validate()}'), mode: LaunchMode.externalApplication);
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(border: Border.all(color: dividerColor), borderRadius: radius(10)),
+                        padding: EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.call,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ),
                 Visibility(
                   visible: isChatHistory == true,
                   child: Padding(
@@ -512,7 +555,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
   Widget priceDetailComponent() {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: dividerColor.withOpacity(0.5)),
+        border: Border.all(color: dividerColor.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(defaultRadius),
       ),
       padding: EdgeInsets.all(12),
@@ -520,137 +563,172 @@ class RideDetailScreenState extends State<RideDetailScreen> {
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(language.priceDetail, style: boldTextStyle(size: 16)),
-                SizedBox(height: 12),
-                totalCount(
-                    title: language.amount,
-                    amount: riderModel!.surgeCharge != null && riderModel!.surgeCharge! > 0 ? riderModel!.subtotal! - riderModel!.surgeCharge! : riderModel!.subtotal!,
-                    space: 8),
-                if (riderModel!.couponData != null && riderModel!.couponDiscount != 0)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(language.couponDiscount, style: secondaryTextStyle()),
-                      Row(
-                        children: [
-                          Text("-", style: boldTextStyle(color: Colors.green, size: 14)),
-                          printAmountWidget(amount: '${riderModel!.couponDiscount!.toStringAsFixed(digitAfterDecimal)}', color: Colors.green, size: 14, weight: FontWeight.normal)
-                        ],
-                      ),
-                    ],
-                  ),
-                if (riderModel!.couponData != null && riderModel!.couponDiscount != 0) SizedBox(height: 8),
-                if (riderModel!.tips != null) totalCount(title: language.tip, amount: riderModel!.tips),
-                // if(riderModel!.surgeCharge != 0)
-                //   SizedBox(height: 8,),
-                // if (riderModel!.surgeCharge != null && riderModel!.surgeCharge! > 0) totalCount(title: language.fixedPrice, amount: riderModel!.surgeCharge, space: 0),
-                if (riderModel!.extraCharges!.isNotEmpty)
-                  SizedBox(
-                    height: 8,
-                  ),
-                if (riderModel!.extraCharges!.isNotEmpty)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(language.additionalFees, style: boldTextStyle()),
-                      ...riderModel!.extraCharges!.map((e) {
-                        return Padding(
-                          padding: EdgeInsets.only(top: 8, bottom: 0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [Text(e.key.validate().capitalizeFirstLetter(), style: secondaryTextStyle()), printAmountWidget(amount: e.value!.toStringAsFixed(digitAfterDecimal), size: 14)],
-                          ),
-                        );
-                      }).toList()
-                    ],
-                  ),
-                // if (riderModel!.tips != null || riderModel!.extraCharges!.isNotEmpty)
-                Divider(height: 16, thickness: 1),
-
+                // Text(language.priceDetail, style: boldTextStyle(size: 16)),
+                // SizedBox(height: 12),
+                // totalCount(title: language.amount, amount: riderModel!.surgeCharge != null && riderModel!.surgeCharge! > 0 ? riderModel!.subtotal! - riderModel!.surgeCharge! : riderModel!.subtotal!, space: 8),
+                // if (riderModel!.couponData != null && riderModel!.couponDiscount != 0)
+                //   Row(
+                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //     children: [
+                //       Text(language.couponDiscount, style: secondaryTextStyle()),
+                //       Row(
+                //         children: [Text("-", style: boldTextStyle(color: Colors.green, size: 14)), printAmountWidget(amount: '${riderModel!.couponDiscount!.toStringAsFixed(digitAfterDecimal)}', color: Colors.green, size: 14, weight: FontWeight.normal)],
+                //       ),
+                //     ],
+                //   ),
+                // if (riderModel!.couponData != null && riderModel!.couponDiscount != 0) SizedBox(height: 8),
+                // if (riderModel!.tips != null) totalCount(title: language.tip, amount: riderModel!.tips),
+                // if (riderModel!.extraCharges!.isNotEmpty)
+                //   SizedBox(
+                //     height: 8,
+                //   ),
+                // if (riderModel!.extraCharges!.isNotEmpty)
+                //   Column(
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children: [
+                //       Text(language.additionalFees, style: boldTextStyle()),
+                //       ...riderModel!.extraCharges!.map((e) {
+                //         return Padding(
+                //           padding: EdgeInsets.only(top: 8, bottom: 0),
+                //           child: Row(
+                //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //             children: [Text(e.key.validate().capitalizeFirstLetter(), style: secondaryTextStyle()), printAmountWidget(amount: e.value!.toStringAsFixed(digitAfterDecimal), size: 14)],
+                //           ),
+                //         );
+                //       }).toList()
+                //     ],
+                //   ),
+                // Divider(height: 16, thickness: 1),
                 // riderModel!.tips != null
-                //     ? riderModel!.extraChargesAmount!=null?totalCount(title: language.total, amount: riderModel!.subtotal! + riderModel!.tips!+riderModel!.extraChargesAmount!, isTotal: true):totalCount(title: language.total, amount:
-                // riderModel!.subtotal! + riderModel!.tips!, isTotal: true)
-                //     :
-                // riderModel!.extraChargesAmount!=null?totalCount(title: language.total, amount: riderModel!.subtotal!+riderModel!.extraChargesAmount!, isTotal: true):totalCount(title: language.total, amount: riderModel!.subtotal,
-                //     isTotal: true),
-                riderModel!.tips != null
-                    ? riderModel!.extraChargesAmount != null
-                        ? totalCount(title: language.total, amount: riderModel!.subtotal! + riderModel!.tips! + riderModel!.extraChargesAmount!, isTotal: true)
-                        : totalCount(title: language.total, amount: riderModel!.subtotal! + riderModel!.tips!, isTotal: true)
-                    : riderModel!.extraChargesAmount != null
-                        ? totalCount(title: language.total, amount: riderModel!.subtotal! + riderModel!.extraChargesAmount!, isTotal: true)
-                        : totalCount(title: language.total, amount: riderModel!.subtotal, isTotal: true),
+                //     ? riderModel!.extraChargesAmount != null
+                //         ? totalCount(title: language.total, amount: riderModel!.subtotal! + riderModel!.tips! + riderModel!.extraChargesAmount!, isTotal: true)
+                //         : totalCount(title: language.total, amount: riderModel!.subtotal! + riderModel!.tips!, isTotal: true)
+                //     : riderModel!.extraChargesAmount != null
+                //         ? totalCount(title: language.total, amount: riderModel!.subtotal! + riderModel!.extraChargesAmount!, isTotal: true)
+                //         : totalCount(title: language.total, amount: riderModel!.subtotal, isTotal: true),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [Text(language.totalFare, style: boldTextStyle(size: 24)), printAmountWidget(amount: '${riderModel!.totalAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold, size: 24)],
+                ),
               ],
             )
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(language.priceDetail, style: boldTextStyle(size: 16)),
-                SizedBox(height: 12),
-                riderModel!.subtotal! <= riderModel!.minimumFare!
-                    ? totalCount(title: language.minimumFare, amount: riderModel!.minimumFare)
-                    : Column(
-                        children: [
-                          totalCount(title: language.basePrice, amount: riderModel!.baseFare, space: 8),
-                          totalCount(title: language.distancePrice, amount: riderModel!.perDistanceCharge, space: 8),
-                          totalCount(
-                              title: language.minutePrice,
-                              amount: riderModel!.perMinuteDriveCharge,
-                              space: riderModel!.perMinuteWaitingCharge != 0
-                                  ? 8
-                                  : riderModel!.surgeCharge != 0
-                                      ? 8
-                                      : 0),
-                          totalCount(title: language.waitingTimePrice, amount: riderModel!.perMinuteWaitingCharge, space: riderModel!.surgeCharge != 0 ? 8 : 0),
-                        ],
-                      ),
-                if (riderModel!.surgeCharge != null && riderModel!.surgeCharge! > 0) totalCount(title: language.fixedPrice, amount: riderModel!.surgeCharge, space: 0),
-                SizedBox(height: 8),
-                if (riderModel!.couponData != null && riderModel!.couponDiscount != 0)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(language.couponDiscount, style: secondaryTextStyle()),
-                      Row(
-                        children: [
-                          Text("-", style: boldTextStyle(color: Colors.green, size: 14)),
-                          printAmountWidget(amount: '${riderModel!.couponDiscount!.toStringAsFixed(digitAfterDecimal)}', color: Colors.green, size: 14, weight: FontWeight.normal)
-                        ],
-                      ),
-                    ],
-                  ),
-                if (riderModel!.couponData != null && riderModel!.couponDiscount != 0) SizedBox(height: 8),
-                if (riderModel!.tips != null) totalCount(title: language.tip, amount: riderModel!.tips),
-                if (riderModel!.tips != null) SizedBox(height: 8),
-                if (riderModel!.extraCharges!.isNotEmpty)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(language.additionalFees, style: boldTextStyle()),
-                      ...riderModel!.extraCharges!.map((e) {
-                        return Padding(
-                          padding: EdgeInsets.only(top: 4, bottom: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(e.key.validate().capitalizeFirstLetter(), style: secondaryTextStyle()),
-                              printAmountWidget(amount: '${e.value!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal, size: 14),
-                            ],
-                          ),
-                        );
-                      }).toList()
-                    ],
-                  ),
-                Divider(thickness: 1),
-                payment != null && payment!.driverTips != 0
-                    ? totalCount(title: language.total, amount: riderModel!.totalAmount! + payment!.driverTips!, isTotal: true)
-                    : totalCount(title: language.total, amount: riderModel!.totalAmount, isTotal: true),
-
-                // payment != null && payment!.driverTips != 0
-                //     ? totalCount(title: language.total, amount: riderModel!.subtotal! + payment!.driverTips!, isTotal: true)
-                //     : totalCount(title: language.total, amount: riderModel!.subtotal, isTotal: true),
+                // Text(language.priceDetail, style: boldTextStyle(size: 16)),
+                // SizedBox(height: 12),
+                // riderModel!.subtotal! <= riderModel!.minimumFare!
+                //     ? totalCount(title: language.minimumFare, amount: riderModel!.minimumFare)
+                //     : Column(
+                //         children: [
+                //           totalCount(title: language.basePrice, amount: riderModel!.baseFare, space: 8),
+                //           totalCount(title: language.distancePrice, amount: riderModel!.perDistanceCharge, space: 8),
+                //           totalCount(
+                //               title: language.minutePrice,
+                //               amount: riderModel!.perMinuteDriveCharge,
+                //               space: riderModel!.perMinuteWaitingCharge != 0
+                //                   ? 8
+                //                   : riderModel!.surgeCharge != 0
+                //                       ? 8
+                //                       : 0),
+                //           totalCount(title: language.waitingTimePrice, amount: riderModel!.perMinuteWaitingCharge, space: riderModel!.surgeCharge != 0 ? 8 : 0),
+                //         ],
+                //       ),
+                // SizedBox(height: 8),
+                // if (riderModel!.adminCommission != null && riderModel!.adminCommission! > 0) totalCount(title: language.platformFee, amount: riderModel!.adminCommission, space: 0),
+                // SizedBox(height: 8),
+                // if (riderModel!.surgeCharge != null && riderModel!.surgeCharge! > 0) totalCount(title: language.fixedPrice, amount: riderModel!.surgeCharge, space: 0),
+                // SizedBox(height: 8),
+                // if (riderModel!.couponData != null && riderModel!.couponDiscount != 0)
+                //   Row(
+                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //     children: [
+                //       Text(language.couponDiscount, style: secondaryTextStyle()),
+                //       Row(
+                //         children: [Text("-", style: boldTextStyle(color: Colors.green, size: 14)), printAmountWidget(amount: '${riderModel!.couponDiscount!.toStringAsFixed(digitAfterDecimal)}', color: Colors.green, size: 14, weight: FontWeight.normal)],
+                //       ),
+                //     ],
+                //   ),
+                // if (riderModel!.couponData != null && riderModel!.couponDiscount != 0) SizedBox(height: 8),
+                // if (riderModel!.tips != null) totalCount(title: language.tip, amount: riderModel!.tips),
+                // if (riderModel!.tips != null) SizedBox(height: 8),
+                // if (riderModel!.extraCharges!.isNotEmpty)
+                //   Column(
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children: [
+                //       Text(language.additionalFees, style: boldTextStyle()),
+                //       ...riderModel!.extraCharges!.map((e) {
+                //         return Padding(
+                //           padding: EdgeInsets.only(top: 4, bottom: 4),
+                //           child: Row(
+                //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //             children: [
+                //               Text(e.key.validate().capitalizeFirstLetter(), style: secondaryTextStyle()),
+                //               printAmountWidget(amount: '${e.value!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal, size: 14),
+                //             ],
+                //           ),
+                //         );
+                //       }).toList()
+                //     ],
+                //   ),
+                // Divider(thickness: 1),
+                // payment != null && payment!.driverTips != 0 ? totalCount(title: language.total, amount: riderModel!.totalAmount! + payment!.driverTips!, isTotal: true) : totalCount(title: language.total, amount: riderModel!.totalAmount, isTotal: true),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [Text(language.totalFare, style: boldTextStyle(size: 24)), printAmountWidget(amount: '${riderModel!.totalAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold, size: 24)],
+                ),
               ],
             ),
+    );
+  }
+
+  Widget extraChargeWidget() {
+    if (riderModel == null) {
+      return SizedBox();
+    }
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        border: Border.all(color: dividerColor.withValues(alpha: 0.5).withValues(alpha: 0.5)),
+        borderRadius: radius(),
+      ),
+      padding: EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(language.additionalChargesSummary, style: boldTextStyle(size: 16)),
+          SizedBox(height: 8),
+          Text(language.yourTripCompleted, style: secondaryTextStyle()),
+          Text(language.driverCoveredFollowingCharge, style: secondaryTextStyle()),
+          SizedBox(height: 14),
+          Text(language.additionalCharges, style: boldTextStyle(size: 16)),
+          SizedBox(height: 6),
+          if (riderModel!.extraCharges != null)
+            Column(
+              children: List.generate(riderModel!.extraCharges!.length, (index) {
+                final item = riderModel!.extraCharges![index];
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [Text(item.key.toString(), style: primaryTextStyle()), printAmountWidget(amount: '${item.value!.toStringAsFixed(digitAfterDecimal)}')],
+                  ),
+                );
+              }),
+            ),
+          Divider(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(language.totalAdditionalAmount, style: boldTextStyle()),
+              Row(
+                children: [printAmountWidget(amount: '${riderModel!.extraChargesAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal)],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,16 +1,5 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import '../manage_imports.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
-import 'package:taxi_booking/utils/Extensions/dataTypeExtensions.dart';
-
-import '../main.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/app_common.dart';
-import 'RestApis.dart';
 
 Map<String, String> buildHeaderTokens() {
   Map<String, String> header = {
@@ -57,7 +46,7 @@ Future<Response> buildHttpResponse(String endPoint, {HttpMethod method = HttpMet
         headers: header_extra != null ? jsonEncode(header_extra) : jsonEncode(headers),
         hasRequest: method == HttpMethod.POST || method == HttpMethod.PUT,
         request: jsonEncode(request),
-        statusCode: response.statusCode.validate(),
+        statusCode: response.statusCode,
         responseBody: response.body,
         methodType: method.name,
       );
@@ -80,41 +69,42 @@ void prettyPrintJson(String input) {
   prettyString.split('\n').forEach((element) => log(element));
 }
 
-void apiURLResponseLog(
-    {String url = "", String endPoint = "", String headers = "", String request = "", int statusCode = 0, dynamic responseBody = "", String methodType = "", bool hasRequest = false}) {
+void apiURLResponseLog({String url = "", String endPoint = "", String headers = "", String request = "", int statusCode = 0, dynamic responseBody = "", String methodType = "", bool hasRequest = false}) {
   // if (kReleaseMode) return;
   log("\u001B[39m \u001b[96m┌───────────────────────────────────────────────────────────────────────────────────────────────────────┐\u001B[39m");
+  log("\u001B[0   m");
   log("\u001B[39m \u001b[96m Time: ${DateTime.now()}\u001B[39m");
   log("\u001b[31m Url: \u001B[39m $url");
   log("\u001b[31m Header: \u001B[39m \u001b[96m$headers\u001B[39m");
   if (request.isNotEmpty) log("\u001b[31m Request: \u001B[39m \u001b[96m$request\u001B[39m");
-  log("${statusCode.isSuccessful() ? "\u001b[32m" : "\u001b[31m"}");
-  log('Response ($methodType) $statusCode ${statusCode.isSuccessful() ? "\u001b[32m" : "\u001b[31m"} ');
+  log("${statusCode == 200 ? "\u001b[32m" : "\u001b[31m"}");
+  log('Response ($methodType) $statusCode ${statusCode == 200 ? "\u001b[32m" : "\u001b[31m"} ');
   prettyPrintJson(responseBody);
-  log("\u001B[0m");
+  log("\u001B[0   m");
   log("\u001B[39m \u001b[96m└───────────────────────────────────────────────────────────────────────────────────────────────────────┘\u001B[39m");
 }
-//region Common
 
+//region Common
 Future handleResponse(Response response, [bool? avoidTokenError]) async {
   if (!await isNetworkAvailable()) {
     throw 'Your internet is not working';
   }
   if (response.statusCode == 401) {
-    if (appStore.isLoggedIn) {
-      Map req = {
-        'email': sharedPref.getString(USER_EMAIL),
-        'password': sharedPref.getString(USER_PASSWORD),
-      };
-
-      await logInApi(req).then((value) {
-        throw 'Please try again.';
-      }).catchError((e) {
-        throw TokenException(e);
-      });
-    } else {
-      throw '';
-    }
+    logOutSuccess();
+    // if (appStore.isLoggedIn) {
+    //   Map req = {
+    //     'email': sharedPref.getString(USER_EMAIL),
+    //     'password': sharedPref.getString(USER_PASSWORD),
+    //   };
+    //
+    //   await logInApi(req).then((value) {
+    //     throw 'Please try again.';
+    //   }).catchError((e) {
+    //     throw TokenException(e);
+    //   });
+    // } else {
+    //   throw '';
+    // }
   }
 
   if (response.statusCode == 200) {

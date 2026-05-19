@@ -1,9 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:taxi_booking/utils/Extensions/app_common.dart';
-
-import '../model/FRideBookingModel.dart';
-import '../utils/Constants.dart';
-import 'BaseServices.dart';
+import '../manage_imports.dart';
 
 class RideService extends BaseService {
   FirebaseFirestore fireStore = FirebaseFirestore.instance;
@@ -14,7 +9,11 @@ class RideService extends BaseService {
   }
 
   Future addRide(FRideBookingModel rideBookingModel, int? rideID) {
-    return rideRef.doc("ride_$rideID").set(rideBookingModel.toJson()).then((value) {}).catchError((e) {
+    return rideRef
+        .doc("ride_$rideID")
+        .set(rideBookingModel.toJson())
+        .then((value) {})
+        .catchError((e) {
       log('===error $e');
     });
   }
@@ -31,7 +30,10 @@ class RideService extends BaseService {
 
   Future<List<FRideBookingModel>> fetchRideFuture({int? rideId}) {
     return rideRef.where('ride_id', isEqualTo: rideId).get().then((value) {
-      return value.docs.map((e) => FRideBookingModel.fromJson(e.data() as Map<String, dynamic>)).toList();
+      return value.docs
+          .map((e) =>
+              FRideBookingModel.fromJson(e.data() as Map<String, dynamic>))
+          .toList();
     });
   }
 

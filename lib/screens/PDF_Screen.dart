@@ -1,18 +1,5 @@
-import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import '../manage_imports.dart';
 import 'package:http/http.dart' as http;
-import 'package:internet_file/internet_file.dart';
-import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdfx/pdfx.dart' as pdf;
-import 'package:pdfx/pdfx.dart';
-
-import '../main.dart';
-import '../utils/Common.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
 
 class PDFViewer extends StatefulWidget {
   final String invoice;
@@ -36,7 +23,7 @@ class _PDFViewerState extends State<PDFViewer> {
   Future<void> viewPDF() async {
     try {
       pdfController = PdfController(
-        document: pdf.PdfDocument.openData(InternetFile.get(
+        document: PdfDocument.openData(InternetFile.get(
           "${widget.invoice}",
         )),
         initialPage: 0,
@@ -62,7 +49,7 @@ class _PDFViewerState extends State<PDFViewer> {
         await file.writeAsBytes(bytes, flush: true);
         appStore.setLoading(false);
         toast("invoice downloaded at ${file.path}");
-        final url = 'content://${file.path}';
+
         final filef = File(file.path);
         if (await filef.exists()) {
           OpenFile.open(file.path);

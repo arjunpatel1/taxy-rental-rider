@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import '../../manage_imports.dart';
 
-typedef BoolWidgetBuilder = Widget Function(BuildContext context, bool isHovering);
+typedef BoolWidgetBuilder = Widget Function(
+    BuildContext context, bool isHovering);
 
 /// Hover Widget is useful is web platform
 class HoverWidget extends StatefulWidget {

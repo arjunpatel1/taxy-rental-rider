@@ -11,6 +11,7 @@ class NearByDriverListModel {
   num? rating;
   String? status;
   String? service_marker;
+  num? currentHeading;
 
   NearByDriverListModel({
     this.displayName,
@@ -25,23 +26,24 @@ class NearByDriverListModel {
     this.longitude,
     this.rating,
     this.status,
+    this.currentHeading,
   });
 
   factory NearByDriverListModel.fromJson(Map<String, dynamic> json) {
     return NearByDriverListModel(
-      displayName: json['display_name'],
-      service_marker: json['service_marker'],
-      firstName: json['first_name'],
-      id: json['id'],
-      isAvailable: json['is_available'],
-      isOnline: json['is_online'],
-      lastLocationUpdateAt: json['last_location_update_at'],
-      lastName: json['last_name'],
-      latitude: json['latitude'],
-      longitude: json['longitude'],
-      rating: json['rating'],
-      status: json['status'],
-    );
+        displayName: json['display_name'],
+        service_marker: json['service_marker'],
+        firstName: json['first_name'],
+        id: json['id'],
+        isAvailable: json['is_available'],
+        isOnline: json['is_online'],
+        lastLocationUpdateAt: json['last_location_update_at'],
+        lastName: json['last_name'],
+        latitude: json['latitude'],
+        longitude: json['longitude'],
+        rating: json['rating'],
+        status: json['status'],
+        currentHeading: num.tryParse(json['currentHeading'].toString()));
   }
 
   Map<String, dynamic> toJson() {
@@ -58,6 +60,8 @@ class NearByDriverListModel {
     data['longitude'] = this.longitude;
     data['rating'] = this.rating;
     data['status'] = this.status;
+    data['currentHeading'] = this.currentHeading;
+
     return data;
   }
 }

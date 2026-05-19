@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Mighty Rider</string>
+	<string><YOUR_APP_NAME></string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Mighty Rider</string>
+	<string><YOUR_APP_NAME></string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -29,7 +29,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>YOUR_REVERSED_CLIENT_ID</string>
+				<string>com.googleusercontent.apps.522987428134-f8lkt3rai45nnpf2nhs90c51unt81mm7</string>
 			</array>
 		</dict>
 	</array>
@@ -49,21 +49,21 @@
 		<string>mqtt.tcp</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>Mighty Rider app requires access to the Camera to upload your profile photo.</string>
+	<string><YOUR_APP_NAME> app requires access to the Camera to upload your profile photo.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Looking for local tcp Bonjour service</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Mighty Rider  App uses your location to pick origins, destinations, and predict ride times</string>
+	<string><YOUR_APP_NAME>  App uses your location to pick origins, destinations, and predict ride times</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Mighty Rider requires address permission access to get the current location of the user.</string>
+	<string><YOUR_APP_NAME> requires address permission access to get the current location of the user.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Mighty Rider  requires address permission access to get the current location of the user.</string>
+	<string><YOUR_APP_NAME>  requires address permission access to get the current location of the user.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Mighty Rider  app requires access to microphone when you will be used to record your speech at time of  press the "Mic" button.</string>
+	<string><YOUR_APP_NAME>  app requires access to microphone when you will be used to record your speech at time of  press the "Mic" button.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Mighty Rider requires access to the photo library to upload your profile photo.</string>
+	<string><YOUR_APP_NAME> requires access to the photo library to upload your profile photo.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Mighty Rider requires access to the photo library to upload your profile photo.</string>
+	<string><YOUR_APP_NAME> requires access to the photo library to upload your profile photo.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

@@ -1,4 +1,4 @@
-import '../model/PaginationModel.dart';
+import '../manage_imports.dart';
 
 class PaymentListModel {
   List<PaymentModel>? data;
@@ -8,8 +8,12 @@ class PaymentListModel {
 
   factory PaymentListModel.fromJson(Map<String, dynamic> json) {
     return PaymentListModel(
-      data: json['data'] != null ? (json['data'] as List).map((i) => PaymentModel.fromJson(i)).toList() : null,
-      pagination: json['pagination'] != null ? PaginationModel.fromJson(json['pagination']) : null,
+      data: json['data'] != null
+          ? (json['data'] as List).map((i) => PaymentModel.fromJson(i)).toList()
+          : null,
+      pagination: json['pagination'] != null
+          ? PaginationModel.fromJson(json['pagination'])
+          : null,
     );
   }
 
@@ -56,9 +60,13 @@ class PaymentModel {
       gatewayLogo: json['gateway_image'],
       id: json['id'],
       isTest: json['is_test'],
-      liveValue: json['live_value'] != null ? LiveValue.fromJson(json['live_value']) : null,
+      liveValue: json['live_value'] != null
+          ? LiveValue.fromJson(json['live_value'])
+          : null,
       status: json['status'],
-      testValue: json['test_value'] != null ? LiveValue.fromJson(json['test_value']) : null,
+      testValue: json['test_value'] != null
+          ? LiveValue.fromJson(json['test_value'])
+          : null,
       title: json['title'],
       type: json['type'],
       updatedAt: json['updated_at'],

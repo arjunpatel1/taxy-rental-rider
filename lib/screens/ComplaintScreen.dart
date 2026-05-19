@@ -1,20 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-
-import '../../main.dart';
-import '../../model/ComplaintModel.dart';
-import '../../model/DriverRatting.dart';
-import '../../network/RestApis.dart';
-import '../../utils/Common.dart';
-import '../../utils/Extensions/app_common.dart';
-import '../../utils/Extensions/app_textfield.dart';
-import '../model/RiderModel.dart';
-import '../utils/Colors.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
-import 'ComplaintListScreen.dart';
+import '../manage_imports.dart';
 
 class ComplaintScreen extends StatefulWidget {
   final DriverRatting driverRatting;
@@ -94,7 +78,7 @@ class ComplaintScreenState extends State<ComplaintScreen> {
                   Container(
                     width: MediaQuery.of(context).size.width,
                     decoration: BoxDecoration(
-                      color: appStore.isDarkMode ? scaffoldSecondaryDark : primaryColor.withOpacity(0.05),
+                      color: appStore.isDarkMode ? scaffoldSecondaryDark : primaryColor.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     padding: EdgeInsets.all(12),
@@ -137,7 +121,7 @@ class ComplaintScreenState extends State<ComplaintScreen> {
                                     child: Container(
                                       margin: EdgeInsets.only(top: 4),
                                       padding: EdgeInsets.all(8),
-                                      decoration: BoxDecoration(color: primaryColor.withOpacity(0.9), borderRadius: BorderRadius.circular(defaultRadius)),
+                                      decoration: BoxDecoration(color: primaryColor.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(defaultRadius)),
                                       alignment: Alignment.topRight,
                                       child: Text(widget.complaintModel!.status.validate(), style: boldTextStyle(color: Colors.white)),
                                     ),
@@ -155,6 +139,7 @@ class ComplaintScreenState extends State<ComplaintScreen> {
                     decoration: inputDecoration(context, label: language.pleaseEnterSubject),
                     textFieldType: TextFieldType.NAME,
                     readOnly: widget.complaintModel != null ? true : false,
+                    textInputAction: TextInputAction.next,
                   ),
                   SizedBox(height: 16),
                   AppTextField(

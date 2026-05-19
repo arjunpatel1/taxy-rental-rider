@@ -35,8 +35,15 @@ const ic_my_wallet = 'images/my_wallet.png';
 const ic_update_bank_info = "images/ic_update_bank_info.png";
 const ic_emergency_contact = 'images/ic_emergency_contact.png';
 const ic_setting = 'images/ic_setting.png';
+const ic_faq = 'images/ic_faq.png';
 const ic_gallery = "images/ic_gallery.png";
 const ic_camera = "images/ic_camera.png";
+const ic_estimate = "images/estimate.png";
+
+const ic_reward = "images/ic_reward.png";
+const ic_earn = "images/ic_earn.png";
+const ic_scratch = "images/scratch.png";
+const ic_coin = "images/coin.png";
 
 const ic_history_img1 = 'images/icons/ic_new_ride_requested.png';
 const ic_history_img2 = 'images/icons/ic_accepted.png';
@@ -54,3 +61,4 @@ const locationAnim = "images/json_files/location-permissions.json";
 const bookingAnim = "images/json_files/booking.json";
 
 const languageJsonPath = "staticjson/keyword_list.json";
+const ic_refer_earn = 'images/json_files/refer_earn.json';

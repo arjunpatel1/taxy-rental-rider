@@ -1,8 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-
-import '../utils/Colors.dart';
-import '../utils/Extensions/app_common.dart';
+import '../manage_imports.dart';
 
 class TermsConditionScreen extends StatefulWidget {
   final String? title;
@@ -18,11 +14,6 @@ class TermsConditionScreenState extends State<TermsConditionScreen> {
   @override
   void initState() {
     super.initState();
-    init();
-  }
-
-  void init() async {
-    //
   }
 
   @override
@@ -36,9 +27,8 @@ class TermsConditionScreenState extends State<TermsConditionScreen> {
       appBar: AppBar(
         title: Text(widget.title!, style: boldTextStyle(color: appTextPrimaryColorWhite)),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: HtmlWidget("${widget.subtitle}"),
+      body: InAppWebView(
+        initialUrlRequest: URLRequest(url: WebUri(widget.subtitle == null ? 'https://www.google.com' : widget.subtitle ?? '')),
       ),
     );
   }

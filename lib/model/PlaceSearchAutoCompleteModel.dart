@@ -1,12 +1,10 @@
-// To parse this JSON data, do
-//
-//     final modelSearchPlaceRes = modelSearchPlaceResFromJson(jsonString);
+import '../manage_imports.dart';
 
-import 'dart:convert';
+ModelSearchPlaceRes modelSearchPlaceResFromJson(String str) =>
+    ModelSearchPlaceRes.fromJson(json.decode(str));
 
-ModelSearchPlaceRes modelSearchPlaceResFromJson(String str) => ModelSearchPlaceRes.fromJson(json.decode(str));
-
-String modelSearchPlaceResToJson(ModelSearchPlaceRes data) => json.encode(data.toJson());
+String modelSearchPlaceResToJson(ModelSearchPlaceRes data) =>
+    json.encode(data.toJson());
 
 class ModelSearchPlaceRes {
   List<Suggestion>? suggestions;
@@ -15,13 +13,19 @@ class ModelSearchPlaceRes {
     this.suggestions,
   });
 
-  factory ModelSearchPlaceRes.fromJson(Map<String, dynamic> json) => ModelSearchPlaceRes(
-    suggestions: json["suggestions"] == null ? [] : List<Suggestion>.from(json["suggestions"]!.map((x) => Suggestion.fromJson(x))),
-  );
+  factory ModelSearchPlaceRes.fromJson(Map<String, dynamic> json) =>
+      ModelSearchPlaceRes(
+        suggestions: json["suggestions"] == null
+            ? []
+            : List<Suggestion>.from(
+                json["suggestions"]!.map((x) => Suggestion.fromJson(x))),
+      );
 
   Map<String, dynamic> toJson() => {
-    "suggestions": suggestions == null ? [] : List<dynamic>.from(suggestions!.map((x) => x.toJson())),
-  };
+        "suggestions": suggestions == null
+            ? []
+            : List<dynamic>.from(suggestions!.map((x) => x.toJson())),
+      };
 }
 
 class Suggestion {
@@ -32,12 +36,14 @@ class Suggestion {
   });
 
   factory Suggestion.fromJson(Map<String, dynamic> json) => Suggestion(
-    placePrediction: json["placePrediction"] == null ? null : PlacePrediction.fromJson(json["placePrediction"]),
-  );
+        placePrediction: json["placePrediction"] == null
+            ? null
+            : PlacePrediction.fromJson(json["placePrediction"]),
+      );
 
   Map<String, dynamic> toJson() => {
-    "placePrediction": placePrediction?.toJson(),
-  };
+        "placePrediction": placePrediction?.toJson(),
+      };
 }
 
 class PlacePrediction {
@@ -55,21 +61,26 @@ class PlacePrediction {
     this.types,
   });
 
-  factory PlacePrediction.fromJson(Map<String, dynamic> json) => PlacePrediction(
-    place: json["place"],
-    placeId: json["placeId"],
-    text: json["text"] == null ? null : MyText.fromJson(json["text"]),
-    structuredFormat: json["structuredFormat"] == null ? null : StructuredFormat.fromJson(json["structuredFormat"]),
-    types: json["types"] == null ? [] : List<String>.from(json["types"]!.map((x) => x)),
-  );
+  factory PlacePrediction.fromJson(Map<String, dynamic> json) =>
+      PlacePrediction(
+        place: json["place"],
+        placeId: json["placeId"],
+        text: json["text"] == null ? null : MyText.fromJson(json["text"]),
+        structuredFormat: json["structuredFormat"] == null
+            ? null
+            : StructuredFormat.fromJson(json["structuredFormat"]),
+        types: json["types"] == null
+            ? []
+            : List<String>.from(json["types"]!.map((x) => x)),
+      );
 
   Map<String, dynamic> toJson() => {
-    "place": place,
-    "placeId": placeId,
-    "text": text?.toJson(),
-    "structuredFormat": structuredFormat?.toJson(),
-    "types": types == null ? [] : List<dynamic>.from(types!.map((x) => x)),
-  };
+        "place": place,
+        "placeId": placeId,
+        "text": text?.toJson(),
+        "structuredFormat": structuredFormat?.toJson(),
+        "types": types == null ? [] : List<dynamic>.from(types!.map((x) => x)),
+      };
 }
 
 class StructuredFormat {
@@ -81,15 +92,19 @@ class StructuredFormat {
     this.secondaryText,
   });
 
-  factory StructuredFormat.fromJson(Map<String, dynamic> json) => StructuredFormat(
-    mainText: json["mainText"] == null ? null : MyText.fromJson(json["mainText"]),
-    secondaryText: json["secondaryText"] == null ? null : SecondaryText.fromJson(json["secondaryText"]),
-  );
+  factory StructuredFormat.fromJson(Map<String, dynamic> json) =>
+      StructuredFormat(
+        mainText:
+            json["mainText"] == null ? null : MyText.fromJson(json["mainText"]),
+        secondaryText: json["secondaryText"] == null
+            ? null
+            : SecondaryText.fromJson(json["secondaryText"]),
+      );
 
   Map<String, dynamic> toJson() => {
-    "mainText": mainText?.toJson(),
-    "secondaryText": secondaryText?.toJson(),
-  };
+        "mainText": mainText?.toJson(),
+        "secondaryText": secondaryText?.toJson(),
+      };
 }
 
 class MyText {
@@ -102,14 +117,18 @@ class MyText {
   });
 
   factory MyText.fromJson(Map<String, dynamic> json) => MyText(
-    text: json["text"],
-    matches: json["matches"] == null ? [] : List<Match>.from(json["matches"]!.map((x) => Match.fromJson(x))),
-  );
+        text: json["text"],
+        matches: json["matches"] == null
+            ? []
+            : List<Match>.from(json["matches"]!.map((x) => Match.fromJson(x))),
+      );
 
   Map<String, dynamic> toJson() => {
-    "text": text,
-    "matches": matches == null ? [] : List<dynamic>.from(matches!.map((x) => x.toJson())),
-  };
+        "text": text,
+        "matches": matches == null
+            ? []
+            : List<dynamic>.from(matches!.map((x) => x.toJson())),
+      };
 }
 
 class Match {
@@ -120,12 +139,12 @@ class Match {
   });
 
   factory Match.fromJson(Map<String, dynamic> json) => Match(
-    endOffset: json["endOffset"],
-  );
+        endOffset: json["endOffset"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "endOffset": endOffset,
-  };
+        "endOffset": endOffset,
+      };
 }
 
 class SecondaryText {
@@ -136,10 +155,10 @@ class SecondaryText {
   });
 
   factory SecondaryText.fromJson(Map<String, dynamic> json) => SecondaryText(
-    text: json["text"],
-  );
+        text: json["text"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "text": text,
-  };
+        "text": text,
+      };
 }

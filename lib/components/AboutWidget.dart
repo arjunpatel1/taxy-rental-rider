@@ -1,12 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:taxi_booking/utils/Constants.dart';
-
-import '../main.dart';
-import '../model/UserDetailModel.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../manage_imports.dart';
 
 class AboutWidget extends StatefulWidget {
   final UserData? userData;
@@ -21,10 +13,7 @@ class AboutWidgetState extends State<AboutWidget> {
   @override
   void initState() {
     super.initState();
-    init();
   }
-
-  void init() async {}
 
   @override
   void setState(fn) {
@@ -50,7 +39,8 @@ class AboutWidgetState extends State<AboutWidget> {
                       },
                       child: Container(
                         padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: primaryColor),
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle, color: primaryColor),
                         child: Icon(Icons.close, size: 18, color: Colors.white),
                       ),
                     ),
@@ -62,16 +52,22 @@ class AboutWidgetState extends State<AboutWidget> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(defaultRadius),
-                      child: commonCachedNetworkImage(widget.userData!.profileImage.validate(), height: 45, width: 45, fit: BoxFit.cover),
+                      child: commonCachedNetworkImage(
+                          widget.userData!.profileImage.validate(),
+                          height: 45,
+                          width: 45,
+                          fit: BoxFit.cover),
                     ),
                     SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 4),
-                        Text(widget.userData!.firstName.validate(), style: boldTextStyle(size: 14)),
+                        Text(widget.userData!.firstName.validate(),
+                            style: boldTextStyle(size: 14)),
                         SizedBox(height: 4),
-                        Text(widget.userData!.email.validate(), style: secondaryTextStyle()),
+                        Text(widget.userData!.email.validate(),
+                            style: secondaryTextStyle()),
                       ],
                     ),
                   ],
@@ -81,7 +77,8 @@ class AboutWidgetState extends State<AboutWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(language.carModel, style: primaryTextStyle(size: 14)),
-                    Text(widget.userData!.userDetail!.carModel!.validate(), style: secondaryTextStyle()),
+                    Text(widget.userData!.userDetail!.carModel!.validate(),
+                        style: secondaryTextStyle()),
                   ],
                 ),
                 SizedBox(
@@ -90,8 +87,11 @@ class AboutWidgetState extends State<AboutWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(language.lblCarNumberPlate, style: primaryTextStyle(size: 14)),
-                    Text(widget.userData!.userDetail!.carPlateNumber!.validate(), style: secondaryTextStyle()),
+                    Text(language.lblCarNumberPlate,
+                        style: primaryTextStyle(size: 14)),
+                    Text(
+                        widget.userData!.userDetail!.carPlateNumber!.validate(),
+                        style: secondaryTextStyle()),
                   ],
                 ),
               ],

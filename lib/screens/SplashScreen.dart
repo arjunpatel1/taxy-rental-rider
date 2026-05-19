@@ -1,23 +1,4 @@
-import 'dart:convert';
-
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-
-import '../../screens/WalkThroughtScreen.dart';
-import '../../utils/Colors.dart';
-import '../../utils/Constants.dart';
-import '../../utils/Extensions/app_common.dart';
-import '../languageConfiguration/LanguageDataConstant.dart';
-import '../languageConfiguration/ServerLanguageResponse.dart';
-import '../main.dart';
-import '../network/RestApis.dart';
-import '../utils/Common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
-import '../utils/images.dart';
-import 'DashBoardScreen.dart';
-import 'EditProfileScreen.dart';
-import 'SignInScreen.dart';
+import '../manage_imports.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -29,6 +10,7 @@ class SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     _checkNotifyPermission();
+    getAppSettingsData();
   }
 
   void init() async {
@@ -39,31 +21,37 @@ class SplashScreenState extends State<SplashScreen> {
     await Future.delayed(Duration(seconds: 1));
     if (sharedPref.getBool(IS_FIRST_TIME) ?? true) {
       await Geolocator.requestPermission().then((value) async {
-        launchScreen(context, WalkThroughScreen(), pageRouteAnimation: PageRouteAnimation.Slide, isNewTask: true);
+        launchScreen(context, WalkThroughScreen(),
+            pageRouteAnimation: PageRouteAnimation.Slide, isNewTask: true);
         Geolocator.getCurrentPosition().then((value) {
           sharedPref.setDouble(LATITUDE, value.latitude);
           sharedPref.setDouble(LONGITUDE, value.longitude);
         });
       }).catchError((e) {
-        launchScreen(context, WalkThroughScreen(), pageRouteAnimation: PageRouteAnimation.Slide, isNewTask: true);
+        launchScreen(context, WalkThroughScreen(),
+            pageRouteAnimation: PageRouteAnimation.Slide, isNewTask: true);
       });
     } else {
       if (!appStore.isLoggedIn) {
-        launchScreen(context, SignInScreen(), pageRouteAnimation: PageRouteAnimation.Slide, isNewTask: true);
+        launchScreen(context, SignInScreen(),
+            pageRouteAnimation: PageRouteAnimation.Slide, isNewTask: true);
       } else {
         if (sharedPref.getString(CONTACT_NUMBER).validate().isEmptyOrNull) {
-          launchScreen(context, EditProfileScreen(isGoogle: true), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+          launchScreen(context, EditProfileScreen(isGoogle: true),
+              isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
         } else {
           getUserDetail(userId: sharedPref.getInt(USER_ID)).then((value) {
             appStore.setUserEmail(value.data!.email.validate());
             appStore.setUserName(value.data!.username.validate());
             appStore.setFirstName(value.data!.firstName.validate());
             appStore.setUserProfile(value.data!.profileImage.validate());
+            appStore.setReferralCode(value.data!.referralCode.validate());
 
             sharedPref.setString(USER_EMAIL, value.data!.email.validate());
             sharedPref.setString(FIRST_NAME, value.data!.firstName.validate());
             sharedPref.setString(LAST_NAME, value.data!.lastName.validate());
-            sharedPref.setString(USER_PROFILE_PHOTO, value.data!.profileImage.validate());
+            sharedPref.setString(
+                USER_PROFILE_PHOTO, value.data!.profileImage.validate());
 
             appStore.setLoading(false);
             setState(() {});
@@ -76,10 +64,14 @@ class SplashScreenState extends State<SplashScreen> {
               await Geolocator.getCurrentPosition().then((value) {
                 sharedPref.setDouble(LATITUDE, value.latitude);
                 sharedPref.setDouble(LONGITUDE, value.longitude);
-                launchScreen(context, DashBoardScreen(), pageRouteAnimation: PageRouteAnimation.Slide, isNewTask: true);
+                launchScreen(context, DashBoardScreen(),
+                    pageRouteAnimation: PageRouteAnimation.Slide,
+                    isNewTask: true);
               });
             }).catchError((e) {
-              launchScreen(context, DashBoardScreen(), pageRouteAnimation: PageRouteAnimation.Slide, isNewTask: true);
+              launchScreen(context, DashBoardScreen(),
+                  pageRouteAnimation: PageRouteAnimation.Slide,
+                  isNewTask: true);
             });
         }
       }
@@ -95,11 +87,20 @@ class SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: primaryColor,
+      appBar: AppBar(
+        toolbarHeight: 0,
+        backgroundColor: Colors.transparent,
+        systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarIconBrightness: Brightness.dark,
+            statusBarColor: Colors.transparent,
+            statusBarBrightness: Brightness.dark),
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(ic_logo_white, fit: BoxFit.contain, height: 150, width: 150),
+            Image.asset(ic_logo_white,
+                fit: BoxFit.contain, height: 150, width: 150),
             SizedBox(height: 16),
             Text(mAppName, style: boldTextStyle(color: Colors.white, size: 22)),
           ],
@@ -109,7 +110,8 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void _checkNotifyPermission() async {
-    String versionNo = sharedPref.getString(CURRENT_LAN_VERSION) ?? LanguageVersion;
+    String versionNo =
+        sharedPref.getString(CURRENT_LAN_VERSION) ?? LanguageVersion;
     await getLanguageList(versionNo).then((value) {
       appStore.setLoading(false);
       app_update_check = value.rider_version;
@@ -119,13 +121,16 @@ class SplashScreenState extends State<SplashScreen> {
           defaultServerLanguageData = value.data;
           performLanguageOperation(defaultServerLanguageData);
           setValue(LanguageJsonDataRes, value.toJson());
-          bool isSetLanguage = sharedPref.getBool(IS_SELECTED_LANGUAGE_CHANGE) ?? false;
+          bool isSetLanguage =
+              sharedPref.getBool(IS_SELECTED_LANGUAGE_CHANGE) ?? false;
           if (!isSetLanguage) {
             for (int i = 0; i < value.data!.length; i++) {
               if (value.data![i].isDefaultLanguage == 1) {
                 setValue(SELECTED_LANGUAGE_CODE, value.data![i].languageCode);
-                setValue(SELECTED_LANGUAGE_COUNTRY_CODE, value.data![i].countryCode);
-                appStore.setLanguage(value.data![i].languageCode!, context: context);
+                setValue(
+                    SELECTED_LANGUAGE_COUNTRY_CODE, value.data![i].countryCode);
+                appStore.setLanguage(value.data![i].languageCode!,
+                    context: context);
                 break;
               }
             }
@@ -139,7 +144,8 @@ class SplashScreenState extends State<SplashScreen> {
         String getJsonData = sharedPref.getString(LanguageJsonDataRes) ?? '';
 
         if (getJsonData.isNotEmpty) {
-          ServerLanguageResponse languageSettings = ServerLanguageResponse.fromJson(json.decode(getJsonData.trim()));
+          ServerLanguageResponse languageSettings =
+              ServerLanguageResponse.fromJson(json.decode(getJsonData.trim()));
           if (languageSettings.data!.length > 0) {
             defaultServerLanguageData = languageSettings.data;
             performLanguageOperation(defaultServerLanguageData);

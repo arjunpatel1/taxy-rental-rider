@@ -1,4 +1,4 @@
-import '../model/PaginationModel.dart';
+import '../manage_imports.dart';
 
 class ServiceModel {
   List<ServiceList>? data;
@@ -8,8 +8,12 @@ class ServiceModel {
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
     return ServiceModel(
-      data: json['data'] != null ? (json['data'] as List).map((i) => ServiceList.fromJson(i)).toList() : null,
-      pagination: json['pagination'] != null ? PaginationModel.fromJson(json['pagination']) : null,
+      data: json['data'] != null
+          ? (json['data'] as List).map((i) => ServiceList.fromJson(i)).toList()
+          : null,
+      pagination: json['pagination'] != null
+          ? PaginationModel.fromJson(json['pagination'])
+          : null,
     );
   }
 
@@ -146,7 +150,16 @@ class Region {
   String? timezone;
   String? updatedAt;
 
-  Region({this.createdAt, this.currencyCode, this.currencyName, this.distanceUnit, this.id, this.name, this.status, this.timezone, this.updatedAt});
+  Region(
+      {this.createdAt,
+      this.currencyCode,
+      this.currencyName,
+      this.distanceUnit,
+      this.id,
+      this.name,
+      this.status,
+      this.timezone,
+      this.updatedAt});
 
   factory Region.fromJson(Map<String, dynamic> json) {
     return Region(

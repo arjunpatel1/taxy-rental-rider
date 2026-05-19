@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import '../Constants.dart';
+import '../../manage_imports.dart';
 
 extension ContextExtensions on BuildContext {
   /// return screen size
@@ -71,7 +70,9 @@ extension ContextExtensions on BuildContext {
 
   bool isPhone() => MediaQuery.of(this).size.width < tabletBreakpointGlobal;
 
-  bool isTablet() => MediaQuery.of(this).size.width < desktopBreakpointGlobal && MediaQuery.of(this).size.width >= tabletBreakpointGlobal;
+  bool isTablet() =>
+      MediaQuery.of(this).size.width < desktopBreakpointGlobal &&
+      MediaQuery.of(this).size.width >= tabletBreakpointGlobal;
 
   bool isDesktop() => MediaQuery.of(this).size.width >= desktopBreakpointGlobal;
 

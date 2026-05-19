@@ -6,7 +6,9 @@ class WalletInfoModel {
   WalletInfoModel({this.walletData, this.minAmountToGetRide, this.totalAmount});
 
   WalletInfoModel.fromJson(Map<String, dynamic> json) {
-    walletData = json['wallet_data'] != null ? new WalletData.fromJson(json['wallet_data']) : null;
+    walletData = json['wallet_data'] != null
+        ? new WalletData.fromJson(json['wallet_data'])
+        : null;
     minAmountToGetRide = json['min_amount_to_get_ride'];
     totalAmount = json['total_amount'];
   }

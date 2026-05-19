@@ -1,28 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:taxi_booking/service/RideService.dart';
-
-import '../main.dart';
-import '../model/CurrentRequestModel.dart';
-import '../model/FRideBookingModel.dart';
-import '../network/RestApis.dart';
-import '../screens/RidePaymentDetailScreen.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/app_textfield.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
-import 'DashBoardScreen.dart';
+import '../manage_imports.dart';
 
 class ReviewScreen extends StatefulWidget {
   final Driver? driverData;
   final OnRideRequest rideRequest;
+  final bool? schedule_ride;
 
-  ReviewScreen({this.driverData, required this.rideRequest});
+  ReviewScreen(
+      {this.driverData, required this.rideRequest, this.schedule_ride});
 
   @override
   ReviewScreenState createState() => ReviewScreenState();
@@ -46,7 +30,9 @@ class ReviewScreenState extends State<ReviewScreen> {
   }
 
   void init() async {
-    appStore.walletPresetTipAmount.isNotEmpty ? appStore.setWalletTipAmount(appStore.walletPresetTipAmount) : appStore.setWalletTipAmount('10|20|50');
+    appStore.walletPresetTipAmount.isNotEmpty
+        ? appStore.setWalletTipAmount(appStore.walletPresetTipAmount)
+        : appStore.setWalletTipAmount('10|20|50');
   }
 
   Future<void> getCurrentRequest() async {
@@ -57,7 +43,9 @@ class ReviewScreenState extends State<ReviewScreen> {
         Future.delayed(
           Duration(seconds: 1),
           () {
-            launchScreen(context, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+            launchScreen(context, DashBoardScreen(),
+                isNewTask: true,
+                pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
           },
         );
       } else {
@@ -82,7 +70,8 @@ class ReviewScreenState extends State<ReviewScreen> {
   Future<void> userReviewData({bool? skip}) async {
     if (skip != true && !formKey.currentState!.validate()) return;
     hideKeyboard(context);
-    if (rattingData == 0 && skip != true) return toast(language.pleaseSelectRating);
+    if (rattingData == 0 && skip != true)
+      return toast(language.pleaseSelectRating);
     formKey.currentState!.save();
     appStore.setLoading(true);
     Map req = {
@@ -92,9 +81,19 @@ class ReviewScreenState extends State<ReviewScreen> {
       if (tipController.text.isNotEmpty) "tips": tipController.text,
     };
     await ratingReview(request: req).then((value) async {
-      if (tipController.text.isNotEmpty) await rideService.updateStatusOfRide(rideID: widget.rideRequest.id, req: {/*"tips": 1,*/ "on_stream_api_call": 0});
+      print(widget.rideRequest.id);
+      if (tipController.text.isNotEmpty)
+        await rideService.updateStatusOfRide(
+            rideID: widget.rideRequest.id,
+            req: {/*"tips": 1,*/ "on_stream_api_call": 0});
       appStore.setLoading(false);
-      getCurrentRequest();
+      if (widget.schedule_ride == true) {
+        print("back");
+        Navigator.pop(context);
+      } else {
+        print("not back");
+        getCurrentRequest();
+      }
     }).catchError((error) {
       appStore.setLoading(false);
       log(error.toString());
@@ -111,16 +110,20 @@ class ReviewScreenState extends State<ReviewScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(language.driverReview, style: boldTextStyle(color: appTextPrimaryColorWhite)),
+        title: Text(language.driverReview,
+            style: boldTextStyle(color: appTextPrimaryColorWhite)),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: MaterialButton(
-              shape: RoundedRectangleBorder(side: BorderSide(color: Colors.white), borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  side: BorderSide(color: Colors.white),
+                  borderRadius: BorderRadius.circular(12)),
               onPressed: () {
                 userReviewData(skip: true);
               },
-              child: Text(language.skip, style: boldTextStyle(color: Colors.white)),
+              child: Text(language.skip,
+                  style: boldTextStyle(color: Colors.white)),
             ),
           )
         ],
@@ -130,29 +133,38 @@ class ReviewScreenState extends State<ReviewScreen> {
           Form(
             key: formKey,
             child: SingleChildScrollView(
-              padding: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 16),
+              padding:
+                  EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
-                    child: Text('${language.howWasYourRide}', style: boldTextStyle()),
+                    child: Text('${language.howWasYourRide}',
+                        style: boldTextStyle()),
                   ),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(35),
-                        child: commonCachedNetworkImage(widget.driverData!.profileImage.validate(), height: 60, width: 60, fit: BoxFit.cover),
+                        child: commonCachedNetworkImage(
+                            widget.driverData!.profileImage.validate(),
+                            height: 60,
+                            width: 60,
+                            fit: BoxFit.cover),
                       ),
                       SizedBox(width: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // SizedBox(height: 8),
-                          Text('${widget.driverData!.firstName.validate().capitalizeFirstLetter()} ${widget.driverData!.lastName.validate().capitalizeFirstLetter()}', style: boldTextStyle()),
+                          Text(
+                              '${widget.driverData!.firstName.validate().capitalizeFirstLetter()} ${widget.driverData!.lastName.validate().capitalizeFirstLetter()}',
+                              style: boldTextStyle()),
                           // SizedBox(height: 4),
-                          Text('${widget.driverData!.email.validate()}', style: primaryTextStyle()),
+                          Text('${widget.driverData!.email.validate()}',
+                              style: primaryTextStyle()),
                         ],
                       ),
                     ],
@@ -165,7 +177,8 @@ class ReviewScreenState extends State<ReviewScreen> {
                     wrapAlignment: WrapAlignment.spaceBetween,
                     itemCount: 5,
                     itemPadding: EdgeInsets.symmetric(horizontal: 8),
-                    itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
+                    itemBuilder: (context, _) =>
+                        Icon(Icons.star, color: Colors.amber),
                     onRatingUpdate: (rating) {
                       rattingData = rating;
                     },
@@ -175,16 +188,21 @@ class ReviewScreenState extends State<ReviewScreen> {
                   SizedBox(height: 16),
                   AppTextField(
                     controller: reviewController,
-                    decoration: inputDecoration(context, label: language.writeYourComments),
+                    decoration: inputDecoration(context,
+                        label: language.writeYourComments),
                     textFieldType: TextFieldType.NAME,
                     minLines: 2,
                     maxLines: 5,
                   ),
                   StreamBuilder(
-                      stream: rideService.fetchRide(rideId: widget.rideRequest.id),
+                      stream:
+                          rideService.fetchRide(rideId: widget.rideRequest.id),
                       builder: (context, snap) {
                         if (snap.hasData) {
-                          List<FRideBookingModel> data = snap.data!.docs.map((e) => FRideBookingModel.fromJson(e.data() as Map<String, dynamic>)).toList();
+                          List<FRideBookingModel> data = snap.data!.docs
+                              .map((e) => FRideBookingModel.fromJson(
+                                  e.data() as Map<String, dynamic>))
+                              .toList();
                           if (data.length != 0)
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +211,8 @@ class ReviewScreenState extends State<ReviewScreen> {
                                 if (widget.rideRequest.paymentStatus != PAID)
                                   Row(
                                     children: [
-                                      Text(language.wouldYouLikeToAddTip, style: boldTextStyle()),
+                                      Text(language.wouldYouLikeToAddTip,
+                                          style: boldTextStyle()),
                                       SizedBox(width: 16),
                                       if (tipController.text.isNotEmpty)
                                         inkWellWidget(
@@ -202,34 +221,60 @@ class ReviewScreenState extends State<ReviewScreen> {
                                             tipController.clear();
                                             setState(() {});
                                           },
-                                          child: Icon(Icons.clear_all, size: 30, color: primaryColor),
+                                          child: Icon(Icons.clear_all,
+                                              size: 30, color: primaryColor),
                                         )
                                     ],
                                   ),
-                                if (widget.rideRequest.paymentStatus != PAID) SizedBox(height: 10),
+                                if (widget.rideRequest.paymentStatus != PAID)
+                                  SizedBox(height: 10),
                                 if (widget.rideRequest.paymentStatus != PAID)
                                   Wrap(
                                     spacing: 10,
                                     runSpacing: 16,
-                                    children: appStore.walletPresetTipAmount.split('|').map((e) {
+                                    children: appStore.walletPresetTipAmount
+                                        .split('|')
+                                        .map((e) {
                                       return inkWellWidget(
                                         onTap: () {
-                                          currentIndex = appStore.walletPresetTipAmount.split('|').indexOf(e);
+                                          currentIndex = appStore
+                                              .walletPresetTipAmount
+                                              .split('|')
+                                              .indexOf(e);
                                           tipController.text = e;
-                                          tipController.selection = TextSelection.fromPosition(TextPosition(offset: e.toString().length));
+                                          tipController.selection =
+                                              TextSelection.fromPosition(
+                                                  TextPosition(
+                                                      offset:
+                                                          e.toString().length));
                                           setState(() {});
                                         },
                                         child: Container(
-                                          padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 6, horizontal: 10),
                                           decoration: BoxDecoration(
-                                              color: currentIndex == appStore.walletPresetTipAmount.split('|').indexOf(e) ? primaryColor : primaryColor.withOpacity(0.4),
-                                              borderRadius: BorderRadius.circular(defaultRadius)),
-                                          child: printAmountWidget(amount: e, color: Colors.white, size: 14, weight: FontWeight.normal),
+                                              color: currentIndex ==
+                                                      appStore
+                                                          .walletPresetTipAmount
+                                                          .split('|')
+                                                          .indexOf(e)
+                                                  ? primaryColor
+                                                  : primaryColor.withValues(
+                                                      alpha: 0.4),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      defaultRadius)),
+                                          child: printAmountWidget(
+                                              amount: e,
+                                              color: Colors.white,
+                                              size: 14,
+                                              weight: FontWeight.normal),
                                         ),
                                       );
                                     }).toList(),
                                   ),
-                                if (widget.rideRequest.paymentStatus != PAID) SizedBox(height: 16),
+                                if (widget.rideRequest.paymentStatus != PAID)
+                                  SizedBox(height: 16),
                                 if (widget.rideRequest.paymentStatus != PAID)
                                   Column(
                                     children: [
@@ -238,19 +283,29 @@ class ReviewScreenState extends State<ReviewScreen> {
                                         child: AppTextField(
                                           textFieldType: TextFieldType.PHONE,
                                           inputFormatters: [
-                                            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                                            FilteringTextInputFormatter.allow(
+                                                RegExp(r'^\d*\.?\d*$')),
                                           ],
                                           controller: tipController,
                                           isValidationRequired: false,
-                                          decoration: inputDecoration(context, label: language.addMoreTip),
+                                          decoration: inputDecoration(context,
+                                              label: language.addMoreTip),
                                         ),
                                       ),
                                       if (!isMoreTip)
                                         inkWellWidget(
                                             child: Container(
-                                              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                                              decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(defaultRadius)),
-                                              child: Text(language.addMore, style: boldTextStyle(color: Colors.white, size: 14)),
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 8, horizontal: 10),
+                                              decoration: BoxDecoration(
+                                                  color: primaryColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          defaultRadius)),
+                                              child: Text(language.addMore,
+                                                  style: boldTextStyle(
+                                                      color: Colors.white,
+                                                      size: 14)),
                                             ),
                                             onTap: () {
                                               isMoreTip = true;

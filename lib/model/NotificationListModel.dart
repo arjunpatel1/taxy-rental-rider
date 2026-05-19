@@ -7,7 +7,11 @@ class NotificationListModel {
   factory NotificationListModel.fromJson(Map<String, dynamic> json) {
     return NotificationListModel(
       allUnreadCount: json['all_unread_count'],
-      notificationData: json['notification_data'] != null ? (json['notification_data'] as List).map((i) => NotificationData.fromJson(i)).toList() : null,
+      notificationData: json['notification_data'] != null
+          ? (json['notification_data'] as List)
+              .map((i) => NotificationData.fromJson(i))
+              .toList()
+          : null,
     );
   }
 
@@ -15,7 +19,8 @@ class NotificationListModel {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['all_unread_count'] = this.allUnreadCount;
     if (this.notificationData != null) {
-      data['notification_data'] = this.notificationData!.map((v) => v.toJson()).toList();
+      data['notification_data'] =
+          this.notificationData!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -26,15 +31,20 @@ class NotificationData {
   String? createdAt;
   String? id;
   String? readAt;
+  int? isRead;
 
-  NotificationData({this.data, this.createdAt, this.id, this.readAt});
+  NotificationData(
+      {this.data, this.createdAt, this.isRead, this.id, this.readAt});
 
   factory NotificationData.fromJson(Map<String, dynamic> json) {
     return NotificationData(
-      data: json['data'] != null ? NotificationOrderData.fromJson(json['data']) : null,
+      data: json['data'] != null
+          ? NotificationOrderData.fromJson(json['data'])
+          : null,
       createdAt: json['created_at'],
       id: json['id'],
       readAt: json['read_at'],
+      isRead: int.tryParse(json['is_read'].toString()),
     );
   }
 
@@ -46,6 +56,7 @@ class NotificationData {
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
+    data['is_read'] = this.isRead;
     return data;
   }
 }
@@ -57,7 +68,8 @@ class NotificationOrderData {
   String? subject;
   String? type;
 
-  NotificationOrderData({this.id,this.complaintId, this.message, this.subject, this.type});
+  NotificationOrderData(
+      {this.id, this.complaintId, this.message, this.subject, this.type});
 
   factory NotificationOrderData.fromJson(Map<String, dynamic> json) {
     return NotificationOrderData(

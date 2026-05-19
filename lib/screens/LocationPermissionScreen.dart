@@ -1,18 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:lottie/lottie.dart';
-import 'package:taxi_booking/utils/images.dart';
-
-import '../main.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/app_common.dart';
+import '../manage_imports.dart';
 
 class LocationPermissionScreen extends StatefulWidget {
   @override
-  LocationPermissionScreenState createState() => LocationPermissionScreenState();
+  LocationPermissionScreenState createState() =>
+      LocationPermissionScreenState();
 }
 
 class LocationPermissionScreenState extends State<LocationPermissionScreen> {
@@ -45,11 +36,15 @@ class LocationPermissionScreenState extends State<LocationPermissionScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Lottie.asset(locationAnim, height: 200, width: 200, fit: BoxFit.cover),
+                Lottie.asset(locationAnim,
+                    height: 200, width: 200, fit: BoxFit.cover),
                 SizedBox(height: 32),
-                Text(language.mostReliableMightyRiderApp, style: boldTextStyle(size: 18)),
+                Text(language.mostReliableMightyRiderApp,
+                    style: boldTextStyle(size: 18)),
                 SizedBox(height: 16),
-                Text(language.toEnjoyYourRideExperiencePleaseAllowPermissions, style: secondaryTextStyle(color: primaryColor), textAlign: TextAlign.center),
+                Text(language.toEnjoyYourRideExperiencePleaseAllowPermissions,
+                    style: secondaryTextStyle(color: primaryColor),
+                    textAlign: TextAlign.center),
                 SizedBox(height: 32),
                 AppButtonWidget(
                   width: MediaQuery.of(context).size.width,
@@ -58,8 +53,9 @@ class LocationPermissionScreenState extends State<LocationPermissionScreen> {
                   color: primaryColor,
                   onTap: () async {
                     if (await checkPermission()) {
-                      if (Navigator.canPop(navigatorKey.currentState!.overlay!.context)) {
-                        Navigator.pop(navigatorKey.currentState!.overlay!.context);
+                      if (Navigator.canPop(
+                          navigatorKey.currentState!.overlay!.context)) {
+                        // Navigator.pop(navigatorKey.currentState!.overlay!.context);
                       }
                       await Geolocator.getCurrentPosition().then((value) {
                         sharedPref.setDouble(LATITUDE, value.latitude);

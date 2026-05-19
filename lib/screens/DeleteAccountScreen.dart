@@ -1,15 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-
-import '../main.dart';
-import '../network/RestApis.dart';
-import '../service/AuthService1.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/ConformationDialog.dart';
-import '../utils/Extensions/app_common.dart';
+import '../manage_imports.dart';
 
 class DeleteAccountScreen extends StatefulWidget {
   @override

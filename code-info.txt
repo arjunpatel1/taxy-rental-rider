@@ -1,0 +1,8 @@
+Product: <YOUR_APP_NAME>
+Code Canyon Version: 20
+Version Release Date: --:--:--
+Supported Flutter Version: 3.32.7
+XCode Version: 16.3 (16E140)
+Android Studio: Android Studio Meerkat | 2024.3.1 Patch 1 | Runtime version: 21.0.5+-13047016-b750.29 amd64
+CompileSdkVersion 35
+MinSdkVersion 26

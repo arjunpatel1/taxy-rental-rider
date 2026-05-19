@@ -1,9 +1,4 @@
-import 'package:flutter/material.dart';
-import '../../utils/Extensions/dataTypeExtensions.dart';
-import '../Colors.dart';
-import '../Common.dart';
-import '../Constants.dart';
-import 'app_common.dart';
+import '../../manage_imports.dart';
 
 /// Default App Button
 class AppButtonWidget extends StatefulWidget {
@@ -51,13 +46,15 @@ class AppButtonWidget extends StatefulWidget {
   _AppButtonWidgetState createState() => _AppButtonWidgetState();
 }
 
-class _AppButtonWidgetState extends State<AppButtonWidget> with SingleTickerProviderStateMixin {
+class _AppButtonWidgetState extends State<AppButtonWidget>
+    with SingleTickerProviderStateMixin {
   double _scale = 1.0;
   AnimationController? _controller;
 
   @override
   void initState() {
-    if (widget.enableScaleAnimation.validate(value: enableAppButtonScaleAnimationGlobal)) {
+    if (widget.enableScaleAnimation
+        .validate(value: enableAppButtonScaleAnimationGlobal)) {
       _controller = AnimationController(
         vsync: this,
         duration: Duration(
@@ -84,7 +81,8 @@ class _AppButtonWidgetState extends State<AppButtonWidget> with SingleTickerProv
       _scale = 1 - _controller!.value;
     }
 
-    if (widget.enableScaleAnimation.validate(value: enableAppButtonScaleAnimationGlobal)) {
+    if (widget.enableScaleAnimation
+        .validate(value: enableAppButtonScaleAnimationGlobal)) {
       return Listener(
         onPointerDown: (details) {
           _controller?.forward();
@@ -110,7 +108,9 @@ class _AppButtonWidgetState extends State<AppButtonWidget> with SingleTickerProv
         child: MaterialButton(
           minWidth: widget.width,
           padding: widget.padding ?? dynamicAppButtonPadding(context),
-          onPressed: widget.enabled.validate(value: true) ? widget.onTap as void Function()? : null,
+          onPressed: widget.enabled.validate(value: true)
+              ? widget.onTap as void Function()?
+              : null,
           color: widget.color ?? appButtonBackgroundColorGlobal,
           child: widget.child ??
               Text(

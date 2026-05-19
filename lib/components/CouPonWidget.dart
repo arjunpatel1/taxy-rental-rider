@@ -1,17 +1,9 @@
-import 'package:dotted_border/dotted_border.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-
-import '../../main.dart';
-import '../../network/RestApis.dart';
-import '../../utils/Extensions/dataTypeExtensions.dart';
-import '../model/CouponData.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/app_common.dart';
+import '../manage_imports.dart';
 
 class CouPonWidget extends StatefulWidget {
+  final int? servicesId;
+
+  CouPonWidget(this.servicesId, {Key? key}) : super(key: key);
   @override
   CouPonWidgetState createState() => CouPonWidgetState();
 }
@@ -28,7 +20,8 @@ class CouPonWidgetState extends State<CouPonWidget> {
     super.initState();
     init();
     scrollController.addListener(() {
-      if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
+      if (scrollController.position.pixels ==
+          scrollController.position.maxScrollExtent) {
         if (currentPage < totalPage) {
           appStore.setLoading(true);
           currentPage++;
@@ -44,6 +37,7 @@ class CouPonWidgetState extends State<CouPonWidget> {
   void init() async {
     await getCouponList(
       page: currentPage,
+      serviceId: widget.servicesId!,
     ).then((value) {
       appStore.setLoading(false);
       currentPage = value.pagination!.currentPage!;
@@ -72,7 +66,11 @@ class CouPonWidgetState extends State<CouPonWidget> {
           children: [
             Container(
               padding: EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.only(topLeft: radiusCircular(defaultRadius), topRight: radiusCircular(defaultRadius))),
+              decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.only(
+                      topLeft: radiusCircular(defaultRadius),
+                      topRight: radiusCircular(defaultRadius))),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -100,19 +98,23 @@ class CouPonWidgetState extends State<CouPonWidget> {
                       controller: scrollController,
                       padding: EdgeInsets.zero,
                       itemCount: couponData.length,
-                      // shrinkWrap: true,
-                      // physics: NeverScrollableScrollPhysics(),
                       itemBuilder: (_, index) {
                         CouponData data = couponData[index];
                         return Container(
                           decoration: BoxDecoration(
                               color: Colors.white,
-                              // border: Border.all(color: Colors.grey.shade300),
-                              boxShadow: [BoxShadow(color: Colors.black45, spreadRadius: 1, blurRadius: 1)],
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.black45,
+                                    spreadRadius: 1,
+                                    blurRadius: 1)
+                              ],
                               borderRadius: BorderRadius.circular(14)),
-                          margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          margin:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           child: Padding(
-                            padding: EdgeInsets.only(left: 8, right: 8, top: 8, bottom: 8),
+                            padding: EdgeInsets.only(
+                                left: 8, right: 8, top: 8, bottom: 8),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,11 +127,17 @@ class CouPonWidgetState extends State<CouPonWidget> {
                                       borderType: BorderType.Oval,
                                       strokeWidth: 2.5,
                                       padding: EdgeInsets.all(8),
-                                      child: Text(data.code.validate(), style: boldTextStyle()),
-                                      color: primaryColor.withOpacity(0.3),
+                                      child: Text(data.code.validate(),
+                                          style: boldTextStyle()),
+                                      color:
+                                          primaryColor.withValues(alpha: 0.3),
                                     ),
                                     SizedBox(width: 8),
-                                    Expanded(child: Text(data.title.validate(), maxLines: 3, overflow: TextOverflow.ellipsis, style: boldTextStyle(size: 14))),
+                                    Expanded(
+                                        child: Text(data.title.validate(),
+                                            maxLines: 3,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: boldTextStyle(size: 14))),
                                     MaterialButton(
                                         onPressed: () {
                                           String codeData = data.code!;
@@ -137,14 +145,22 @@ class CouPonWidgetState extends State<CouPonWidget> {
                                           toast(language.copied);
                                         },
                                         color: primaryColor,
-                                        shape: BeveledRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                        child: Icon(Icons.content_copy, size: 18, color: Colors.white)),
+                                        shape: BeveledRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(6)),
+                                        child: Icon(Icons.content_copy,
+                                            size: 18, color: Colors.white)),
                                   ],
                                 ),
                                 // SizedBox(height: 8),
-                                Text(data.discountType == CHARGE_TYPE_FIXED ? '${language.get} ${data.discount}' : '${language.get} ${data.discount} % ${language.off}',
-                                    style: primaryTextStyle(weight: FontWeight.w500)),
-                                if (data.description != null) SizedBox(height: 8),
+                                Text(
+                                    data.discountType == CHARGE_TYPE_FIXED
+                                        ? '${language.get} ${data.discount}'
+                                        : '${language.get} ${data.discount} % ${language.off}',
+                                    style: primaryTextStyle(
+                                        weight: FontWeight.w500)),
+                                if (data.description != null)
+                                  SizedBox(height: 8),
                                 if (data.description != null)
                                   Text(
                                     data.description.validate(),
@@ -158,7 +174,6 @@ class CouPonWidgetState extends State<CouPonWidget> {
                       },
                       separatorBuilder: (_, index) {
                         return SizedBox();
-                        return Divider(color: Colors.grey);
                       },
                     ),
                   )

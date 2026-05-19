@@ -1,4 +1,4 @@
-import 'ServiceModel.dart';
+import '../manage_imports.dart';
 
 class UserDetailModel {
   UserData? data;
@@ -115,9 +115,15 @@ class UserData {
       timezone: json['timezone'],
       uid: json['uid'],
       updatedAt: json['updated_at'],
-      userDetail: json['user_detail'] != null ? UserDetail.fromJson(json['user_detail']) : null,
-      userBankAccount: json['user_bank_account'] != null ? UserBankAccount.fromJson(json['user_bank_account']) : null,
-      driverService: json['driver_service'] != null ? ServiceList.fromJson(json['driver_service']) : null,
+      userDetail: json['user_detail'] != null
+          ? UserDetail.fromJson(json['user_detail'])
+          : null,
+      userBankAccount: json['user_bank_account'] != null
+          ? UserBankAccount.fromJson(json['user_bank_account'])
+          : null,
+      driverService: json['driver_service'] != null
+          ? ServiceList.fromJson(json['driver_service'])
+          : null,
       userType: json['user_type'],
       username: json['username'],
       apiToken: json['api_token'],
@@ -254,25 +260,27 @@ class UserBankAccount {
   String? updatedAt;
   int? userId;
 
-  UserBankAccount({
-    this.accountHolderName,
-    this.accountNumber,
-    this.bankCode,
-    this.bankName,
-    this.createdAt,
-    this.id,
-    this.updatedAt,
-    this.userId,
-    this.bankIban,
-    this.bankSwift,
-    this.routingNumber
-  });
+  UserBankAccount(
+      {this.accountHolderName,
+      this.accountNumber,
+      this.bankCode,
+      this.bankName,
+      this.createdAt,
+      this.id,
+      this.updatedAt,
+      this.userId,
+      this.bankIban,
+      this.bankSwift,
+      this.routingNumber});
 
   factory UserBankAccount.fromJson(Map<String, dynamic> json) {
     return UserBankAccount(
-      bankSwift: json['bank_swift']!=null?json['bank_swift'].toString():null,
-      bankIban: json['bank_iban']!=null?json['bank_iban'].toString():null,
-      routingNumber:json['routing_number']!=null?json['routing_number'].toString():null,
+      bankSwift:
+          json['bank_swift'] != null ? json['bank_swift'].toString() : null,
+      bankIban: json['bank_iban'] != null ? json['bank_iban'].toString() : null,
+      routingNumber: json['routing_number'] != null
+          ? json['routing_number'].toString()
+          : null,
       accountHolderName: json['account_holder_name'],
       accountNumber: json['account_number'],
       bankCode: json['bank_code'],

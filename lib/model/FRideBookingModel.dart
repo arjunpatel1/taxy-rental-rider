@@ -22,12 +22,12 @@ class FRideBookingModel {
   });
 
   FRideBookingModel.fromJson(Map<String, dynamic> json) {
-    riderId =int.tryParse(json["rider_id"].toString());
+    riderId = int.tryParse(json["rider_id"].toString());
     driverID = int.tryParse(json["driver_id"].toString());
-    rideId =  int.tryParse(json["ride_id"].toString());
+    rideId = int.tryParse(json["ride_id"].toString());
     paymentStatus = json['payment_status'];
     status = json["status"];
-    tips = int.tryParse(json["tips"].toString())??null;
+    tips = int.tryParse(json["tips"].toString()) ?? null;
     paymentType = json["payment_type"];
     onStreamApiCall = json["on_stream_api_call"];
     onRiderStreamApiCall = json["on_rider_stream_api_call"];

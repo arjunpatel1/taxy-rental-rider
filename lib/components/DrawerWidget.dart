@@ -1,17 +1,16 @@
-import 'package:flutter/material.dart';
-
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/app_common.dart';
+import '../manage_imports.dart';
 
 class DrawerWidget extends StatefulWidget {
   final String title;
   final String iconData;
   final Function() onTap;
-  bool? paddingApply;
+  final bool? paddingApply;
 
-  DrawerWidget({required this.title, this.paddingApply, required this.iconData, required this.onTap});
+  DrawerWidget(
+      {required this.title,
+      this.paddingApply,
+      required this.iconData,
+      required this.onTap});
 
   @override
   DrawerWidgetState createState() => DrawerWidgetState();
@@ -34,7 +33,9 @@ class DrawerWidgetState extends State<DrawerWidget> {
             Row(
               children: [
                 Container(
-                  decoration: BoxDecoration(border: Border.all(color: dividerColor), borderRadius: radius(defaultRadius)),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: dividerColor),
+                      borderRadius: radius(defaultRadius)),
                   child: widget.paddingApply == true
                       ? Padding(
                           padding: const EdgeInsets.all(8.0),

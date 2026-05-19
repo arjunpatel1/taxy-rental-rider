@@ -1,25 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-
-import '../main.dart';
-import '../network/RestApis.dart';
-import '../screens/BankInfoScreen.dart';
-import '../screens/EditProfileScreen.dart';
-import '../screens/EmergencyContactScreen.dart';
-import '../screens/RideListScreen.dart';
-import '../screens/ScheduleRideListScreen.dart';
-import '../screens/SettingScreen.dart';
-import '../screens/WalletScreen.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/ConformationDialog.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
-import '../utils/images.dart';
-import 'DrawerWidget.dart';
+import '../manage_imports.dart';
 
 class DrawerComponent extends StatefulWidget {
+  final Function(String)? onClose;
+  const DrawerComponent({Key? key, this.onClose}) : super(key: key);
+
   @override
   State<DrawerComponent> createState() => _DrawerComponentState();
 }
@@ -51,8 +35,7 @@ class _DrawerComponentState extends State<DrawerComponent> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(sharedPref.getString(FIRST_NAME).validate().capitalizeFirstLetter() + " " + sharedPref.getString(LAST_NAME).validate().capitalizeFirstLetter(),
-                                  style: boldTextStyle()),
+                              Text(sharedPref.getString(FIRST_NAME).validate().capitalizeFirstLetter() + " " + sharedPref.getString(LAST_NAME).validate().capitalizeFirstLetter(), style: boldTextStyle()),
                               SizedBox(height: 4),
                               Text(appStore.userEmail, style: secondaryTextStyle()),
                             ],
@@ -71,22 +54,30 @@ class _DrawerComponentState extends State<DrawerComponent> {
                     launchScreen(context, EditProfileScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
                   },
                 ),
-                if (appStore.isScheduleRide == "1")
-                  DrawerWidget(
-                    title: language.schedule_list_title,
-                    iconData: ic_schedule,
-                    paddingApply: true,
-                    onTap: () {
-                      Navigator.pop(context);
-                      launchScreen(context, ScheduleRideListScreen());
-                    },
-                  ),
+                // if (appStore.isScheduleRide == "1")
+                DrawerWidget(
+                  title: language.schedule_list_title,
+                  iconData: ic_schedule,
+                  paddingApply: true,
+                  onTap: () {
+                    Navigator.pop(context);
+                    launchScreen(context, ScheduleRideListScreen());
+                  },
+                ),
                 DrawerWidget(
                     title: language.rides,
                     iconData: ic_my_rides,
                     onTap: () {
                       Navigator.pop(context);
                       launchScreen(context, RideListScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+                    }),
+                DrawerWidget(
+                    paddingApply: true,
+                    title: language.estimate,
+                    iconData: ic_estimate,
+                    onTap: () {
+                      Navigator.pop(context);
+                      widget.onClose?.call("openBottom");
                     }),
                 DrawerWidget(
                     title: language.wallet,
@@ -110,6 +101,38 @@ class _DrawerComponentState extends State<DrawerComponent> {
                       launchScreen(context, EmergencyContactScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
                     }),
                 DrawerWidget(
+                    paddingApply: true,
+                    title: language.refer_and_earn,
+                    iconData: ic_earn,
+                    onTap: () {
+                      Navigator.pop(context);
+                      launchScreen(context, ReferEarnScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+                    }),
+                DrawerWidget(
+                    paddingApply: true,
+                    title: 'Mighty Coin History',
+                    iconData: ic_earn,
+                    onTap: () {
+                      Navigator.pop(context);
+                      launchScreen(context, CoinWalletListScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+                    }),
+                DrawerWidget(
+                    paddingApply: true,
+                    title: language.earned_reward,
+                    iconData: ic_reward,
+                    onTap: () {
+                      Navigator.pop(context);
+                      launchScreen(context, RewardListScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+                    }),
+                DrawerWidget(
+                    paddingApply: true,
+                    title: language.lblfaq,
+                    iconData: ic_faq,
+                    onTap: () {
+                      Navigator.pop(context);
+                      launchScreen(context, FAQScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+                    }),
+                DrawerWidget(
                     title: language.settings,
                     iconData: ic_setting,
                     onTap: () {
@@ -120,12 +143,7 @@ class _DrawerComponentState extends State<DrawerComponent> {
                     title: language.logOut,
                     iconData: ic_logout,
                     onTap: () async {
-                      await showConfirmDialogCustom(context,
-                          primaryColor: primaryColor,
-                          dialogType: DialogType.CONFIRMATION,
-                          title: language.areYouSureYouWantToLogoutThisApp,
-                          positiveText: language.yes,
-                          negativeText: language.no, onAccept: (v) async {
+                      await showConfirmDialogCustom(context, primaryColor: primaryColor, dialogType: DialogType.CONFIRMATION, title: language.areYouSureYouWantToLogoutThisApp, positiveText: language.yes, negativeText: language.no, onAccept: (v) async {
                         await appStore.setLoggedIn(true);
                         await Future.delayed(Duration(milliseconds: 500));
                         await logout();

@@ -5,11 +5,8 @@ class SettingModel {
   String? facebookUrl;
   int? id;
   String? instagramUrl;
-  // List<String>? languageOption;
   String? linkedinUrl;
   String? helpSupportUrl;
-
-  //List<Object>? notification_settings;
   String? siteCopyright;
   String? siteDescription;
   String? siteEmail;
@@ -26,9 +23,7 @@ class SettingModel {
     this.facebookUrl,
     this.id,
     this.instagramUrl,
-    // this.languageOption,
     this.linkedinUrl,
-    //this.notification_settings,
     this.siteCopyright,
     this.siteDescription,
     this.siteEmail,
@@ -48,9 +43,7 @@ class SettingModel {
       facebookUrl: json['facebook_url'],
       id: json['id'],
       instagramUrl: json['instagram_url'],
-      // languageOption: json['language_option'] != null ? new List<String>.from(json['language_option']) : null,
       linkedinUrl: json['linkedin_url'],
-      //notification_settings: json['notification_settings'] != null ? (json['notification_settings'] as List).map((i) => Object.fromJson(i)).toList() : null,
       siteCopyright: json['site_copyright'],
       siteDescription: json['site_description'],
       siteEmail: json['site_email'],
@@ -81,12 +74,6 @@ class SettingModel {
     data['twitter_url'] = this.twitterUrl;
     data['updated_at'] = this.updatedAt;
     data['help_support_url'] = this.helpSupportUrl;
-    // if (this.languageOption != null) {
-    //   data['language_option'] = this.languageOption;
-    // }
-    /*if (this.notification_settings != null) {
-      data['notification_settings'] = this.notification_settings.map((v) => v.toJson()).toList();
-    }*/
     return data;
   }
 }

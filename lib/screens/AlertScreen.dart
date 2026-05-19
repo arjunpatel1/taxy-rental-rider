@@ -1,16 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import '../../main.dart';
-import '../../model/ContactNumberListModel.dart';
-import '../../network/RestApis.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../manage_imports.dart';
 
 class AlertScreen extends StatefulWidget {
   final int? rideId;
@@ -67,7 +55,8 @@ class AlertScreenState extends State<AlertScreen> {
   }
 
   Future<void> getCurrentUserLocation() async {
-    final geoPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    final geoPosition = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
     sourceLocation = LatLng(geoPosition.latitude, geoPosition.longitude);
   }
 
@@ -91,7 +80,8 @@ class AlertScreenState extends State<AlertScreen> {
                   children: [
                     Icon(Icons.warning_amber, color: Colors.red, size: 50),
                     SizedBox(height: 8),
-                    Text(language.useInCaseOfEmergency, style: boldTextStyle(color: Colors.red)),
+                    Text(language.useInCaseOfEmergency,
+                        style: boldTextStyle(color: Colors.red)),
                     SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -101,14 +91,18 @@ class AlertScreenState extends State<AlertScreen> {
                           children: [
                             Text(language.notifyAdmin, style: boldTextStyle()),
                             if (sendNotification) SizedBox(height: 4),
-                            if (sendNotification) Text(language.notifiedSuccessfully, style: secondaryTextStyle(color: Colors.green)),
+                            if (sendNotification)
+                              Text(language.notifiedSuccessfully,
+                                  style:
+                                      secondaryTextStyle(color: Colors.green)),
                           ],
                         ),
                         inkWellWidget(
                           onTap: () {
                             adminSosNotify();
                           },
-                          child: Icon(Icons.notification_add_outlined, color: primaryColor),
+                          child: Icon(Icons.notification_add_outlined,
+                              color: primaryColor),
                         ),
                       ],
                     ),
@@ -123,19 +117,29 @@ class AlertScreenState extends State<AlertScreen> {
                             return Padding(
                               padding: EdgeInsets.only(top: 8, bottom: 8),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(sosListData[index].title.validate(), style: boldTextStyle()),
+                                      Text(sosListData[index].title.validate(),
+                                          style: boldTextStyle()),
                                       SizedBox(height: 4),
-                                      Text(sosListData[index].contactNumber.validate(), style: primaryTextStyle()),
+                                      Text(
+                                          sosListData[index]
+                                              .contactNumber
+                                              .validate(),
+                                          style: primaryTextStyle()),
                                     ],
                                   ),
                                   inkWellWidget(
                                     onTap: () {
-                                      launchUrl(Uri.parse('tel:${sosListData[index].contactNumber}'), mode: LaunchMode.externalApplication);
+                                      launchUrl(
+                                          Uri.parse(
+                                              'tel:${sosListData[index].contactNumber}'),
+                                          mode: LaunchMode.externalApplication);
                                     },
                                     child: Icon(Icons.call),
                                   ),

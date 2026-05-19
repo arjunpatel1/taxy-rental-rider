@@ -1,19 +1,7 @@
-import 'dart:convert';
+import 'package:taxi_booking/model/search_location_model.dart' hide Text;
 
-import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:http/http.dart' as http;
-import 'package:taxi_booking/main.dart';
-import 'package:taxi_booking/utils/Extensions/dataTypeExtensions.dart';
-
-import '../model/ModelGetLocationPlaceId.dart';
-import '../model/PlaceSearchAutoCompleteModel.dart';
-import '../network/RestApis.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/app_common.dart';
+import '../manage_imports.dart';
+import '../model/select_location_model.dart';
 
 class GoogleMapScreen extends StatefulWidget {
   final bool? isDestination;
@@ -117,6 +105,7 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
                     },
                     onCameraIdle: () {
                       _fetchAddress(selectedPosition!);
+                      print("selectedPosition ${selectedPosition}");
                     },
                   ),
             Center(
@@ -158,30 +147,25 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
                         itemCount: placeSuggestions.length,
                         itemBuilder: (context, index) {
                           return ListTile(
-                            title: Text(placeSuggestions[index].placePrediction!.text!.text.validate()),
+                            // title: Text(placeSuggestions[index].placePrediction!.text!.text.validate()),
+                            title: Text(placeSuggestions[index].placePrediction.text.text),
                             onTap: () async {
                               // Call places detail api and get lat and long.
-                              log("PlaceId::::: ${placeSuggestions[index].placePrediction!.placeId!}");
-                              GooglePlacesApiResponse response = await searchAddressRequestPlaceId(
-                                placeId: placeSuggestions[index].placePrediction!.placeId!,
+                              SelectLocationModel response = await searchAddressRequestPlaceId(
+                                placeSuggestions[index].placePrediction.placeId,
                               );
 
-                              log("Google Response::::: ${response.toJson()}");
+                              searchController.text = placeSuggestions[index].placePrediction.text.text.validate();
 
-// // Update the search controller text
-                              searchController.text = placeSuggestions[index].placePrediction!.text!.text.validate();
-//
-// // Move camera to the selected place
                               mapController?.animateCamera(
                                 CameraUpdate.newLatLng(
                                   LatLng(
-                                    response.location!.latitude!,
-                                    response.location!.longitude!,
+                                    response.location.latitude,
+                                    response.location.longitude,
                                   ),
                                 ),
                               );
 
-// Update the state
                               setState(() {
                                 isTappedSuggested = true;
                                 placeSuggestions.clear();
@@ -238,6 +222,36 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
         ));
   }
 
+  // Future<void> fetchPlaceSuggestions(String query) async {
+  //   if (query.isEmpty) {
+  //     setState(() {
+  //       placeSuggestions.clear();
+  //     });
+  //     return;
+  //   }
+  //
+  //   var headers = {'X-Goog-Api-Key': '$GOOGLE_MAP_API_KEY', 'Content-Type': 'application/json'};
+  //
+  //   var request = http.Request('POST', Uri.parse('https://places.googleapis.com/v1/places:autocomplete'));
+  //   request.body = json.encode({"input": query});
+  //   request.headers.addAll(headers);
+  //
+  //   http.StreamedResponse response = await request.send();
+  //
+  //   if (response.statusCode == 200) {
+  //     String responseData = await response.stream.bytesToString();
+  //     var data = json.decode(responseData);
+  //     print("CheckDate::::${data}");
+  //     setState(() {
+  //       placeSuggestions = List<Suggestion>.from(data["suggestions"]!.map((x) => Suggestion.fromJson(x)));
+  //     });
+  //     print("CheckDat163::::${placeSuggestions.length}");
+  //     print("CheckDat164::::${placeSuggestions}");
+  //   } else {
+  //     print(response.reasonPhrase);
+  //   }
+  // }
+
   Future<void> fetchPlaceSuggestions(String query) async {
     if (query.isEmpty) {
       setState(() {
@@ -246,54 +260,38 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
       return;
     }
 
-    var headers = {'X-Goog-Api-Key': '$GOOGLE_MAP_API_KEY', 'Content-Type': 'application/json'};
+    try {
+      Map req = {
+        "search_text": query,
+        "language": appStore.selectedLanguage.validate(value: defaultLanguageCode),
+      };
+      SearchLocationModel response = await searchAddressRequest(req);
 
-    var request = http.Request('POST', Uri.parse('https://places.googleapis.com/v1/places:autocomplete'));
-    request.body = json.encode({"input": query});
-    request.headers.addAll(headers);
-
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 200) {
-      String responseData = await response.stream.bytesToString();
-      var data = json.decode(responseData);
-      print("CheckDate::::${data}");
       setState(() {
-        placeSuggestions = List<Suggestion>.from(data["suggestions"]!.map((x) => Suggestion.fromJson(x))) ?? [];
+        placeSuggestions = response.suggestions ?? [];
       });
-      print("CheckDat163::::${placeSuggestions.length}");
-      print("CheckDat164::::${placeSuggestions}");
-    } else {
-      print(response.reasonPhrase);
+    } catch (e) {
+      log("Autocomplete Error: $e");
     }
   }
 
   Future<void> _fetchAddress(LatLng position) async {
-    final apiKey = GOOGLE_MAP_API_KEY;
-    final url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.latitude},${position.longitude}&key=$apiKey";
-
     try {
-      final response = await http.get(Uri.parse(url));
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['status'] == 'OK' && data['results'].isNotEmpty) {
-          setState(() {
-            selectedAddress = data['results'][0]['formatted_address'] ?? "Unknown location";
-          });
-        } else {
-          setState(() {
-            selectedAddress = "Fetching address...";
-          });
-        }
-      } else {
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks.first;
+
         setState(() {
-          selectedAddress = "Error fetching address";
+          selectedAddress = "${place.name}, ${place.street}, ${place.locality}, ${place.administrativeArea}, ${place.country}";
         });
       }
     } catch (e) {
       setState(() {
-        selectedAddress = "Error: $e";
+        selectedAddress = "Error fetching address";
       });
     }
   }

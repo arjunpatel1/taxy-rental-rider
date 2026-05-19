@@ -1,8 +1,4 @@
-import 'package:flutter/material.dart';
-
-import '../model/CouponData.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../manage_imports.dart';
 
 class CouponInfo extends StatefulWidget {
   static String tag = '/CouponInfo';
@@ -18,11 +14,6 @@ class CouponInfoState extends State<CouponInfo> {
   @override
   void initState() {
     super.initState();
-    init();
-  }
-
-  init() async {
-    //
   }
 
   @override
@@ -59,9 +50,11 @@ class CouponInfoState extends State<CouponInfo> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(widget.couponData!.title.validate(), style: primaryTextStyle(size: 14)),
+              Text(widget.couponData!.title.validate(),
+                  style: primaryTextStyle(size: 14)),
               SizedBox(height: 8),
-              Text(widget.couponData!.description.validate(), style: secondaryTextStyle()),
+              Text(widget.couponData!.description.validate(),
+                  style: secondaryTextStyle()),
               SizedBox(
                 height: 16,
               )

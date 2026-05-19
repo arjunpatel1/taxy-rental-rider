@@ -1,30 +1,4 @@
-import 'dart:io';
-
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:geolocator/geolocator.dart';
-
-import '../../components/OTPDialog.dart';
-import '../../main.dart';
-import '../../network/RestApis.dart';
-import '../../screens/ForgotPasswordScreen.dart';
-import '../../service/AuthService1.dart';
-import '../../utils/Colors.dart';
-import '../../utils/Common.dart';
-import '../../utils/Constants.dart';
-import '../../utils/Extensions/AppButtonWidget.dart';
-import '../../utils/Extensions/app_common.dart';
-import '../../utils/Extensions/app_textfield.dart';
-import '../model/LoginResponse.dart';
-import '../service/AuthService.dart';
-import '../utils/Extensions/context_extension.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
-import '../utils/images.dart';
-import 'DashBoardScreen.dart';
-import 'SignUpScreen.dart';
-import 'TermsConditionScreen.dart';
+import '../manage_imports.dart';
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -36,14 +10,18 @@ class SignInScreenState extends State<SignInScreen> {
   final FirebaseAuth auth = FirebaseAuth.instance;
   UserModel userModel = UserModel();
 
-  AuthServices authService = AuthServices();
   GoogleAuthServices googleAuthService = GoogleAuthServices();
+
+  AuthServices authService = AuthServices();
 
   TextEditingController emailController = TextEditingController();
   TextEditingController passController = TextEditingController();
 
   FocusNode emailFocus = FocusNode();
   FocusNode passFocus = FocusNode();
+
+  // String? privacyPolicy;
+  // String? termsCondition;
 
   bool mIsRemember = false;
   bool isAcceptTermsNPrivacy = false;
@@ -52,9 +30,11 @@ class SignInScreenState extends State<SignInScreen> {
   void initState() {
     super.initState();
     init();
+    checkAndShowFirebasePopup();
   }
 
   void init() async {
+    // await appSetting();
     await saveOneSignalPlayerId().then((value) {});
     mIsRemember = sharedPref.getBool(REMEMBER_ME) ?? false;
     if (mIsRemember) {
@@ -63,6 +43,50 @@ class SignInScreenState extends State<SignInScreen> {
       setState(() {});
     }
   }
+
+  Future<void> checkAndShowFirebasePopup() async {
+    try {
+      final docRef = FirebaseFirestore.instance.collection('show_popup').doc('config'); // single config document
+      final doc = await docRef.get();
+      if (!doc.exists) {
+        // Create default document
+        await docRef.set({
+          "show_popup": false,
+          "message": "",
+          "title": "",
+        });
+        return;
+      }
+      bool showPopup = doc.data()?['show_popup'] ?? false;
+      String message = doc.data()?['message'] ?? "";
+      String title = doc.data()?['title'] ?? "";
+
+      if (showPopup) {
+        Future.delayed(Duration(milliseconds: 500), () {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return popupDialog(title, message, context);
+            },
+          );
+        });
+      }
+    } catch (e) {
+      print("Popup Error: $e");
+    }
+  }
+
+  // Future<void> appSetting() async {
+  //   await getAppSettingApi().then((value) {
+  //     print(value.termsCondition!.value);
+  //     print(value.privacyPolicyModel!.value);
+  //     if (value.privacyPolicyModel!.value != null) privacyPolicy = value.privacyPolicyModel!.value;
+  //     if (value.termsCondition!.value != null) termsCondition = value.termsCondition!.value;
+  //   }).catchError((error) {
+  //     log(error.toString());
+  //   });
+  // }
 
   Future<void> logIn() async {
     hideKeyboard(context);
@@ -135,7 +159,7 @@ class SignInScreenState extends State<SignInScreen> {
   appleLoginApi() async {
     hideKeyboard(context);
     appStore.setLoading(true);
-    await appleLogIn().then((value) {
+    await appleLogIn(context).then((value) {
       appStore.setLoading(false);
     }).catchError((e) {
       appStore.setLoading(false);
@@ -165,12 +189,7 @@ class SignInScreenState extends State<SignInScreen> {
                   SizedBox(height: 16),
                   InkWell(
                       onTap: () {
-                        // try{
                         throw Exception("CHECKING  EXCEPTION::::");
-                        // }catch(error,stack){
-                        throw Exception("CHECKING  EXCEPTION222::::");
-                        // FirebaseCrashlytics.instance.recordError(error, stack);
-                        // }
                       },
                       child: Text(language.welcome, style: boldTextStyle(size: 22))),
                   RichText(
@@ -274,8 +293,8 @@ class SignInScreenState extends State<SignInScreen> {
                                 style: boldTextStyle(color: primaryColor, size: 14),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    if (appStore.termsCondition != null && appStore.termsCondition!.isNotEmpty) {
-                                      launchScreen(context, TermsConditionScreen(title: language.termsConditions, subtitle: appStore.termsCondition), pageRouteAnimation: PageRouteAnimation.Slide);
+                                    if (TNC_URL.isNotEmpty) {
+                                      launchScreen(context, TermsConditionScreen(title: language.termsConditions, subtitle: TNC_URL), pageRouteAnimation: PageRouteAnimation.Slide);
                                     } else {
                                       toast(language.txtURLEmpty);
                                     }
@@ -287,8 +306,8 @@ class SignInScreenState extends State<SignInScreen> {
                                 style: boldTextStyle(color: primaryColor, size: 14),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    if (appStore.privacyPolicy != null && appStore.privacyPolicy!.isNotEmpty) {
-                                      launchScreen(context, TermsConditionScreen(title: language.privacyPolicy, subtitle: appStore.privacyPolicy), pageRouteAnimation: PageRouteAnimation.Slide);
+                                    if (PRIVACY_URL.isNotEmpty) {
+                                      launchScreen(context, TermsConditionScreen(title: language.privacyPolicy, subtitle: PRIVACY_URL), pageRouteAnimation: PageRouteAnimation.Slide);
                                     } else {
                                       toast(language.txtURLEmpty);
                                     }
@@ -339,7 +358,7 @@ class SignInScreenState extends State<SignInScreen> {
                 inkWellWidget(
                   onTap: () {
                     hideKeyboard(context);
-                    launchScreen(context, SignUpScreen(privacyPolicyUrl: appStore.privacyPolicy, termsConditionUrl: appStore.termsCondition));
+                    launchScreen(context, SignUpScreen());
                   },
                   child: Text(language.signUp, style: boldTextStyle(size: 18)),
                 ),

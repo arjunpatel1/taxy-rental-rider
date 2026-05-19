@@ -1,17 +1,15 @@
-import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-
-import '../components/UpdateAvailablePopUp.dart';
+import '../manage_imports.dart';
 
 class VersionService {
   getVersionData(context, value) async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    num currentBuildNumberAndroid = num.tryParse(packageInfo.buildNumber.toString()) ?? 0;
+    num currentBuildNumberAndroid =
+        num.tryParse(packageInfo.buildNumber.toString()) ?? 0;
     if (Platform.isAndroid) {
-      num liveBuildNumber = num.tryParse(value['android_version_code'].toString()) ?? 0;
-      if (currentBuildNumberAndroid != 0 && currentBuildNumberAndroid < liveBuildNumber) {
+      num liveBuildNumber =
+          num.tryParse(value['android_version_code'].toString()) ?? 0;
+      if (currentBuildNumberAndroid != 0 &&
+          currentBuildNumberAndroid < liveBuildNumber) {
         //   update is available
         if (value['android_force_update'].toString() == "1") {
           //   update force
@@ -28,15 +26,18 @@ class VersionService {
           //   UpdateAvailable(force:true).launch(context);
           showDialog(
             context: context,
-            builder: (context) => UpdateAvailable(storeUrl: value['playstore_url'].toString()),
+            builder: (context) =>
+                UpdateAvailable(storeUrl: value['playstore_url'].toString()),
           );
         }
       } else {
         //   no update available
       }
     } else if (Platform.isIOS) {
-      print("isVersionGreater.call ==>LIVE-VERSION:${value['ios_version'].toString()}  LOCAL-VERSION:${packageInfo.data['version'].toString()}");
-      if (isVersionGreater(value['ios_version'].toString(), packageInfo.data['version'].toString())) {
+      print(
+          "isVersionGreater.call ==>LIVE-VERSION:${value['ios_version'].toString()}  LOCAL-VERSION:${packageInfo.data['version'].toString()}");
+      if (isVersionGreater(value['ios_version'].toString(),
+          packageInfo.data['version'].toString())) {
         print("IOS_UPDATE_DETECTED");
         //   update is available
         if (value['ios_force_update'].toString() == "1") {
@@ -52,7 +53,8 @@ class VersionService {
           //   optional update suggest only skip-able
           showDialog(
             context: context,
-            builder: (context) => UpdateAvailable(storeUrl: value['appstore_url'].toString()),
+            builder: (context) =>
+                UpdateAvailable(storeUrl: value['appstore_url'].toString()),
           );
         }
       } else {
@@ -69,7 +71,9 @@ bool isVersionGreater(String version1, String version2) {
   List<String> versionParts2 = version2.split('.');
 
   // Determine the maximum length of the version parts
-  int maxLength = versionParts1.length > versionParts2.length ? versionParts1.length : versionParts2.length;
+  int maxLength = versionParts1.length > versionParts2.length
+      ? versionParts1.length
+      : versionParts2.length;
 
   // Pad shorter version with zeros
   while (versionParts1.length < maxLength) {

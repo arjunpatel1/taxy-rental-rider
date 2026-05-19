@@ -1,31 +1,9 @@
-import 'dart:async';
-
-import 'package:dotted_line/dotted_line.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:lottie/lottie.dart';
-import 'package:taxi_booking/model/LDBaseResponse.dart';
-import 'package:taxi_booking/utils/Extensions/dataTypeExtensions.dart';
-import 'package:taxi_booking/utils/images.dart';
-
-import '../components/CancelOrderDialog.dart';
-import '../components/RideAcceptWidget.dart';
-import '../main.dart';
-import '../model/BidListingModel.dart';
-import '../model/FRideBookingModel.dart';
-import '../network/RestApis.dart';
-import '../service/RideService.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/app_common.dart';
-import 'DashBoardScreen.dart';
+import '../manage_imports.dart';
 
 class Bidingscreen extends StatefulWidget {
-  Map? multiDropLocationNamesObj, multiDropObj, endLocation, source;
+  final Map? multiDropLocationNamesObj, multiDropObj, endLocation, source;
   final String? dt;
-  int ride_id;
+  final int ride_id;
 
   @override
   BidingscreenState createState() => BidingscreenState();
@@ -74,7 +52,7 @@ class BidingscreenState extends State<Bidingscreen> {
         setState(
           () {
             // d2 = d1.toUtc().add(Duration(seconds: timerMaxSeconds));
-            d2 = d1!.add(Duration(seconds: timerMaxSeconds));
+            d2 = d1.add(Duration(seconds: timerMaxSeconds));
           },
         );
         print("CheckDateTimedafjfkljf:::${d2}");
@@ -305,12 +283,14 @@ class BidingscreenState extends State<Bidingscreen> {
                                 ),
                                 onTap: () {
                                   List<String> temp = [];
+                                  List<MultiDropLocation> dataVal = [];
                                   widget.multiDropLocationNamesObj!.forEach(
                                     (key, value) {
                                       temp.add(value.toString());
+                                      dataVal.add(MultiDropLocation(address: value.toString(), drop: 0, droppedAt: null, lat: 0, lng: 0));
                                     },
                                   );
-                                  showOnlyDropLocationsDialog(context, temp);
+                                  showOnlyDropLocationsDialog(context, dataVal);
                                 },
                               ),
                             SizedBox(
@@ -433,7 +413,7 @@ class BidingscreenState extends State<Bidingscreen> {
                                                   IconButton(
                                                     onPressed: () {
                                                       d2 = null;
-                                                      acceptBid(driverId: dataModel!.data![index].driverId.toString());
+                                                      acceptBid(driverId: dataModel!.data![index].driverId.toString(), amount: dataModel!.data![index].bidAmount.toString());
                                                     },
                                                     icon: Icon(
                                                       Icons.check_circle,
@@ -443,7 +423,7 @@ class BidingscreenState extends State<Bidingscreen> {
                                                   ),
                                                   IconButton(
                                                     onPressed: () {
-                                                      rejectBid(driverId: dataModel!.data![index].driverId.toString());
+                                                      rejectBid(driverId: dataModel!.data![index].driverId.toString(), amount: dataModel!.data![index].bidAmount.toString());
                                                     },
                                                     icon: Icon(
                                                       Icons.cancel,
@@ -500,19 +480,19 @@ class BidingscreenState extends State<Bidingscreen> {
     setState(() {});
   }
 
-  void acceptBid({required String driverId}) async {
+  void acceptBid({required String driverId, required String amount}) async {
     appStore.setLoading(true);
-    Map req = {"id": "${widget.ride_id}", "driver_id": "$driverId", "is_bid_accept": "1"};
+    Map req = {"id": "${widget.ride_id}", "total_amount": "${amount}", "driver_id": "$driverId", "is_bid_accept": "1"};
     try {
-      var b = await responseBidListing(req);
+      await responseBidListing(req);
     } catch (e) {}
     appStore.setLoading(false);
     await rideService.updateStatusOfRide(rideID: widget.ride_id, req: {"on_stream_api_call": 0});
     launchScreen(context, DashBoardScreen(), isNewTask: true);
   }
 
-  void rejectBid({required String driverId}) async {
-    Map req = {"id": "${widget.ride_id}", "driver_id": "$driverId", "is_bid_accept": "2"};
+  void rejectBid({required String driverId, required String amount}) async {
+    Map req = {"id": "${widget.ride_id}", "driver_id": "$driverId", "total_amount": "${amount}", "is_bid_accept": "2"};
     appStore.setLoading(true);
     LDBaseResponse b = await responseBidListing(req);
     appStore.setLoading(false);

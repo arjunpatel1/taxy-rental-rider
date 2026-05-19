@@ -1,6 +1,4 @@
-import '../model/CouponData.dart';
-import '../model/ExtraChargeRequestModel.dart';
-import 'RiderModel.dart';
+import '../manage_imports.dart';
 
 class CurrentRequestModel {
   int? id;
@@ -10,6 +8,7 @@ class CurrentRequestModel {
   String? userType;
   String? profileImage;
   String? status;
+  String? timezone;
   String? service_marker;
   int? ride_has_bids;
   OnRideRequest? rideRequest;
@@ -17,6 +16,8 @@ class CurrentRequestModel {
   OnRideRequest? onRideRequest;
   Driver? driver;
   Payment? payment;
+  var all_unread_count;
+  bool? enable_scratch_card;
 
   CurrentRequestModel({
     this.id,
@@ -28,11 +29,14 @@ class CurrentRequestModel {
     this.userType,
     this.profileImage,
     this.status,
+    this.timezone,
     this.rideRequest,
     this.onRideRequest,
     this.driver,
     this.service_marker,
     this.payment,
+    this.all_unread_count,
+    this.enable_scratch_card,
   });
 
   CurrentRequestModel.fromJson(Map<String, dynamic> json) {
@@ -44,14 +48,15 @@ class CurrentRequestModel {
     userType = json['user_type'];
     profileImage = json['profile_image'];
     status = json['status'];
+    timezone = json['time_zone'];
+    all_unread_count = int.tryParse(json['all_unread_count'].toString()) ?? 0;
+    enable_scratch_card = json['enable_scratch_card'] ?? false;
     ride_has_bids = json['ride_has_bids'];
     rideRequest = json['ride_request'] != null ? new OnRideRequest.fromJson(json['ride_request']) : null;
     onRideRequest = json['on_ride_request'] != null ? new OnRideRequest.fromJson(json['on_ride_request']) : null;
     driver = json['driver'] != null ? new Driver.fromJson(json['driver']) : null;
     payment = json['payment'] != null ? new Payment.fromJson(json['payment']) : null;
-    schedule_ride_request = json['schedule_ride_request'] != null ? (json['schedule_ride_request'] as List)
-        .map((item) => OnRideRequest.fromJson(item))
-        .toList() : [];
+    schedule_ride_request = json['schedule_ride_request'] != null ? (json['schedule_ride_request'] as List).map((item) => OnRideRequest.fromJson(item)).toList() : [];
   }
 
   Map<String, dynamic> toJson() {
@@ -64,6 +69,9 @@ class CurrentRequestModel {
     data['user_type'] = this.userType;
     data['profile_image'] = this.profileImage;
     data['status'] = this.status;
+    data['time_zone'] = this.timezone;
+    data['all_unread_count'] = this.all_unread_count;
+    data['enable_scratch_card'] = this.enable_scratch_card;
     if (this.rideRequest != null) {
       data['ride_request'] = this.rideRequest!.toJson();
     }
@@ -76,10 +84,8 @@ class CurrentRequestModel {
     if (this.payment != null) {
       data['payment'] = this.payment!.toJson();
     }
-    if(this.schedule_ride_request!=null && this.schedule_ride_request!.isNotEmpty){
-      data['schedule_ride_request']= schedule_ride_request!.isNotEmpty
-          ? schedule_ride_request!.map((item) => item!.toJson()).toList()
-          : [];
+    if (this.schedule_ride_request != null && this.schedule_ride_request!.isNotEmpty) {
+      data['schedule_ride_request'] = schedule_ride_request!.isNotEmpty ? schedule_ride_request!.map((item) => item.toJson()).toList() : [];
     }
     return data;
   }
@@ -90,6 +96,9 @@ class OnRideRequest {
   int? riderId;
   int? serviceId;
   String? datetime;
+  String? trip_type;
+  String? flightNumber;
+  String? pickupPoint;
   String? schedule_datetime;
   int? isSchedule;
   int? rideAttempt;
@@ -97,6 +106,7 @@ class OnRideRequest {
   num? totalAmount;
   num? subtotal;
   num? extraChargesAmount;
+  num? extraChargesPaymentMethod;
   int? driverId;
   String? driverName;
   String? riderName;
@@ -146,75 +156,83 @@ class OnRideRequest {
   String? driverEmail;
   String? riderEmail;
   int? regionId;
+  var driverDurationToPickup;
   List<MultiDropLocation>? multiDropLocation;
 
-  OnRideRequest({
-    this.id,
-    this.riderId,
-    this.serviceId,
-    this.datetime,
-    this.schedule_datetime,
-    this.isSchedule,
-    this.rideAttempt,
-    this.otp,
-    this.totalAmount,
-    this.subtotal,
-    this.extraChargesAmount,
-    this.driverId,
-    this.driverName,
-    this.riderName,
-    this.driverProfileImage,
-    this.riderProfileImage,
-    this.startLatitude,
-    this.startLongitude,
-    this.startAddress,
-    this.endLatitude,
-    this.endLongitude,
-    this.endAddress,
-    this.distanceUnit,
-    this.startTime,
-    this.endTime,
-    this.distance,
-    this.duration,
-    this.seatCount,
-    this.reason,
-    this.status,
-    this.baseFare,
-    this.minimumFare,
-    this.perDistance,
-    this.perMinuteDrive,
-    this.perMinuteWaiting,
-    this.waitingTime,
-    this.waitingTimeLimit,
-    this.waitingTimeCharges,
-    this.cancelationCharges,
-    this.cancelBy,
-    this.paymentId,
-    this.paymentType,
-    this.paymentStatus,
-    this.extraCharges,
-    this.couponDiscount,
-    this.couponCode,
-    this.couponData,
-    this.isRiderRated,
-    this.isDriverRated,
-    this.maxTimeForFindDriverForRideRequest,
-    this.createdAt,
-    this.updatedAt,
-    this.perDistanceCharge,
-    this.perMinuteDriveCharge,
-    this.perMinuteWaitingCharge,
-    this.driverContactNumber,
-    this.riderContactNumber,
-    this.driverEmail,
-    this.riderEmail,
-    this.regionId,
-    this.multiDropLocation
-  });
+  OnRideRequest(
+      {this.id,
+      this.trip_type,
+      this.flightNumber,
+      this.pickupPoint,
+      this.riderId,
+      this.serviceId,
+      this.datetime,
+      this.schedule_datetime,
+      this.isSchedule,
+      this.rideAttempt,
+      this.otp,
+      this.totalAmount,
+      this.subtotal,
+      this.extraChargesAmount,
+      this.extraChargesPaymentMethod,
+      this.driverId,
+      this.driverName,
+      this.riderName,
+      this.driverProfileImage,
+      this.riderProfileImage,
+      this.startLatitude,
+      this.startLongitude,
+      this.startAddress,
+      this.endLatitude,
+      this.endLongitude,
+      this.endAddress,
+      this.distanceUnit,
+      this.startTime,
+      this.endTime,
+      this.distance,
+      this.duration,
+      this.seatCount,
+      this.reason,
+      this.status,
+      this.baseFare,
+      this.minimumFare,
+      this.perDistance,
+      this.perMinuteDrive,
+      this.perMinuteWaiting,
+      this.waitingTime,
+      this.waitingTimeLimit,
+      this.waitingTimeCharges,
+      this.cancelationCharges,
+      this.cancelBy,
+      this.paymentId,
+      this.paymentType,
+      this.paymentStatus,
+      this.extraCharges,
+      this.couponDiscount,
+      this.couponCode,
+      this.couponData,
+      this.isRiderRated,
+      this.isDriverRated,
+      this.maxTimeForFindDriverForRideRequest,
+      this.createdAt,
+      this.updatedAt,
+      this.perDistanceCharge,
+      this.perMinuteDriveCharge,
+      this.perMinuteWaitingCharge,
+      this.driverContactNumber,
+      this.riderContactNumber,
+      this.driverEmail,
+      this.riderEmail,
+      this.regionId,
+      this.driverDurationToPickup,
+      this.multiDropLocation});
 
   OnRideRequest.fromJson(Map<String, dynamic> json) {
+    trip_type = json['trip_type'];
+    flightNumber = json['flight_number'];
+    pickupPoint = json['pickup_point'];
     id = json['id'];
-    multiDropLocation= json["multi_drop_location"]==null ?[]:List<MultiDropLocation>.from(json["multi_drop_location"].map((x) => MultiDropLocation.fromJson(x)));
+    multiDropLocation = json["multi_drop_location"] == null ? [] : List<MultiDropLocation>.from(json["multi_drop_location"].map((x) => MultiDropLocation.fromJson(x)));
     riderId = json['rider_id'];
     schedule_datetime = json['schedule_datetime'];
     serviceId = json['service_id'];
@@ -225,6 +243,7 @@ class OnRideRequest {
     totalAmount = json['total_amount'];
     subtotal = num.tryParse(json['subtotal'].toString());
     extraChargesAmount = json['extra_charges_amount'];
+    extraChargesPaymentMethod = json['extra_charges_payment_method'];
     driverId = json['driver_id'];
     driverName = json['driver_name'];
     riderName = json['rider_name'];
@@ -279,11 +298,15 @@ class OnRideRequest {
     riderEmail = json['rider_email'];
     driverEmail = json['driver_email'];
     regionId = json['region_id'];
+    driverDurationToPickup = json['driver_duration_to_pickup'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['id'] = this.id;
+    data['trip_type'] = this.trip_type;
+    data['flight_number'] = this.flightNumber;
+    data['pickup_point'] = this.pickupPoint;
     data['rider_id'] = this.riderId;
     data['service_id'] = this.serviceId;
     data['datetime'] = this.datetime;
@@ -291,12 +314,13 @@ class OnRideRequest {
     data['is_schedule'] = this.isSchedule;
     data['ride_attempt'] = this.rideAttempt;
     data['otp'] = this.otp;
-    if(multiDropLocation!=null){
-      data["multi_drop_location"]=List<dynamic>.from(multiDropLocation!.map((x) => x!.toJson()));
+    if (multiDropLocation != null) {
+      data["multi_drop_location"] = List<dynamic>.from(multiDropLocation!.map((x) => x.toJson()));
     }
     data['total_amount'] = this.totalAmount;
     data['subtotal'] = this.subtotal;
     data['extra_charges_amount'] = this.extraChargesAmount;
+    data['extra_charges_payment_method'] = this.extraChargesPaymentMethod;
     data['driver_id'] = this.driverId;
     data['driver_name'] = this.driverName;
     data['rider_name'] = this.riderName;
@@ -348,6 +372,7 @@ class OnRideRequest {
     data['driver_email'] = this.driverEmail;
     data['rider_email'] = this.riderEmail;
     data['region_id'] = this.regionId;
+    data['driver_duration_to_pickup'] = this.driverDurationToPickup;
     return data;
   }
 }
@@ -374,7 +399,7 @@ class Driver {
   num? isAvailable;
   String? timezone;
   String? fcmToken;
-  UserDetail? userDetail;
+  DriverDetail? userDetail;
   var userBankAccount;
   int? serviceId;
   DriverService? driverService;
@@ -437,7 +462,7 @@ class Driver {
     isAvailable = json['is_available'];
     timezone = json['timezone'];
     fcmToken = json['fcm_token'];
-    userDetail = json['user_detail'] != null ? new UserDetail.fromJson(json['user_detail']) : null;
+    userDetail = json['user_detail'] != null ? new DriverDetail.fromJson(json['user_detail']) : null;
     userBankAccount = json['user_bank_account'];
     serviceId = json['service_id'];
     driverService = json['driver_service'] != null ? new DriverService.fromJson(json['driver_service']) : null;
@@ -486,7 +511,7 @@ class Driver {
   }
 }
 
-class UserDetail {
+class DriverDetail {
   int? id;
   int? userId;
   String? carModel;
@@ -502,7 +527,7 @@ class UserDetail {
   String? createdAt;
   String? updatedAt;
 
-  UserDetail({
+  DriverDetail({
     this.id,
     this.userId,
     this.carModel,
@@ -519,7 +544,7 @@ class UserDetail {
     this.updatedAt,
   });
 
-  UserDetail.fromJson(Map<String, dynamic> json) {
+  DriverDetail.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     userId = json['user_id'];
     carModel = json['car_model'];

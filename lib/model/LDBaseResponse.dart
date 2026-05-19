@@ -3,7 +3,7 @@ class LDBaseResponse {
   bool? status;
   String? message;
 
-  LDBaseResponse({this.status, this.message,this.rideRequestId});
+  LDBaseResponse({this.status, this.message, this.rideRequestId});
 
   LDBaseResponse.fromJson(Map<String, dynamic> json) {
     rideRequestId = json['riderequest_id'];

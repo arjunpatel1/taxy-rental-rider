@@ -1,14 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-
-import '../../main.dart';
-import '../../network/RestApis.dart';
-import '../../utils/Common.dart';
-import '../../utils/Extensions/AppButtonWidget.dart';
-import '../../utils/Extensions/app_common.dart';
-import '../../utils/Extensions/app_textfield.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../manage_imports.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   @override
@@ -71,7 +61,9 @@ class ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 children: [
                   Text(language.forgotPassword, style: boldTextStyle(size: 20)),
                   SizedBox(height: 16),
-                  Text(language.enterTheEmailAssociatedWithYourAccount, style: primaryTextStyle(size: 14), textAlign: TextAlign.start),
+                  Text(language.enterTheEmailAssociatedWithYourAccount,
+                      style: primaryTextStyle(size: 14),
+                      textAlign: TextAlign.start),
                   SizedBox(height: 32),
                   AppTextField(
                     controller: forgotEmailController,

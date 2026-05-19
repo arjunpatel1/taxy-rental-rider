@@ -1,19 +1,34 @@
-import 'SettingModel.dart';
+import '../manage_imports.dart';
 
 class AppSettingModel {
-  Region? region;
   SettingModel? settingModel;
   List<RideSetting>? rideSetting;
   List<WalletSetting>? walletSetting;
   CurrencySetting? currencySetting;
   PrivacyPolicyModel? privacyPolicyModel;
   PrivacyPolicyModel? termsCondition;
+  String? reference_amount;
+  String? maxEarningPerMonth;
+  String? reference_type;
 
-  AppSettingModel({this.region, this.rideSetting, this.walletSetting, this.currencySetting, this.settingModel, this.privacyPolicyModel, this.termsCondition});
+  AppSettingModel(
+      {this.reference_type,
+      this.maxEarningPerMonth,
+      this.reference_amount,
+      this.rideSetting,
+      this.walletSetting,
+      this.currencySetting,
+      this.settingModel,
+      this.privacyPolicyModel,
+      this.termsCondition});
 
   AppSettingModel.fromJson(Map<String, dynamic> json) {
-    region = json['region'] != null ? new Region.fromJson(json['region']) : null;
-    settingModel = json['app_seeting'] != null ? new SettingModel.fromJson(json['app_seeting']) : null;
+    reference_type = json['reference_type'];
+    maxEarningPerMonth = json['maxEarningPerMonth']??"0";
+    reference_amount = json['reference_amount']??"0";
+    settingModel = json['app_seeting'] != null
+        ? new SettingModel.fromJson(json['app_seeting'])
+        : null;
     if (json['ride_setting'] != null) {
       rideSetting = <RideSetting>[];
       json['ride_setting'].forEach((v) {
@@ -26,16 +41,22 @@ class AppSettingModel {
         walletSetting!.add(new WalletSetting.fromJson(v));
       });
     }
-    currencySetting = json['currency_setting'] != null ? new CurrencySetting.fromJson(json['currency_setting']) : null;
-    privacyPolicyModel = json['privacy_policy'] != null ? new PrivacyPolicyModel.fromJson(json['privacy_policy']) : null;
-    termsCondition = json['terms_condition'] != null ? new PrivacyPolicyModel.fromJson(json['terms_condition']) : null;
+    currencySetting = json['currency_setting'] != null
+        ? new CurrencySetting.fromJson(json['currency_setting'])
+        : null;
+    privacyPolicyModel = json['privacy_policy'] != null
+        ? new PrivacyPolicyModel.fromJson(json['privacy_policy'])
+        : null;
+    termsCondition = json['terms_condition'] != null
+        ? new PrivacyPolicyModel.fromJson(json['terms_condition'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.region != null) {
-      data['region'] = this.region!.toJson();
-    }
+    data['reference_type'] = this.reference_type;
+    data['maxEarningPerMonth'] = this.maxEarningPerMonth;
+    data['reference_amount'] = this.reference_amount;
     if (this.settingModel != null) {
       data['app_seeting'] = this.settingModel!.toJson();
     }
@@ -43,7 +64,8 @@ class AppSettingModel {
       data['ride_setting'] = this.rideSetting!.map((v) => v.toJson()).toList();
     }
     if (this.walletSetting != null) {
-      data['Wallet_setting'] = this.walletSetting!.map((v) => v.toJson()).toList();
+      data['Wallet_setting'] =
+          this.walletSetting!.map((v) => v.toJson()).toList();
     }
     if (this.currencySetting != null) {
       data['currency_setting'] = this.currencySetting!.toJson();
@@ -54,56 +76,6 @@ class AppSettingModel {
     if (this.termsCondition != null) {
       data['terms_condition'] = this.termsCondition!.toJson();
     }
-    return data;
-  }
-}
-
-class Region {
-  int? id;
-  String? name;
-  String? currencyName;
-  String? currencyCode;
-  String? distanceUnit;
-  int? status;
-  String? timezone;
-  String? createdAt;
-  String? updatedAt;
-
-  Region({
-    this.id,
-    this.name,
-    this.currencyName,
-    this.currencyCode,
-    this.distanceUnit,
-    this.status,
-    this.timezone,
-    this.createdAt,
-    this.updatedAt,
-  });
-
-  Region.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['name'];
-    currencyName = json['currency_name'];
-    currencyCode = json['currency_code'];
-    distanceUnit = json['distance_unit'];
-    status = json['status'];
-    timezone = json['timezone'];
-    createdAt = json['created_at'];
-    updatedAt = json['updated_at'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['currency_name'] = this.currencyName;
-    data['currency_code'] = this.currencyCode;
-    data['distance_unit'] = this.distanceUnit;
-    data['status'] = this.status;
-    data['timezone'] = this.timezone;
-    data['created_at'] = this.createdAt;
-    data['updated_at'] = this.updatedAt;
     return data;
   }
 }

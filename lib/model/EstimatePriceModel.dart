@@ -1,19 +1,19 @@
-import '../model/PaginationModel.dart';
-
-import 'CouponData.dart';
+import '../manage_imports.dart';
 
 class EstimatePriceModel {
   List<ServicesListData>? data;
   PaginationModel? pagination;
   String? message;
+  num? totalCoins;
 
-  EstimatePriceModel({this.data, this.pagination, this.message});
+  EstimatePriceModel({this.data, this.pagination, this.message, this.totalCoins});
 
   factory EstimatePriceModel.fromJson(Map<String, dynamic> json) {
     return EstimatePriceModel(
       data: json['data'] != null ? (json['data'] as List).map((i) => ServicesListData.fromJson(i)).toList() : null,
       pagination: json['pagination'] != null ? PaginationModel.fromJson(json['pagination']) : null,
       message: json['message'],
+      totalCoins: json['total_coins'],
     );
   }
 
@@ -26,6 +26,7 @@ class EstimatePriceModel {
       data['pagination'] = this.pagination!.toJson();
     }
     data['message'] = this.message;
+    data['total_coins'] = this.totalCoins;
     return data;
   }
 }
@@ -53,13 +54,15 @@ class ServicesListData {
   num? perMinuteWait;
   num? fixed_charge;
   num? pickupDuration;
-  Region? region;
   num? regionId;
   String? serviceImage;
   var status;
   num? subtotal;
   num? timePrice;
   num? totalAmount;
+  num? totalAmountAfterDiscount;
+  num? coinsUsed;
+  num? surgeAmount;
   String? updatedAt;
   num? waitDuration;
   num? waitingTimeLimit;
@@ -99,13 +102,15 @@ class ServicesListData {
     this.perMinuteDrive,
     this.perMinuteWait,
     this.pickupDuration,
-    this.region,
     this.regionId,
     this.serviceImage,
     this.status,
     this.subtotal,
     this.timePrice,
     this.totalAmount,
+    this.totalAmountAfterDiscount,
+    this.coinsUsed,
+    this.surgeAmount,
     this.updatedAt,
     this.waitDuration,
     this.waitingTimeLimit,
@@ -148,13 +153,15 @@ class ServicesListData {
       perMinuteWait: json['per_minute_wait'],
       pickupDuration: json['pickup_duration'],
       fixed_charge: num.tryParse(json['fixed_charge'].toString()),
-      region: json['region'] != null ? Region.fromJson(json['region']) : null,
       regionId: json['region_id'],
       serviceImage: json['service_image'],
       status: json['status'],
       subtotal: json['subtotal'],
       timePrice: json['time_price'],
       totalAmount: json['total_amount'],
+      totalAmountAfterDiscount: json['total_amount_after_discount'],
+      coinsUsed: json['coins_used'],
+      surgeAmount: json['surge_amount'],
       updatedAt: json['updated_at'],
       waitDuration: json['wait_duration'],
       waitingTimeLimit: json['waiting_time_limit'],
@@ -202,6 +209,9 @@ class ServicesListData {
     data['subtotal'] = this.subtotal;
     data['time_price'] = this.timePrice;
     data['total_amount'] = this.totalAmount;
+    data['total_amount_after_discount'] = this.totalAmountAfterDiscount;
+    data['coins_used'] = this.coinsUsed;
+    data['surge_amount'] = this.surgeAmount;
     data['updated_at'] = this.updatedAt;
     data['wait_duration'] = this.waitDuration;
     data['waiting_time_limit'] = this.waitingTimeLimit;
@@ -214,48 +224,9 @@ class ServicesListData {
     data['end_longitude'] = this.endLongitude;
     data['service_id'] = this.serviceId;
     data['description'] = this.description;
-    if (this.region != null) {
-      data['region'] = this.region!.toJson();
-    }
     if (this.couponData != null) {
-      data['coupon_data'] = this.region!.toJson();
+      data['coupon_data'] = this.couponData!.toJson();
     }
-    return data;
-  }
-}
-
-class Region {
-  String? createdAt;
-  String? distanceUnit;
-  int? id;
-  String? name;
-  int? status;
-  String? timezone;
-  String? updated_at;
-
-  Region({this.createdAt, this.distanceUnit, this.id, this.name, this.status, this.timezone, this.updated_at});
-
-  factory Region.fromJson(Map<String, dynamic> json) {
-    return Region(
-      createdAt: json['created_at'],
-      distanceUnit: json['distance_unit'],
-      id: json['id'],
-      name: json['name'],
-      status: json['status'],
-      timezone: json['timezone'],
-      updated_at: json['updated_at'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['created_at'] = this.createdAt;
-    data['distance_unit'] = this.distanceUnit;
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['status'] = this.status;
-    data['timezone'] = this.timezone;
-    data['updated_at'] = this.updated_at;
     return data;
   }
 }

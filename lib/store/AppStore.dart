@@ -1,14 +1,5 @@
-import 'package:flutter/material.dart';
+import '../manage_imports.dart';
 import 'package:mobx/mobx.dart';
-import 'package:taxi_booking/languageConfiguration/LanguageDefaultJson.dart';
-
-import '../languageConfiguration/AppLocalizations.dart';
-import '../languageConfiguration/BaseLanguage.dart';
-import '../languageConfiguration/LanguageDataConstant.dart';
-import '../main.dart';
-import '../model/SettingModel.dart';
-import '../utils/Colors.dart';
-import '../utils/Constants.dart';
 
 part 'AppStore.g.dart';
 
@@ -91,7 +82,18 @@ abstract class _AppStore with Store {
   String? termsCondition;
 
   @observable
+  String? referralCode;
+
+  @observable
   String? mHelpAndSupport;
+
+  @observable
+  String? activeServices = "both";
+
+  @action
+  Future<void> setReferralCode(String? val) async {
+    referralCode = val!;
+  }
 
   @action
   Future<void> setIsRiderForAnother(String? val) async {
@@ -108,6 +110,10 @@ abstract class _AppStore with Store {
     isScheduleRide = val!;
   }
 
+  @action
+  Future<void> setActiveServices(String? val) async {
+    activeServices = val!;
+  }
   // isScheduleRide
 
   @action

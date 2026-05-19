@@ -1,37 +1,47 @@
-import 'package:flutter/material.dart';
-
-import 'images.dart';
+import '../manage_imports.dart';
 
 //region App name
-const mAppName = 'Mighty Rider';
+const mAppName = 'Rider App';
 //endregion
 
+const PRODUCTION_MODE = true;
+
 // region Google map key
-const GOOGLE_MAP_API_KEY = 'YOUR_MAP_KEY';
+final GOOGLE_MAP_API_KEY = Platform.isAndroid ? '<YOUR_GOOGLE_MAP_API_KEY_ANDROID>' : "<YOUR_GOOGLE_MAP_API_KEY_IOS>";
 //endregion
 
 //region DomainUrl
-const DOMAIN_URL = 'YOUR_BASE_URL'; // Don't add slash at the end of the url
+final DOMAIN_URL = AppServerConfig.baseUrl;
+
+const PRIVACY_URL = "<PRIVACY_POLICY_URL>";
+const TNC_URL = "<TERMS_OF_SERVICE_URL>";
 //endregion
 
 //region OneSignal Keys
 //You have to generate 2 apps on onesignal account one for rider and one for driver
-const mOneSignalAppIdDriver = 'YOUR_ONESIGNAL_APP_ID_DRIVER';
-const mOneSignalRestKeyDriver = 'YOUR_ONESIGNAL_AUTH_KEY_DRIVER';
-const mOneSignalDriverChannelID = 'YOUR_ONESIGNAL_CHANNEL_ID_DRIVER';
+const mOneSignalAppIdDriver = '<DRIVER_ONE_SIGNAL_ID>';
+const mOneSignalRestKeyDriver = '<DRIVER_ONE_SIGNAL_REST_KEY>';
+const mOneSignalDriverChannelID = '<DRIVER_ONE_SIGNAL_CHANNEL_ID>';
 
-const mOneSignalAppIdRider = 'YOUR_ONESIGNAL_APP_ID_RIDER';
-const mOneSignalRestKeyRider = 'YOUR_ONESIGNAL_AUTH_KEY_RIDER';
-const mOneSignalRiderChannelID = 'YOUR_ONESIGNAL_CHANNEL_ID_RIDER';
+const mOneSignalAppIdRider = '<RIDER_ONE_SIGNAL_ID>';
+const mOneSignalRestKeyRider = '<RIDER_ONE_SIGNAL_REST_KEY>';
+const mOneSignalRiderChannelID = '<RIDER_ONE_SIGNAL_CHANNEL_ID>';
 //endregion
 
 //region firebase configuration
-const projectId = 'YOUR_FIREBASE_PROJECT_ID';
-const appIdAndroid = 'YOUR_FIREBASE_ANDROID_APP_ID';
-const apiKeyFirebase = 'YOUR_FIREBASE_API_KEY';
-const messagingSenderId = 'YOUR_FIREBASE_SENDER_ID';
+const projectId = '<PROJECT_ID>';
+const appIdAndroid = '<APP_ID_ANDROID>';
+const apiKeyFirebase = '<API_KEY_FIREBASE>';
+const messagingSenderId = '<MESSAGING_SENDER_ID>';
 const storageBucket = '$projectId.appspot.com';
 const authDomain = "$projectId.firebaseapp.com";
+//endregion
+
+//region FireBase Collection Name
+const MESSAGES_COLLECTION = PRODUCTION_MODE ? "RideTalk" : "RideTalkDev";
+const RIDE_CHAT = PRODUCTION_MODE ? "RideTalkHistory" : "RideTalkHistoryDev";
+const RIDE_COLLECTION = PRODUCTION_MODE ? 'rides' : 'rides_dev';
+const USER_COLLECTION = PRODUCTION_MODE ? "users" : 'users_dev';
 //endregion
 
 //region Currency & country code
@@ -46,13 +56,8 @@ const PRESENT_TOP_UP_AMOUNT_CONST = '1000|2000|3000';
 const PRESENT_TIP_AMOUNT_CONST = '10|20|30';
 //endregion
 
-// INTRO SCREEN IMAGES ic_walk1,ic_walk2 and ic_walk3
-const walkthrough_image_1 = ic_walk1;
-const walkthrough_image_2 = ic_walk2;
-const walkthrough_image_3 = ic_walk3;
-
 //region url
-const mBaseUrl = "$DOMAIN_URL/api/";
+final mBaseUrl = "$DOMAIN_URL/api/";
 //endregion
 
 //region userType
@@ -132,6 +137,7 @@ const IN_ACTIVE = 'inactive';
 const PENDING = 'pending';
 const BANNED = 'banned';
 const REJECT = 'reject';
+
 //endregion
 
 //region Wallet keys
@@ -163,6 +169,7 @@ const ACCEPTED = 'accepted';
 const BID_ACCEPTED = 'bid_accepted';
 const ARRIVING = 'arriving';
 const ARRIVED = 'arrived';
+const ASSIGN_DRIVER = 'assign_driver';
 const IN_PROGRESS = 'in_progress';
 const CANCELED = 'canceled';
 const COMPLETED = 'completed';
@@ -199,13 +206,8 @@ const MAX_TIME_FOR_RIDER_MINUTE = 'max_time_for_find_drivers_for_regular_ride_in
 const MAX_TIME_FOR_DRIVER_SECOND = 'ride_accept_decline_duration_for_driver_in_second';
 const MIN_AMOUNT_TO_ADD = 'min_amount_to_add';
 const MAX_AMOUNT_TO_ADD = 'max_amount_to_add';
-//endregion
 
-//region FireBase Collection Name
-const MESSAGES_COLLECTION = "RideTalk";
-const RIDE_CHAT = "RideTalkHistory";
-const RIDE_COLLECTION = 'rides';
-const USER_COLLECTION = "users";
+const ACTIVE_SERVICES = 'ACTIVE_SERVICE_TYPE';
 //endregion
 
 const IS_ENTER_KEY = "IS_ENTER_KEY";
@@ -242,8 +244,6 @@ extension MessageExtension on MessageType {
         return 'VIDEO';
       case MessageType.AUDIO:
         return 'AUDIO';
-      default:
-        return null;
     }
   }
 }
@@ -254,3 +254,17 @@ var rideNotFound = "Ride Not Detected";
 var demoEmail = 'joy58@gmail.com';
 const mRazorDescription = mAppName;
 const mStripeIdentifier = 'IN';
+
+const tripTypeList = [tripTypeRegular, tripTypeAirportPickup, tripTypeAirportDropoff, tripTypeZoneWise, tripTypeZoneToAirport, tripTypeAirportToZone];
+
+const tripTypeRegular = 'Regular';
+const tripTypeAirportPickup = 'Airport Pickup';
+const tripTypeAirportDropoff = 'Airport Dropoff';
+const tripTypeZoneWise = 'Zone Wise';
+const tripTypeZoneToAirport = 'Zone to Airport';
+const tripTypeAirportToZone = 'Airport to Zone';
+
+double? defaultInkWellRadius;
+Color? defaultInkWellSplashColor;
+Color? defaultInkWellHoverColor;
+Color? defaultInkWellHighlightColor;

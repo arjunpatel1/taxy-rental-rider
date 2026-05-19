@@ -1,33 +1,19 @@
-import 'package:country_code_picker/country_code_picker.dart';
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-
-import '../../main.dart';
-import '../../service/AuthService1.dart';
-import '../../utils/Colors.dart';
-import '../../utils/Common.dart';
-import '../../utils/Extensions/AppButtonWidget.dart';
-import '../../utils/Extensions/app_common.dart';
-import '../../utils/Extensions/app_textfield.dart';
-import '../languageConfiguration/LanguageDefaultJson.dart';
-import '../network/RestApis.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/context_extension.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
-import '../utils/images.dart';
-import 'TermsConditionScreen.dart';
+import '../manage_imports.dart';
 
 class SignUpScreen extends StatefulWidget {
   final bool socialLogin;
   final String? userName;
   final bool isOtp;
   final String? countryCode;
-  final String? privacyPolicyUrl;
-  final String? termsConditionUrl;
+  // final String? privacyPolicyUrl;
+  // final String? termsConditionUrl;
 
-  SignUpScreen({this.socialLogin = false, this.userName, this.isOtp = false, this.countryCode, this.privacyPolicyUrl, this.termsConditionUrl});
+  SignUpScreen({
+    this.socialLogin = false,
+    this.userName,
+    this.isOtp = false,
+    this.countryCode,
+  });
 
   @override
   SignUpScreenState createState() => SignUpScreenState();
@@ -44,6 +30,7 @@ class SignUpScreenState extends State<SignUpScreen> {
   TextEditingController phoneController = TextEditingController();
   TextEditingController passController = TextEditingController();
   TextEditingController confirmPassController = TextEditingController();
+  TextEditingController referralController = TextEditingController();
 
   FocusNode firstNameFocus = FocusNode();
   FocusNode lastNameFocus = FocusNode();
@@ -52,6 +39,7 @@ class SignUpScreenState extends State<SignUpScreen> {
   FocusNode phoneFocus = FocusNode();
   FocusNode passFocus = FocusNode();
   FocusNode confirmPass = FocusNode();
+  FocusNode refralFocus = FocusNode();
 
   bool mIsCheck = false;
   bool isAcceptedTc = false;
@@ -88,6 +76,7 @@ class SignUpScreenState extends State<SignUpScreen> {
           "contact_number": widget.socialLogin ? '${widget.userName}' : '${phoneController.text.trim()}',
           "country_code": widget.socialLogin ? '${widget.countryCode}' : '$countryCode',
           'password': widget.socialLogin ? widget.userName : passController.text.trim(),
+          'partner_referral_code': referralController.text.trim(),
           "player_id": sharedPref.getString(PLAYER_ID).validate(),
           if (widget.socialLogin) 'login_type': 'mobile',
         };
@@ -107,10 +96,11 @@ class SignUpScreenState extends State<SignUpScreen> {
             //
           }).catchError((e) {
             appStore.setLoading(false);
-            toast('$e');
+            toast('${e.toString()}');
           });
         }).catchError((error) {
           appStore.setLoading(false);
+          toast('${error.toString()}');
         });
       } else {
         toast(language.pleaseAcceptTermsOfServicePrivacyPolicy);
@@ -234,7 +224,7 @@ class SignUpScreenState extends State<SignUpScreen> {
                                   countryCode = c.dialCode!;
                                 },
                               ),
-                              VerticalDivider(color: Colors.grey.withOpacity(0.5)),
+                              VerticalDivider(color: Colors.grey.withValues(alpha: 0.5)),
                             ],
                           ),
                         ),
@@ -284,6 +274,14 @@ class SignUpScreenState extends State<SignUpScreen> {
                           ),
                       ],
                     ),
+                  SizedBox(height: 20),
+                  AppTextField(
+                    controller: referralController,
+                    autoFocus: false,
+                    textFieldType: TextFieldType.OTHER,
+                    errorThisFieldRequired: errorThisFieldRequired,
+                    decoration: inputDecoration(context, label: "Referral Code"),
+                  ),
                   SizedBox(height: 16),
                   Row(
                     children: [
@@ -311,8 +309,8 @@ class SignUpScreenState extends State<SignUpScreen> {
                               style: boldTextStyle(color: primaryColor, size: 14),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
-                                  if (widget.termsConditionUrl != null && widget.termsConditionUrl!.isNotEmpty) {
-                                    launchScreen(context, TermsConditionScreen(title: language.termsConditions, subtitle: widget.termsConditionUrl), pageRouteAnimation: PageRouteAnimation.Slide);
+                                  if (TNC_URL.isNotEmpty) {
+                                    launchScreen(context, TermsConditionScreen(title: language.termsConditions, subtitle: TNC_URL), pageRouteAnimation: PageRouteAnimation.Slide);
                                   } else {
                                     toast(language.txtURLEmpty);
                                   }
@@ -324,8 +322,8 @@ class SignUpScreenState extends State<SignUpScreen> {
                               style: boldTextStyle(color: primaryColor, size: 14),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
-                                  if (widget.privacyPolicyUrl != null && widget.privacyPolicyUrl!.isNotEmpty) {
-                                    launchScreen(context, TermsConditionScreen(title: language.privacyPolicy, subtitle: widget.privacyPolicyUrl), pageRouteAnimation: PageRouteAnimation.Slide);
+                                  if (PRIVACY_URL.isNotEmpty) {
+                                    launchScreen(context, TermsConditionScreen(title: language.privacyPolicy, subtitle: PRIVACY_URL), pageRouteAnimation: PageRouteAnimation.Slide);
                                   } else {
                                     toast(language.txtURLEmpty);
                                   }

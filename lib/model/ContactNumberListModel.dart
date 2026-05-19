@@ -1,4 +1,4 @@
-import '../model/PaginationModel.dart';
+import '../manage_imports.dart';
 
 class ContactNumberListModel {
   List<ContactModel>? data;
@@ -8,8 +8,12 @@ class ContactNumberListModel {
 
   factory ContactNumberListModel.fromJson(Map<String, dynamic> json) {
     return ContactNumberListModel(
-      data: json['data'] != null ? (json['data'] as List).map((i) => ContactModel.fromJson(i)).toList() : null,
-      pagination: json['pagination'] != null ? PaginationModel.fromJson(json['pagination']) : null,
+      data: json['data'] != null
+          ? (json['data'] as List).map((i) => ContactModel.fromJson(i)).toList()
+          : null,
+      pagination: json['pagination'] != null
+          ? PaginationModel.fromJson(json['pagination'])
+          : null,
     );
   }
 

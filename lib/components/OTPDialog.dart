@@ -1,23 +1,4 @@
-import 'package:country_code_picker/country_code_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:pinput/pinput.dart';
-
-import '../../main.dart';
-import '../../network/RestApis.dart';
-import '../languageConfiguration/LanguageDefaultJson.dart';
-import '../screens/DashBoardScreen.dart';
-import '../screens/SignUpScreen.dart';
-import '../service/AuthService.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/app_textfield.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../manage_imports.dart';
 
 class OTPDialog extends StatefulWidget {
   final String? verificationId;
@@ -35,6 +16,7 @@ class OTPDialogState extends State<OTPDialog> {
   var otpController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  AuthServices authService = AuthServices();
 
   String verId = '';
   String otpCode = defaultCountryCode;
@@ -84,8 +66,8 @@ class OTPDialogState extends State<OTPDialog> {
 
       String number = '$otpCode ${phoneController.text.trim()}';
 
-      log('$otpCode${phoneController.text.trim()}');
-      await loginWithOTP(context, number).then((value) {}).catchError((e) {
+      log('sendotp $otpCode${phoneController.text.trim()}');
+      await authService.loginWithOTP(context, number).then((value) {}).catchError((e) {
         appStore.setLoading(false);
         toast(e.toString());
       });
@@ -162,7 +144,7 @@ class OTPDialogState extends State<OTPDialog> {
                           otpCode = c.dialCode!;
                         },
                       ),
-                      VerticalDivider(color: Colors.grey.withOpacity(0.5)),
+                      VerticalDivider(color: Colors.grey.withValues(alpha: 0.5)),
                     ],
                   ),
                 ),

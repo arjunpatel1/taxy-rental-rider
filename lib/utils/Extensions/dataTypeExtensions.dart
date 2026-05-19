@@ -8,7 +8,8 @@ extension StringExtension on String? {
 
   static String phonePattern = r'(^(?:[+0]9)?[0-9]{10,12}$)';
 
-  static String emailPattern = r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+";
+  static String emailPattern =
+      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+";
 
   /// Check email validation
   bool validateEmail() => hasMatch(this, emailPattern);
@@ -20,7 +21,10 @@ extension StringExtension on String? {
   bool validateURL() => hasMatch(this, urlPattern);
 
   /// Returns true if given String is null or isEmpty
-  bool get isEmptyOrNull => this == null || (this != null && this!.isEmpty) || (this != null && this! == 'null');
+  bool get isEmptyOrNull =>
+      this == null ||
+      (this != null && this!.isEmpty) ||
+      (this != null && this! == 'null');
 
   /// Capitalize given String
   // String capitalizeFirstLetter() => (validate().length >= 1) ? (this!.substring(0, 1).toUpperCase() + this!.substring(1).toLowerCase()) : validate();
@@ -29,7 +33,12 @@ extension StringExtension on String? {
     final String str = validate();
 
     // Split the string into words, capitalize each word, and join them back together
-    return str.split(' ').map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1).toLowerCase() : '').join(' ');
+    return str
+        .split(' ')
+        .map((word) => word.isNotEmpty
+            ? word[0].toUpperCase() + word.substring(1).toLowerCase()
+            : '')
+        .join(' ');
   }
 
   // Check null string, return given value if null

@@ -4,7 +4,8 @@ class PaginationModel {
   int? totalPages;
   int? totalItems;
 
-  PaginationModel({this.currentPage, this.perPage, this.totalPages, this.totalItems});
+  PaginationModel(
+      {this.currentPage, this.perPage, this.totalPages, this.totalItems});
 
   factory PaginationModel.fromJson(Map<String, dynamic> json) {
     return PaginationModel(

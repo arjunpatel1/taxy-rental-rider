@@ -22,7 +22,6 @@ class StripePayModel {
   String? nextAction;
   String? onBehalfOf;
   String? paymentMethod;
-  PaymentMethodOptions? paymentMethodOptions;
   List<String>? paymentMethodTypes;
   String? receiptEmail;
   String? review;
@@ -35,7 +34,41 @@ class StripePayModel {
   String? transferData;
   String? transferGroup;
 
-  StripePayModel({this.object, this.amount, this.amountCapturable, this.amountReceived, this.application, this.applicationFeeAmount, this.canceledAt, this.cancellationReason, this.captureMethod, this.charges, this.clientSecret, this.confirmationMethod, this.created, this.currency, this.customer, this.description, this.id, this.invoice, this.lastPaymentError, this.liveMode, this.nextAction, this.onBehalfOf, this.paymentMethod, this.paymentMethodOptions, this.paymentMethodTypes, this.receiptEmail, this.review, this.setupFutureUsage, this.shipping, this.source, this.statementDescriptor, this.statementDescriptorSuffix, this.status, this.transferData, this.transferGroup});
+  StripePayModel(
+      {this.object,
+      this.amount,
+      this.amountCapturable,
+      this.amountReceived,
+      this.application,
+      this.applicationFeeAmount,
+      this.canceledAt,
+      this.cancellationReason,
+      this.captureMethod,
+      this.charges,
+      this.clientSecret,
+      this.confirmationMethod,
+      this.created,
+      this.currency,
+      this.customer,
+      this.description,
+      this.id,
+      this.invoice,
+      this.lastPaymentError,
+      this.liveMode,
+      this.nextAction,
+      this.onBehalfOf,
+      this.paymentMethod,
+      this.paymentMethodTypes,
+      this.receiptEmail,
+      this.review,
+      this.setupFutureUsage,
+      this.shipping,
+      this.source,
+      this.statementDescriptor,
+      this.statementDescriptorSuffix,
+      this.status,
+      this.transferData,
+      this.transferGroup});
 
   factory StripePayModel.fromJson(Map<String, dynamic> json) {
     return StripePayModel(
@@ -48,7 +81,8 @@ class StripePayModel {
       canceledAt: json['canceled_at'],
       cancellationReason: json['cancellation_reason'],
       captureMethod: json['capture_method'],
-      charges: json['charges'] != null ? Charges.fromJson(json['charges']) : null,
+      charges:
+          json['charges'] != null ? Charges.fromJson(json['charges']) : null,
       clientSecret: json['client_secret'],
       confirmationMethod: json['confirmation_method'],
       created: json['created'],
@@ -62,8 +96,9 @@ class StripePayModel {
       nextAction: json['next_action'],
       onBehalfOf: json['on_behalf_of'],
       paymentMethod: json['payment_method'],
-      paymentMethodOptions: json['payment_method_options'] != null ? PaymentMethodOptions.fromJson(json['payment_method_options']) : null,
-      paymentMethodTypes: json['payment_method_types'] != null ? new List<String>.from(json['payment_method_types']) : null,
+      paymentMethodTypes: json['payment_method_types'] != null
+          ? new List<String>.from(json['payment_method_types'])
+          : null,
       receiptEmail: json['receipt_email'],
       review: json['review'],
       setupFutureUsage: json['setup_future_usage'],
@@ -114,60 +149,12 @@ class StripePayModel {
     if (this.charges != null) {
       data['charges'] = this.charges!.toJson();
     }
-    if (this.paymentMethodOptions != null) {
-      data['payment_method_options'] = this.paymentMethodOptions!.toJson();
-    }
     if (this.paymentMethodTypes != null) {
       data['payment_method_types'] = this.paymentMethodTypes;
     }
     return data;
   }
 }
-
-class PaymentMethodOptions {
-  Card? card;
-
-  PaymentMethodOptions({this.card});
-
-  factory PaymentMethodOptions.fromJson(Map<String, dynamic> json) {
-    return PaymentMethodOptions(
-      card: json['card'] != null ? Card.fromJson(json['card']) : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.card != null) {
-      data['card'] = this.card!.toJson();
-    }
-    return data;
-  }
-}
-
-class Card {
-  String? installments;
-  String? network;
-  String? requestThreeDSecure;
-
-  Card({this.installments, this.network, this.requestThreeDSecure});
-
-  factory Card.fromJson(Map<String, dynamic> json) {
-    return Card(
-      installments: json['installments'],
-      network: json['network'],
-      requestThreeDSecure: json['request_three_d_secure'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['installments'] = this.installments;
-    data['network'] = this.network;
-    data['request_three_d_secure'] = this.requestThreeDSecure;
-    return data;
-  }
-}
-
 class Charges {
   String? object;
   bool? hasMore;

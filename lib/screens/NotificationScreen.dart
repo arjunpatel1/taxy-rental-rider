@@ -1,23 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-
-import '../../main.dart';
-import '../../network/RestApis.dart';
-import '../../utils/Colors.dart';
-import '../../utils/Common.dart';
-import '../../utils/Extensions/app_common.dart';
-import '../model/NotificationListModel.dart';
-import '../screens/ComplaintListScreen.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
-import 'RideDetailScreen.dart';
+import '../manage_imports.dart';
 
 class NotificationScreen extends StatefulWidget {
   @override
   NotificationScreenState createState() => NotificationScreenState();
 }
 
-class NotificationScreenState extends State<NotificationScreen> with TickerProviderStateMixin {
+class NotificationScreenState extends State<NotificationScreen>
+    with TickerProviderStateMixin {
   ScrollController scrollController = ScrollController();
   int currentPage = 1;
 
@@ -29,7 +18,8 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
     super.initState();
     init();
     scrollController.addListener(() {
-      if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
+      if (scrollController.position.pixels ==
+          scrollController.position.maxScrollExtent) {
         if (!mIsLastPage) {
           appStore.setLoading(true);
 
@@ -67,7 +57,8 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(language.notification, style: boldTextStyle(color: appTextPrimaryColorWhite)),
+        title: Text(language.notification,
+            style: boldTextStyle(color: appTextPrimaryColorWhite)),
       ),
       body: Observer(builder: (context) {
         return Stack(
@@ -82,9 +73,13 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
                       return inkWellWidget(
                         onTap: () {
                           if (data.data!.type == COMPLAIN_COMMENT) {
-                            launchScreen(context, ComplaintListScreen(complaint: data.data!.complaintId!));
+                            launchScreen(
+                                context,
+                                ComplaintListScreen(
+                                    complaint: data.data!.complaintId!));
                           } else if (data.data!.subject! == 'Completed') {
-                            launchScreen(context, RideDetailScreen(orderId: data.data!.id!));
+                            launchScreen(context,
+                                RideDetailScreen(orderId: data.data!.id!));
                           }
                         },
                         child: Container(
@@ -97,36 +92,72 @@ class NotificationScreenState extends State<NotificationScreen> with TickerProvi
                               //   padding:EdgeInsets.symmetric(horizontal: 8.0),
                               //   child: Lottie.asset(messageDetect, width: 18, height: 18, fit: BoxFit.cover),
                               // ),
-                              if (data.data != null && data.data!.type != "push_notification")
+                              if (data.data != null &&
+                                  data.data!.type != "push_notification")
                                 Container(
                                   padding: EdgeInsets.all(8),
                                   alignment: Alignment.center,
                                   decoration: BoxDecoration(
                                     color: Colors.transparent,
-                                    border: Border.all(color: dividerColor.withOpacity(0.5).withOpacity(0.5)),
+                                    border: Border.all(
+                                        color: dividerColor
+                                            .withValues(alpha: 0.5)
+                                            .withValues(alpha: 0.5)),
                                     borderRadius: radius(),
                                   ),
-                                  child: ImageIcon(AssetImage(statusTypeIcon(type: data.data!.type)), color: primaryColor, size: 26),
+                                  child: ImageIcon(
+                                      AssetImage(statusTypeIcon(
+                                          type: data.data!.type)),
+                                      color: primaryColor,
+                                      size: 26),
                                 ),
-                              if (data.data != null && data.data!.type != "push_notification") SizedBox(width: 8),
+                              if (data.data != null &&
+                                  data.data!.type != "push_notification")
+                                SizedBox(width: 8),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        data.data != null && data.data!.type != "push_notification" && data.data!.id != null
-                                            ? Expanded(child: Text('${language.rideId} #${data.data!.id} ${data.data!.subject}', style: boldTextStyle(size: 14)))
-                                            : Expanded(child: Text("${data.data!.subject}", style: boldTextStyle(size: 14))),
+                                        data.data != null &&
+                                                data.data!.type !=
+                                                    "push_notification" &&
+                                                data.data!.id != null
+                                            ? Expanded(
+                                                child: Text(
+                                                    '${language.rideId} #${data.data!.id} ${data.data!.subject}',
+                                                    style: boldTextStyle(
+                                                        size: 14)))
+                                            : Expanded(
+                                                child: Text(
+                                                    "${data.data!.subject}",
+                                                    style: boldTextStyle(
+                                                        size: 14))),
                                         SizedBox(width: 4),
-                                        Text(data.createdAt.validate(), style: secondaryTextStyle()),
+                                        // Text(data.createdAt.validate(), style: secondaryTextStyle()),
                                         // if(data.readAt==null)
                                         // Lottie.asset(messageDetect, width: 18, height: 18, fit: BoxFit.cover)
+                                        Row(
+                                          children: [
+                                            Text(data.createdAt.validate(),
+                                                style: secondaryTextStyle()),
+                                            if (data.isRead == 0)
+                                              Lottie.asset(
+                                                messageDetect,
+                                                height: 20,
+                                                width: 20,
+                                                fit: BoxFit.cover,
+                                              ),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                     SizedBox(height: 4),
-                                    Text('${data.data!.message}', style: primaryTextStyle(size: 14)),
+                                    Text('${data.data!.message}',
+                                        style: primaryTextStyle(size: 14)),
                                   ],
                                 ),
                               ),

@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-
-import 'LanguageDataConstant.dart';
+import '../manage_imports.dart';
 
 class BaseLanguage {
   static BaseLanguage? of(BuildContext context) {
@@ -563,6 +561,8 @@ class BaseLanguage {
 
   String get walkthrough_subtitle_3 => getContentValueFromKey(275);
 
+  String get vehicleColor => getContentValueFromKey(296);
+
   String get driver_walkthrough_title_1 => getContentValueFromKey(362);
 
   String get driver_walkthrough_title_2 => getContentValueFromKey(363);
@@ -591,6 +591,8 @@ class BaseLanguage {
 
   String get tripDistance => getContentValueFromKey(383);
 
+  String get platformFee => getContentValueFromKey(384);
+
   String get updateAvailable => getContentValueFromKey(387);
 
   String get updateNote => getContentValueFromKey(388);
@@ -601,4 +603,133 @@ class BaseLanguage {
   String get now => getContentValueFromKey(392);
   String get schedule_list_title => getContentValueFromKey(393);
   String get schedule_list_desc => getContentValueFromKey(394);
+
+  String get refer_and_earn => getContentValueFromKey(395);
+  String get earned_reward => getContentValueFromKey(396);
+
+  String get referral_code => getContentValueFromKey(397);
+
+  String get regular => getContentValueFromKey(398);
+  String get airPickup => getContentValueFromKey(399);
+  String get airDropOff => getContentValueFromKey(400);
+  String get zoneWise => getContentValueFromKey(401);
+  String get zoneToAir => getContentValueFromKey(402);
+  String get airToZone => getContentValueFromKey(403);
+
+  String get lblUpcomingService => getContentValueFromKey(404);
+
+  String get lblReferTitle => getContentValueFromKey(405);
+  String get lblReferSubtitle => getContentValueFromKey(406);
+  String get lblReferralHistory => getContentValueFromKey(407);
+  String get lblEarnedReward => getContentValueFromKey(408);
+
+  String get flightDetails => getContentValueFromKey(409);
+  String get flightNumber => getContentValueFromKey(410);
+  String get flightTacking => getContentValueFromKey(411);
+  String get overRollFlightStatus => getContentValueFromKey(412);
+  String get flightDate => getContentValueFromKey(413);
+  String get DepInformation => getContentValueFromKey(414);
+  String get airport => getContentValueFromKey(415);
+  String get scheduledDep => getContentValueFromKey(416);
+  String get estimatedDep => getContentValueFromKey(417);
+  String get actualDep => getContentValueFromKey(418);
+
+  String get terminalAddress => getContentValueFromKey(419);
+  String get terminalHelperText => getContentValueFromKey(420);
+  String get preferredPickupTime => getContentValueFromKey(421);
+  String get preferredDropTime => getContentValueFromKey(422);
+  String get track => getContentValueFromKey(423);
+  String get collectAmount => getContentValueFromKey(424);
+  String get collectOrder => getContentValueFromKey(425);
+  String get completeDelivery => getContentValueFromKey(426);
+  String get paymentReceive => getContentValueFromKey(427);
+  String get paymentReceiveDesc => getContentValueFromKey(428);
+
+  String get name => getContentValueFromKey(429);
+
+  String get AircraftInfo => getContentValueFromKey(430);
+  String get AirCraftType => getContentValueFromKey(431);
+
+  String get selectAirport => getContentValueFromKey(432);
+  String get searchAirport => getContentValueFromKey(433);
+
+  String get scheduledArri => getContentValueFromKey(434);
+  String get estimatedArri => getContentValueFromKey(435);
+  String get actualArri => getContentValueFromKey(436);
+  String get AirFlightDetails => getContentValueFromKey(437);
+  String get airline => getContentValueFromKey(438);
+  String get registration => getContentValueFromKey(439);
+  String get pickupdistance => getContentValueFromKey(440);
+  String get bagClaim => getContentValueFromKey(441);
+
+  String get tripType => getContentValueFromKey(442);
+  String get bookService => getContentValueFromKey(443);
+
+  String get selectZone => getContentValueFromKey(444);
+  String get searchZone => getContentValueFromKey(445);
+
+  String get estimate => getContentValueFromKey(446);
+
+  String get driverToPickupDistance => getContentValueFromKey(447);
+  String get pickupToDropDistance => getContentValueFromKey(448);
+
+  String get lblfaq => getContentValueFromKey(449);
+  String get riderReview => getContentValueFromKey(340);
+  String get totalFare => getContentValueFromKey(450);
+  String get distanceFare => getContentValueFromKey(451);
+  String get fareBreakdown => getContentValueFromKey(452);
+  String get discount => getContentValueFromKey(453);
+  String get highDemandCharge => getContentValueFromKey(454);
+  String get additionalCharges => getContentValueFromKey(455);
+  String get extraRideTime => getContentValueFromKey(456);
+  String get subTotal => getContentValueFromKey(457);
+  String get promotions => getContentValueFromKey(458);
+  String get timeToPickup => getContentValueFromKey(459);
+  String get timeToDropOff => getContentValueFromKey(460);
+  String get upcomingRideStartsIn => getContentValueFromKey(461);
+  String get startingNow => getContentValueFromKey(462);
+  String get bidAmountLesEarning => getContentValueFromKey(463);
+  String get estimateFare => getContentValueFromKey(464);
+  String get arrivingAtDropOff => getContentValueFromKey(465);
+  String get arrivingAtPickup => getContentValueFromKey(466);
+  String get walletBalance => getContentValueFromKey(467);
+  String get walletBalanceOrCash => getContentValueFromKey(468);
+  String get riderSettleCharge => getContentValueFromKey(469);
+  String get estimatedFare => getContentValueFromKey(470);
+  String get youEarned => getContentValueFromKey(471);
+  String get additionalChargesSummary => getContentValueFromKey(472);
+  String get youPaidFollowingCharges => getContentValueFromKey(473);
+  String get riderSettleAmount => getContentValueFromKey(474);
+  String get extraChargesPaidByYou => getContentValueFromKey(475);
+  String get totalExtraAmount => getContentValueFromKey(476);
+  String get extraChargeAlreadyPaidOn => getContentValueFromKey(477);
+  String get noNeedToCollectFromTheCustomer => getContentValueFromKey(478);
+  String get extraChargesCoveredByYou => getContentValueFromKey(479);
+  String get youCoveredCharges => getContentValueFromKey(480);
+  String get viewDetails => getContentValueFromKey(481);
+  String get flight => getContentValueFromKey(482);
+  String get terminal => getContentValueFromKey(483);
+  String get ETA => getContentValueFromKey(484);
+  String get arrivingNow => getContentValueFromKey(485);
+  String get yourTripCompleted => getContentValueFromKey(486);
+  String get driverCoveredFollowingCharge => getContentValueFromKey(487);
+  String get totalAdditionalAmount => getContentValueFromKey(488);
+  String get extraChargesNote => getContentValueFromKey(489);
+  String get pleaseSelectPaymentMethod => getContentValueFromKey(490);
+  String get extraChargesPayVia => getContentValueFromKey(491);
+  String get settleAdditionalCharges => getContentValueFromKey(492);
+  String get yourTripAlreadyPaid => getContentValueFromKey(493);
+  String get driverPaidFollowingCharge => getContentValueFromKey(494);
+  String get additionalChargesPaidByDriver => getContentValueFromKey(495);
+  String get noAdditionalPaymentRequired => getContentValueFromKey(496);
+  String get choosePaymentMethod => getContentValueFromKey(497);
+  String get payViaWallet => getContentValueFromKey(498);
+  String get lblWalletBalance => getContentValueFromKey(499);
+  String get fastAndCashless => getContentValueFromKey(500);
+  String get payInCashToDriver => getContentValueFromKey(501);
+  String get amountHandelToDriver => getContentValueFromKey(502);
+  String get insufficientWalletBalanceToPay => getContentValueFromKey(503);
+  String get numberPlate => getContentValueFromKey(505);
+  String get vehicleInformation => getContentValueFromKey(506);
+  String get airportPickupInformation => getContentValueFromKey(507);
 }

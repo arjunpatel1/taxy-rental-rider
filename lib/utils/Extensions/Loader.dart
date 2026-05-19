@@ -1,13 +1,11 @@
-import 'package:flutter/material.dart';
-
-import '../../../main.dart';
-import '../Common.dart';
+import '../../manage_imports.dart';
 
 /// Circular Loader Widget
 class Loader extends StatefulWidget {
   final Color? color;
 
-  @Deprecated('accentColor is now deprecated and not being used. use defaultLoaderAccentColorGlobal instead')
+  @Deprecated(
+      'accentColor is now deprecated and not being used. use defaultLoaderAccentColorGlobal instead')
   final Color? accentColor;
   final Decoration? decoration;
   final int? size;

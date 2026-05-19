@@ -1,14 +1,16 @@
-import 'UserDetailModel.dart';
+import '../manage_imports.dart';
 
 class LoginResponse {
+  bool? status;
   UserModel? data;
   String? message;
   bool? isUserExist;
 
-  LoginResponse({this.data, this.message, this.isUserExist});
+  LoginResponse({this.status, this.data, this.message, this.isUserExist});
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
+      status: json['status'],
       data: json['data'] != null ? UserModel.fromJson(json['data']) : null,
       message: json['message'],
       isUserExist: json['is_user_exist'],
@@ -17,6 +19,7 @@ class LoginResponse {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['status'] = this.status;
     data['message'] = this.message;
     data['is_user_exist'] = this.isUserExist;
     if (this.data != null) {
@@ -42,6 +45,7 @@ class UserModel {
   String? fleetId;
   String? latitude;
   String? longitude;
+  num? currentHeading;
   String? lastNotificationSeen;
   String? status;
   int? isOnline;
@@ -55,9 +59,11 @@ class UserModel {
   String? profileImage;
   int? isVerifiedDriver;
   UserBankAccount? userBankAccount;
+  String? referralCode;
 
   UserModel({
     this.id,
+    this.currentHeading,
     this.firstName,
     this.country_code,
     this.lastName,
@@ -85,10 +91,12 @@ class UserModel {
     this.profileImage,
     this.isVerifiedDriver,
     this.userBankAccount,
+    this.referralCode,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
+      currentHeading: num.tryParse(json['currentHeading'].toString()) ?? 0,
       id: json['id'],
       country_code: json['country_code'],
       firstName: json['first_name'],
@@ -117,11 +125,13 @@ class UserModel {
       profileImage: json['profile_image'],
       isVerifiedDriver: json['is_verified_driver'],
       userBankAccount: json['user_bank_account'] != null ? new UserBankAccount.fromJson(json['user_bank_account']) : null,
+      referralCode: json['referral_code'],
     );
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['currentHeading'] = this.currentHeading;
     data['id'] = this.id;
     data['country_code'] = this.country_code;
     data['first_name'] = this.firstName;
@@ -149,6 +159,7 @@ class UserModel {
     data['api_token'] = this.apiToken;
     data['profile_image'] = this.profileImage;
     data['is_verified_driver'] = this.isVerifiedDriver;
+    data['referralCode'] = this.referralCode;
     if (this.userBankAccount != null) {
       data['user_bank_account'] = this.userBankAccount!.toJson();
     }

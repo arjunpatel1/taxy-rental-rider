@@ -1,4 +1,4 @@
-import '../model/PaginationModel.dart';
+import '../manage_imports.dart';
 
 class WalletListModel {
   List<WalletModel>? data;
@@ -9,9 +9,15 @@ class WalletListModel {
 
   factory WalletListModel.fromJson(Map<String, dynamic> json) {
     return WalletListModel(
-      data: json['data'] != null ? (json['data'] as List).map((i) => WalletModel.fromJson(i)).toList() : null,
-      pagination: json['pagination'] != null ? PaginationModel.fromJson(json['pagination']) : null,
-      walletBalance: json['wallet_balance'] != null ? UserWalletModel.fromJson(json['wallet_balance']) : null,
+      data: json['data'] != null
+          ? (json['data'] as List).map((i) => WalletModel.fromJson(i)).toList()
+          : null,
+      pagination: json['pagination'] != null
+          ? PaginationModel.fromJson(json['pagination'])
+          : null,
+      walletBalance: json['wallet_balance'] != null
+          ? UserWalletModel.fromJson(json['wallet_balance'])
+          : null,
     );
   }
 

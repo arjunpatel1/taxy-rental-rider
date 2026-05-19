@@ -233,6 +233,12 @@
       },
       {
         "screenId": "2",
+        "keyword_id": 397,
+        "keyword_name": "referral_code",
+        "keyword_value": "Referral Code"
+      },
+      {
+        "screenId": "2",
         "keyword_id": 20,
         "keyword_name": "passwordDoesNotMatch",
         "keyword_value": "Passwords do not match"
@@ -383,6 +389,330 @@
     "keyword_data": [
       {
         "screenId": "5",
+        "keyword_id": 395,
+        "keyword_name": "refer_and_earn",
+        "keyword_value": "Refer & Earn"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 396,
+        "keyword_name": "earned_reward",
+        "keyword_value": "Earned Reward"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 398,
+        "keyword_name": "regular",
+        "keyword_value": "Regular"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 399,
+        "keyword_name": "airPickup",
+        "keyword_value": "Airport Pickup"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 400,
+        "keyword_name": "airDropOff",
+        "keyword_value": "Airport Dropoff"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 401,
+        "keyword_name": "zoneWise",
+        "keyword_value": "Zone Wise"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 402,
+        "keyword_name": "zoneToAir",
+        "keyword_value": "Zone to Airport"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 403,
+        "keyword_name": "airToZone",
+        "keyword_value": "Airport to Zone"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 404,
+        "keyword_name": "lblUpcomingService",
+        "keyword_value": "Upcoming Service"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 405,
+        "keyword_name": "lblReferTitle",
+        "keyword_value": "Refer a friend and earn up to"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 406,
+        "keyword_name": "lblReferSubtitle",
+        "keyword_value": "Share this code with your friends to get rewards up to"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 407,
+        "keyword_name": "lblReferralHistory",
+        "keyword_value": "Referral History"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 408,
+        "keyword_name": "lblEarnedReward",
+        "keyword_value": "Earned Reward"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 409,
+        "keyword_name": "flightDetails",
+        "keyword_value": "Flight Details"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 410,
+        "keyword_name": "flightNumber",
+        "keyword_value": "Flight Number"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 411,
+        "keyword_name": "flightTacking",
+        "keyword_value": "Flight Tacking"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 412,
+        "keyword_name": "overRollFlightStatus",
+        "keyword_value": "Overall Flight Status"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 413,
+        "keyword_name": "flightDate",
+        "keyword_value": "Flight Date"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 414,
+        "keyword_name": "DepInformation",
+        "keyword_value": "Departure Information"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 415,
+        "keyword_name": "airport",
+        "keyword_value": "Airport"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 416,
+        "keyword_name": "scheduledDep",
+        "keyword_value": "Scheduled Departure"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 417,
+        "keyword_name": "estimatedDep",
+        "keyword_value": "Estimated Departure"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 418,
+        "keyword_name": "actualDep",
+        "keyword_value": "Actual Departure"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 419,
+        "keyword_name": "terminalAddress",
+        "keyword_value": "Terminal"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 420,
+        "keyword_name": "terminalHelperText",
+        "keyword_value": "(like Arrival Gate A, Terminal 3, etc.)"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 421,
+        "keyword_name": "preferredPickupTime",
+        "keyword_value": "Person Pickup Time"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 422,
+        "keyword_name": "preferredDropTime",
+        "keyword_value": "Preferred Drop-off Time"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 423,
+        "keyword_name": "track",
+        "keyword_value": "Track"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 424,
+        "keyword_name": "collectAmount",
+        "keyword_value": "Collect Amount"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 425,
+        "keyword_name": "collectOrder",
+        "keyword_value": "Collect Order"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 426,
+        "keyword_name": "completeDelivery",
+        "keyword_value": "Complete Order"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 427,
+        "keyword_name": "paymentReceive",
+        "keyword_value": "Payment Received?"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 428,
+        "keyword_name": "paymentReceiveDesc",
+        "keyword_value": "Have you collected the payment from the customer?"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 429,
+        "keyword_name": "name",
+        "keyword_value": "Name"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 430,
+        "keyword_name": "AircraftInfo",
+        "keyword_value": "Aircraft Information"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 431,
+        "keyword_name": "AirCraftType",
+        "keyword_value": "Aircraft Type"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 432,
+        "keyword_name": "selectAirport",
+        "keyword_value": "Select Airport"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 433,
+        "keyword_name": "searchAirport",
+        "keyword_value": "Search Airport"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 434,
+        "keyword_name": "scheduledArri",
+        "keyword_value": "Scheduled Arrival"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 435,
+        "keyword_name": "estimatedArri",
+        "keyword_value": "Estimated Arrival"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 436,
+        "keyword_name": "actualArri",
+        "keyword_value": "Actual Arrival"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 437,
+        "keyword_name": "AirFlightDetails",
+        "keyword_value": "Airline & Flight Details"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 438,
+        "keyword_name": "airline",
+        "keyword_value": "Airline"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 439,
+        "keyword_name": "registration",
+        "keyword_value": "Registration"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 440,
+        "keyword_name": "pickupdistance",
+        "keyword_value": "Pick up Distance"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 441,
+        "keyword_name": "bagClaim",
+        "keyword_value": "Baggage Claim"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 442,
+        "keyword_name": "tripType",
+        "keyword_value": "Trip Type"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 443,
+        "keyword_name": "bookService",
+        "keyword_value": "Book Service"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 444,
+        "keyword_name": "selectZone",
+        "keyword_value": "Select Zone"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 445,
+        "keyword_name": "searchZone",
+        "keyword_value": "Search Zone"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 446,
+        "keyword_name": "estimate",
+        "keyword_value": "Estimate"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 447,
+        "keyword_name": "driverToPickupDistance",
+        "keyword_value": "Driver to Pickup Distance"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 448,
+        "keyword_name": "pickupToDropDistance",
+        "keyword_value": "Pickup to Drop Distance"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 449,
+        "keyword_name": "lblfaq",
+        "keyword_value": "FAQ"
+      },
+      {
+        "screenId": "5",
         "keyword_id": 390,
         "keyword_name": "schedule",
         "keyword_value": "Schedule"
@@ -512,6 +842,42 @@
         "keyword_id": 267,
         "keyword_name": "addDropPoint",
         "keyword_value": "+Add drop point"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 505,
+        "keyword_name": "numberPlate",
+        "keyword_value": "Number plate"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 506,
+        "keyword_name": "vehicleInformation",
+        "keyword_value": "Vehicle Information"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 482,
+        "keyword_name": "flight",
+        "keyword_value": "Flight"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 483,
+        "keyword_name": "terminal",
+        "keyword_value": "Terminal"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 507,
+        "keyword_name": "airportPickupInformation",
+        "keyword_value": "Airport Pickup Information"
+      },
+      {
+        "screenId": "5",
+        "keyword_id": 481,
+        "keyword_name": "viewDetails",
+        "keyword_value": "View Details"
       }
     ]
   },
@@ -692,6 +1058,204 @@
         "keyword_id": 258,
         "keyword_name": "detailScreen",
         "keyword_value": "Ride Details"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 467,
+        "keyword_name": "walletBalance",
+        "keyword_value": "wallet balance"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 468,
+        "keyword_name": "walletBalanceOrCash",
+        "keyword_value": "wallet balance or cash"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 469,
+        "keyword_name": "riderSettleCharge",
+        "keyword_value": "The rider will settle the extra charges using their"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 470,
+        "keyword_name": "estimatedFare",
+        "keyword_value": "Estimated Fare"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 471,
+        "keyword_name": "youEarned",
+        "keyword_value": "You Earned"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 472,
+        "keyword_name": "additionalChargesSummary",
+        "keyword_value": "Additional Charges Summary"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 473,
+        "keyword_name": "youPaidFollowingCharges",
+        "keyword_value": "You paid the following charges during this trip."
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 474,
+        "keyword_name": "riderSettleAmount",
+        "keyword_value": "The rider will settle this amount with you."
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 475,
+        "keyword_name": "extraChargesPaidByYou",
+        "keyword_value": "Extra Charges Paid by You"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 476,
+        "keyword_name": "totalExtraAmount",
+        "keyword_value": "Total Extra Amount"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 477,
+        "keyword_name": "extraChargeAlreadyPaidOn",
+        "keyword_value": "Extra charge already paid on"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 478,
+        "keyword_name": "noNeedToCollectFromTheCustomer",
+        "keyword_value": "No need to collect from the customer."
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 479,
+        "keyword_name": "extraChargesCoveredByYou",
+        "keyword_value": "Extra Charges Covered by You"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 480,
+        "keyword_name": "youCoveredCharges",
+        "keyword_value": "You covered the following additional expenses during this trip."
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 486,
+        "keyword_name": "yourTripCompleted",
+        "keyword_value": "Your trip has been completed successfully."
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 487,
+        "keyword_name": "driverCoveredFollowingCharge",
+        "keyword_value": "During the ride, the driver covered the following additional expenses on your behalf."
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 488,
+        "keyword_name": "totalAdditionalAmount",
+        "keyword_value": "Total Additional Amount"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 489,
+        "keyword_name": "extraChargesNote",
+        "keyword_value": "Notes: Extra charges are added only when paid by the driver during your trip."
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 490,
+        "keyword_name": "pleaseSelectPaymentMethod",
+        "keyword_value": "Please select payment method"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 491,
+        "keyword_name": "extraChargesPayVia",
+        "keyword_value": "Extra Charges Pay Via"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 492,
+        "keyword_name": "settleAdditionalCharges",
+        "keyword_value": "Settle Additional Charges"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 493,
+        "keyword_name": "yourTripAlreadyPaid",
+        "keyword_value": "Your trip fare was already paid online."
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 494,
+        "keyword_name": "driverPaidFollowingCharge",
+        "keyword_value": "During the trip, the driver paid the following charges on your behalf."
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 495,
+        "keyword_name": "additionalChargesPaidByDriver",
+        "keyword_value": "Additional Charges (Paid by Driver)"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 476,
+        "keyword_name": "totalExtraAmount",
+        "keyword_value": "Total Extra Amount"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 496,
+        "keyword_name": "noAdditionalPaymentRequired",
+        "keyword_value": "No additional payment is required. The extra charge was already paid on"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 497,
+        "keyword_name": "choosePaymentMethod",
+        "keyword_value": "Choose Payment Method"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 498,
+        "keyword_name": "payViaWallet",
+        "keyword_value": "Pay via Wallet"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 499,
+        "keyword_name": "lblWalletBalance",
+        "keyword_value": "Wallet Balance"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 500,
+        "keyword_name": "fastAndCashless",
+        "keyword_value": "Fast and cashless"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 501,
+        "keyword_name": "payInCashToDriver",
+        "keyword_value": "Pay in Cash to Driver"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 502,
+        "keyword_name": "amountHandelToDriver",
+        "keyword_value": "Please hand over the amount directly to the driver"
+      },
+      {
+        "screenId": "9",
+        "keyword_id": 503,
+        "keyword_name": "insufficientWalletBalanceToPay",
+        "keyword_value": "Insufficient wallet balance to pay the extra charges."
       }
     ]
   },
@@ -1258,7 +1822,7 @@
         "keyword_value": "Get"
       },
       {
-        "screenId": "8",
+        "screenId": "25",
         "keyword_id": 107,
         "keyword_name": "rides",
         "keyword_value": "Rides"
@@ -1296,8 +1860,8 @@
       {
         "screenId": "25",
         "keyword_id": 113,
-        "keyword_name": "carModel",
-        "keyword_value": "Car Model"
+        "keyword_name": "vehicleModel",
+        "keyword_value": "Vehicle Model"
       },
       {
         "screenId": "25",
@@ -1342,7 +1906,7 @@
         "keyword_value": "Cancelled"
       },
       {
-        "screenId": "8",
+        "screenId": "25",
         "keyword_id": 124,
         "keyword_name": "completed",
         "keyword_value": "Completed"
@@ -1598,6 +2162,72 @@
         "keyword_id": 269,
         "keyword_name": "needToEditRide",
         "keyword_value": "Need to edit my details"
+      },
+      {
+        "screenId": "25",
+        "keyword_id": 450,
+        "keyword_name": "totalFare",
+        "keyword_value": "Total Fare"
+      },
+      {
+        "screenId": "25",
+        "keyword_id": 451,
+        "keyword_name": "distanceFare",
+        "keyword_value": "Distance Fare"
+      },
+      {
+        "screenId": "25",
+        "keyword_id": 452,
+        "keyword_name": "fareBreakdown",
+        "keyword_value": "Fare Breakdown"
+      },
+      {
+        "screenId": "25",
+        "keyword_id": 453,
+        "keyword_name": "discount",
+        "keyword_value": "Discount"
+      },
+      {
+        "screenId": "25",
+        "keyword_id": 454,
+        "keyword_name": "highDemandCharge",
+        "keyword_value": "High Demand Charge"
+      },
+      {
+        "screenId": "25",
+        "keyword_id": 455,
+        "keyword_name": "additionalCharges",
+        "keyword_value": "Additional Charges"
+      },
+      {
+        "screenId": "25",
+        "keyword_id": 456,
+        "keyword_name": "extraRideTime",
+        "keyword_value": "Extra Ride Time"
+      },
+      {
+        "screenId": "25",
+        "keyword_id": 457,
+        "keyword_name": "subTotal",
+        "keyword_value": "Sub Total"
+      },
+      {
+        "screenId": "25",
+        "keyword_id": 458,
+        "keyword_name": "promotions",
+        "keyword_value": "Promotions"
+      },
+      {
+        "screenId": "25",
+        "keyword_id": 484,
+        "keyword_name": "ETA",
+        "keyword_value": "ETA"
+      },
+      {
+        "screenId": "25",
+        "keyword_id": 485,
+        "keyword_name": "arrivingNow",
+        "keyword_value": "Arriving now"
       }
     ]
   },
@@ -1723,7 +2353,7 @@
         "screenId": "26",
         "keyword_id": 77,
         "keyword_name": "waitingForDriverConformation",
-        "keyword_value": "Waiting for Payment to Complete"
+        "keyword_value": "Waiting For Payment Confirmation"
       },
       {
         "screenId": "26",
@@ -1735,7 +2365,7 @@
         "screenId": "26",
         "keyword_id": 79,
         "keyword_name": "payToPayment",
-        "keyword_value": "Complete Payment"
+        "keyword_value": "Make Payment"
       },
       {
         "screenId": "26",
@@ -2258,6 +2888,54 @@
         "keyword_id": 292,
         "keyword_name": "pleaseEnterValidOtp",
         "keyword_value": "Please enter valid otp"
+      },
+      {
+        "screenId": "34",
+        "keyword_id": 459,
+        "keyword_name": "timeToPickup",
+        "keyword_value": "Time to Pickup"
+      },
+      {
+        "screenId": "34",
+        "keyword_id": 460,
+        "keyword_name": "timeToDropOff",
+        "keyword_value": "Time to Drop-off"
+      },
+      {
+        "screenId": "34",
+        "keyword_id": 461,
+        "keyword_name": "upcomingRideStartsIn",
+        "keyword_value": "Upcoming ride starts in"
+      },
+      {
+        "screenId": "34",
+        "keyword_id": 462,
+        "keyword_name": "startingNow",
+        "keyword_value": "Starting now"
+      },
+      {
+        "screenId": "34",
+        "keyword_id": 463,
+        "keyword_name": "bidAmountLesEarning",
+        "keyword_value": "Bid amount can't be less than your earnings"
+      },
+      {
+        "screenId": "34",
+        "keyword_id": 464,
+        "keyword_name": "estimateFare",
+        "keyword_value": "Estimate Fare"
+      },
+      {
+        "screenId": "34",
+        "keyword_id": 465,
+        "keyword_name": "arrivingAtDropOff",
+        "keyword_value": "Arriving at drop-off"
+      },
+      {
+        "screenId": "34",
+        "keyword_id": 466,
+        "keyword_name": "arrivingAtPickup",
+        "keyword_value": "Arriving at pickup"
       }
     ]
   },
@@ -2286,20 +2964,20 @@
       {
         "screenId": "35",
         "keyword_id": 296,
-        "keyword_name": "carColor",
-        "keyword_value": "Car Color"
+        "keyword_name": "vehicleColor",
+        "keyword_value": "Vehicle Color"
       },
       {
         "screenId": "35",
         "keyword_id": 297,
-        "keyword_name": "carPlateNumber",
-        "keyword_value": "Car Plate Number"
+        "keyword_name": "vehiclePlateNumber",
+        "keyword_value": "Vehicle Plate Number"
       },
       {
         "screenId": "35",
         "keyword_id": 298,
-        "keyword_name": "carProductionYear",
-        "keyword_value": "Car Production Year"
+        "keyword_name": "vehicleProductionYear",
+        "keyword_value": "Vehicle Production Year"
       }
     ]
   },

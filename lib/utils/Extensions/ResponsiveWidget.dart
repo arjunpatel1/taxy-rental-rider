@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
+import '../../manage_imports.dart';
 
-import '../Constants.dart';
 
 enum DeviceSize { mobile, tablet, desktop }
 
@@ -21,6 +20,68 @@ extension WidgetExtension on Widget? {
   /// With custom height and width
   /// Validate given widget is not null and returns given value if null.
   Widget validate({Widget value = const SizedBox()}) => this ?? value;
+
+  /// set parent widget in center
+  Widget center({double? heightFactor, double? widthFactor}) {
+    return Center(
+      heightFactor: heightFactor,
+      widthFactor: widthFactor,
+      child: this,
+    );
+  }
+
+  /// add tap to parent widget
+  Widget onTap(
+    Function? function, {
+    BorderRadius? borderRadius,
+    Color? splashColor = Colors.transparent,
+    Color? hoverColor = Colors.transparent,
+    Color? highlightColor = Colors.transparent,
+  }) {
+    return InkWell(
+      onTap: function as void Function()?,
+      borderRadius: borderRadius ??
+          (defaultInkWellRadius != null ? radius(defaultInkWellRadius) : null),
+      child: this,
+      splashColor: splashColor ?? defaultInkWellSplashColor,
+      hoverColor: hoverColor ?? defaultInkWellHoverColor,
+      highlightColor: highlightColor ?? defaultInkWellHighlightColor,
+    );
+  }
+
+  /// add Expanded to parent widget
+  Widget expand({flex = 1}) => Expanded(child: this!, flex: flex);
+
+  /// return padding all
+  Padding paddingAll(double padding) {
+    return Padding(padding: EdgeInsets.all(padding), child: this);
+  }
+
+  /// return custom padding from each side
+  Padding paddingOnly({
+    double top = 0.0,
+    double left = 0.0,
+    double bottom = 0.0,
+    double right = 0.0,
+  }) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(left, top, right, bottom),
+      child: this,
+    );
+  }
+
+  /// return padding symmetric
+  Padding paddingSymmetric({double vertical = 0.0, double horizontal = 0.0}) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: vertical, horizontal: horizontal),
+      child: this,
+    );
+  }
+
+  /// set visibility
+  Widget visible(bool visible, {Widget? defaultWidget}) {
+    return visible ? this! : (defaultWidget ?? SizedBox());
+  }
 }
 
 extension BooleanExtensions on bool? {
@@ -65,7 +126,11 @@ class Responsive extends StatelessWidget {
             return Container(
               alignment: Alignment.topCenter,
               child: Container(
-                constraints: useFullWidth.validate(value: true) ? null : BoxConstraints(maxWidth: width ?? (MediaQuery.of(context).size.width * 0.9)),
+                constraints: useFullWidth??true
+                    ? null
+                    : BoxConstraints(
+                        maxWidth:
+                            width ?? (MediaQuery.of(context).size.width * 0.9)),
                 child: web ?? SizedBox(),
               ),
             );

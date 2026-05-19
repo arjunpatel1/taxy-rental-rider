@@ -1,5 +1,4 @@
-import '../model/CouponData.dart';
-import '../model/PaginationModel.dart';
+import '../manage_imports.dart';
 
 class CouponListModel {
   List<CouponData>? data;
@@ -9,8 +8,12 @@ class CouponListModel {
 
   factory CouponListModel.fromJson(Map<String, dynamic> json) {
     return CouponListModel(
-      data: json['data'] != null ? (json['data'] as List).map((i) => CouponData.fromJson(i)).toList() : null,
-      pagination: json['pagination'] != null ? PaginationModel.fromJson(json['pagination']) : null,
+      data: json['data'] != null
+          ? (json['data'] as List).map((i) => CouponData.fromJson(i)).toList()
+          : null,
+      pagination: json['pagination'] != null
+          ? PaginationModel.fromJson(json['pagination'])
+          : null,
     );
   }
 

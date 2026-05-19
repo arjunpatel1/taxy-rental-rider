@@ -1,18 +1,8 @@
-import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:taxi_booking/main.dart';
-import 'package:taxi_booking/utils/Extensions/context_extension.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import '../utils/Colors.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/images.dart';
+import '../manage_imports.dart';
 
 class UpdateAvailable extends StatefulWidget {
-  bool? force;
-  String storeUrl;
+  final bool? force;
+  final String storeUrl;
 
   UpdateAvailable({super.key, this.force, required this.storeUrl});
 
@@ -23,6 +13,7 @@ class UpdateAvailable extends StatefulWidget {
 class _UpdateAvailableState extends State<UpdateAvailable> {
   @override
   Widget build(BuildContext context) {
+    // ignore:deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         if (widget.force != true) {
@@ -40,12 +31,15 @@ class _UpdateAvailableState extends State<UpdateAvailable> {
                 horizontal: 45,
               ),
               padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(12)),
               child: Stack(children: [
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(width: context.width() * 0.40, child: Image.asset(updateAvailableImg)),
+                    Container(
+                        width: context.width() * 0.40,
+                        child: Image.asset(updateAvailableImg)),
                     SizedBox(
                       height: 16,
                     ),
@@ -66,18 +60,23 @@ class _UpdateAvailableState extends State<UpdateAvailable> {
                       height: 32,
                     ),
                     Row(
-                      mainAxisAlignment: widget.force != true ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
+                      mainAxisAlignment: widget.force != true
+                          ? MainAxisAlignment.spaceBetween
+                          : MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         AppButtonWidget(
                           text: language.updateNow,
                           color: primaryColor,
-                          textStyle: boldTextStyle(size: 18, color: Colors.white),
+                          textStyle:
+                              boldTextStyle(size: 18, color: Colors.white),
                           onTap: () {
                             if (Platform.isAndroid) {
-                              launchUrl(Uri.parse('${widget.storeUrl}'), mode: LaunchMode.externalApplication);
+                              launchUrl(Uri.parse('${widget.storeUrl}'),
+                                  mode: LaunchMode.externalApplication);
                             } else if (Platform.isIOS) {
-                              launchUrl(Uri.parse("${widget.storeUrl}"), mode: LaunchMode.externalApplication);
+                              launchUrl(Uri.parse("${widget.storeUrl}"),
+                                  mode: LaunchMode.externalApplication);
                             }
                           },
                         ),
@@ -89,8 +88,11 @@ class _UpdateAvailableState extends State<UpdateAvailable> {
                           AppButtonWidget(
                             text: language.skip,
                             color: Colors.white,
-                            shapeBorder: RoundedRectangleBorder(side: BorderSide(color: primaryColor), borderRadius: BorderRadius.circular(12)),
-                            textStyle: boldTextStyle(size: 18, color: primaryColor),
+                            shapeBorder: RoundedRectangleBorder(
+                                side: BorderSide(color: primaryColor),
+                                borderRadius: BorderRadius.circular(12)),
+                            textStyle:
+                                boldTextStyle(size: 18, color: primaryColor),
                             onTap: () {
                               Navigator.pop(context);
                             },
@@ -99,9 +101,6 @@ class _UpdateAvailableState extends State<UpdateAvailable> {
                     ),
                   ],
                 ),
-                // Observer(builder: (context) {
-                //   return Loader().center().visible(appStore.isLoading);
-                // })
               ]),
             ),
           ],

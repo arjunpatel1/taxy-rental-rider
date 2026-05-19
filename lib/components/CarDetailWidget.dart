@@ -1,24 +1,36 @@
-import 'package:flutter/material.dart';
-
-import '../main.dart';
-import '../model/EstimatePriceModel.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../manage_imports.dart';
 
 class CarDetailWidget extends StatefulWidget {
   final ServicesListData service;
+  final String tripType;
 
-  CarDetailWidget({required this.service});
+  CarDetailWidget({required this.service, required this.tripType});
 
   @override
   CarDetailWidgetState createState() => CarDetailWidgetState();
 }
 
 class CarDetailWidgetState extends State<CarDetailWidget> {
+  double locationDistance = 0.0;
+  double fareDistance = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.service.distanceUnit == DISTANCE_TYPE_KM) {
+      locationDistance = widget.service.dropoffDistanceInKm!.toDouble();
+    } else {
+      locationDistance = widget.service.dropoffDistanceInKm!.toDouble() * 0.621371;
+    }
+    locationDistance = double.parse(locationDistance.toStringAsFixed(digitAfterDecimal));
+
+    double distance = double.parse(
+      widget.service.dropoffDistanceInKm!.toStringAsFixed(digitAfterDecimal),
+    );
+
+    fareDistance = distance - widget.service.minimumDistance!.toDouble();
+  }
+
   @override
   void setState(fn) {
     if (mounted) super.setState(fn);
@@ -40,80 +52,114 @@ class CarDetailWidgetState extends State<CarDetailWidget> {
               decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(defaultRadius)),
             ),
           ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.network(widget.service.serviceImage.validate(), fit: BoxFit.contain, width: 200, height: 100),
-              ],
-            ),
-          ),
+          SizedBox(height: 12),
+          Center(child: Text(widget.service.name.validate(), style: boldTextStyle(size: 20))),
           SizedBox(height: 8),
-          Text(widget.service.name.validate(), style: boldTextStyle()),
+          Text(language.fareBreakdown, style: boldTextStyle(size: 20)),
           SizedBox(height: 8),
-          Text('${language.get} ${widget.service.name} ${language.rides}', style: secondaryTextStyle()),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("${language.tripDistance}", style: primaryTextStyle()),
-              Text('${widget.service.dropoffDistanceInKm!.toInt() == 0 ? widget.service.distance! : widget.service.dropoffDistanceInKm!} ${widget.service.distanceUnit}', style: primaryTextStyle()),
-            ],
-          ),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(language.capacity, style: primaryTextStyle()),
-              Text('${widget.service.capacity} ${language.people}', style: primaryTextStyle()),
-            ],
-          ),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [Text(language.baseFare, style: primaryTextStyle()), printAmountWidget(amount: '${widget.service.baseFare!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal)],
-          ),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(language.minimumFare, style: primaryTextStyle()),
-              printAmountWidget(amount: '${widget.service.minimumFare!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal)
-            ],
-          ),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(language.perDistance, style: primaryTextStyle()),
-              printAmountWidget(amount: '${widget.service.perDistance!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal)
-            ],
-          ),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(language.perMinDrive, style: primaryTextStyle()),
-              printAmountWidget(amount: '${widget.service.perMinuteDrive!.toStringAsFixed(digitAfterDecimal)}/${language.min}', weight: FontWeight.normal)
-            ],
-          ),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(language.perMinWait, style: primaryTextStyle()),
-              printAmountWidget(amount: '${widget.service.perMinuteWait!.toStringAsFixed(digitAfterDecimal)}/${language.min}', weight: FontWeight.normal)
-            ],
-          ),
-          if (widget.service.fixed_charge != null && widget.service.fixed_charge! > 0) SizedBox(height: 8),
-          if (widget.service.fixed_charge != null && widget.service.fixed_charge! > 0)
+          if (widget.tripType == tripTypeZoneWise) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(language.fixedPrice, style: primaryTextStyle()),
-                printAmountWidget(amount: '${widget.service.fixed_charge!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal)
-              ],
+              children: [Text(language.fixedPrice, style: primaryTextStyle()), printAmountWidget(amount: '${widget.service.subtotal!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal)],
             ),
+            if (widget.service.surgeAmount != null && widget.service.surgeAmount! > 0) ...[
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [Text(language.highDemandCharge, style: primaryTextStyle(color: Colors.red)), printAmountWidgetForEstimate(amount: '${widget.service.surgeAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal, color: Colors.red, sign: "+")],
+              ),
+            ],
+            if (widget.service.discountAmount != null && widget.service.discountAmount! > 0) ...[
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [Text(language.couponDiscount, style: primaryTextStyle(color: Colors.green)), printAmountWidgetForEstimate(amount: '${widget.service.discountAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal, color: Colors.green, sign: "-")],
+              ),
+              SizedBox(height: 8),
+            ],
+            if (widget.service.coinsUsed != null && widget.service.coinsUsed! > 0) ...[
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [Text('Coins', style: primaryTextStyle(color: Colors.green)), printAmountWidgetForEstimate(amount: '${widget.service.coinsUsed!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal, color: Colors.green, sign: "-")],
+              ),
+              SizedBox(height: 8),
+            ],
+            Divider(),
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Text(language.totalFare, style: boldTextStyle(size: 24)), printAmountWidget(amount: '${widget.service.totalAmountAfterDiscount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold, size: 24)],
+            ),
+          ] else ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Text(language.baseFare, style: primaryTextStyle()), printAmountWidget(amount: '${widget.service.baseFare!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal)],
+            ),
+            if (widget.service.distancePrice != null && widget.service.distancePrice! > 0) ...[
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                        widget.service.distancePrice! == 0 ? language.distanceFare : '${language.distanceFare} ( ${fareDistance.toStringAsFixed(2)} * ${widget.service.perDistance} )',
+                        style: primaryTextStyle(),
+                      )
+                    ],
+                  ),
+                  printAmountWidgetForEstimate(amount: '${widget.service.distancePrice!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal, sign: "+")
+                ],
+              ),
+            ],
+            if ((widget.service.perMinuteDrive ?? 0) > 0 || (widget.service.surgeAmount ?? 0) > 0) ...[
+              if (widget.service.timePrice != null && widget.service.timePrice! > 0) ...[
+                SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [Text(language.extraRideTime, style: primaryTextStyle()), printAmountWidgetForEstimate(amount: '${widget.service.timePrice!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal, sign: "+")],
+                ),
+              ],
+              SizedBox(height: 8),
+            ],
+            Divider(),
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Text(language.subTotal, style: boldTextStyle()), printAmountWidget(amount: '${widget.service.subtotal!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold)],
+            ),
+            SizedBox(height: 8),
+            if (widget.service.surgeAmount != null && widget.service.surgeAmount! > 0) ...[
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [Text(language.highDemandCharge, style: primaryTextStyle(color: Colors.red)), printAmountWidgetForEstimate(amount: '${widget.service.surgeAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal, color: Colors.red, sign: "+")],
+              ),
+            ],
+            if (widget.service.coinsUsed != null && widget.service.coinsUsed! > 0) ...[
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [Text('Coins', style: primaryTextStyle(color: Colors.green)), printAmountWidgetForEstimate(amount: '${widget.service.coinsUsed!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal, color: Colors.green, sign: "-")],
+              ),
+              SizedBox(height: 8),
+            ],
+            if (widget.service.discountAmount != null && widget.service.discountAmount! > 0) ...[
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [Text(language.couponDiscount, style: primaryTextStyle(color: Colors.green)), printAmountWidgetForEstimate(amount: '${widget.service.discountAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal, color: Colors.green, sign: "-")],
+              ),
+              SizedBox(height: 8),
+            ],
+            Divider(),
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Text(language.totalFare, style: boldTextStyle(size: 24)), printAmountWidget(amount: '${widget.service.totalAmountAfterDiscount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold, size: 24)],
+            ),
+          ],
           SizedBox(height: 8),
           Text(widget.service.description.validate(), style: secondaryTextStyle(), textAlign: TextAlign.justify),
           AppButtonWidget(

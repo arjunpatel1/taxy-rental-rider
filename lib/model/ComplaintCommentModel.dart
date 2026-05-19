@@ -1,4 +1,4 @@
-import 'PaginationModel.dart';
+import '../manage_imports.dart';
 
 class ComplaintCommentModel {
   List<ComplaintList>? data;
@@ -8,8 +8,14 @@ class ComplaintCommentModel {
 
   factory ComplaintCommentModel.fromJson(Map<String, dynamic> json) {
     return ComplaintCommentModel(
-      data: json['data'] != null ? (json['data'] as List).map((i) => ComplaintList.fromJson(i)).toList() : null,
-      pagination: json['pagination'] != null ? PaginationModel.fromJson(json['pagination']) : null,
+      data: json['data'] != null
+          ? (json['data'] as List)
+              .map((i) => ComplaintList.fromJson(i))
+              .toList()
+          : null,
+      pagination: json['pagination'] != null
+          ? PaginationModel.fromJson(json['pagination'])
+          : null,
     );
   }
 

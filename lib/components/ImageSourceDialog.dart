@@ -1,10 +1,4 @@
-import 'package:flutter/material.dart';
-
-import '../main.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/images.dart';
+import '../manage_imports.dart';
 
 class ImageSourceDialog extends StatefulWidget {
   final Function()? onGallery;
@@ -44,11 +38,15 @@ class _ImageSourceDialogState extends State<ImageSourceDialog> {
                   onTap: widget.onGallery ?? () {},
                   child: Container(
                     padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.grey.withOpacity(0.5)), borderRadius: BorderRadius.circular(defaultRadius)),
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                            color: Colors.grey.withValues(alpha: 0.5)),
+                        borderRadius: BorderRadius.circular(defaultRadius)),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Image.asset(ic_gallery, height: 30, width: 30, fit: BoxFit.cover),
+                        Image.asset(ic_gallery,
+                            height: 30, width: 30, fit: BoxFit.cover),
                         SizedBox(height: 16),
                         Text(language.gallery, style: boldTextStyle()),
                       ],
@@ -62,11 +60,15 @@ class _ImageSourceDialogState extends State<ImageSourceDialog> {
                   onTap: widget.onCamera ?? () {},
                   child: Container(
                     padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.grey.withOpacity(0.5)), borderRadius: BorderRadius.circular(defaultRadius)),
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                            color: Colors.grey.withValues(alpha: 0.5)),
+                        borderRadius: BorderRadius.circular(defaultRadius)),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Image.asset(ic_camera, height: 30, width: 30, fit: BoxFit.cover),
+                        Image.asset(ic_camera,
+                            height: 30, width: 30, fit: BoxFit.cover),
                         SizedBox(height: 16),
                         Text(language.camera, style: boldTextStyle()),
                       ],

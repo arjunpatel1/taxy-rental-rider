@@ -11,7 +11,17 @@ class ChatMessageModel {
   int? createdAt;
   bool? deleted;
 
-  ChatMessageModel({this.id,this.msg_topic,this.deleted, this.senderId, this.receiverId, this.createdAt, this.message, this.isMessageRead, this.photoUrl, this.messageType});
+  ChatMessageModel(
+      {this.id,
+      this.msg_topic,
+      this.deleted,
+      this.senderId,
+      this.receiverId,
+      this.createdAt,
+      this.message,
+      this.isMessageRead,
+      this.photoUrl,
+      this.messageType});
 
   factory ChatMessageModel.fromJson(Map<String, dynamic> json) {
     return ChatMessageModel(

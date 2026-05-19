@@ -1,22 +1,4 @@
-import 'package:dotted_line/dotted_line.dart';
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import '../../utils/Common.dart';
-import '../main.dart';
-import '../model/CurrentRequestModel.dart';
-import '../model/LoginResponse.dart';
-import '../network/RestApis.dart';
-import '../screens/AlertScreen.dart';
-import '../screens/ChatScreen.dart';
-import '../utils/Colors.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
-import '../utils/images.dart';
-import 'CancelOrderDialog.dart';
+import '../manage_imports.dart';
 
 class RideAcceptWidget extends StatefulWidget {
   final Driver? driverData;
@@ -30,11 +12,13 @@ class RideAcceptWidget extends StatefulWidget {
 
 class RideAcceptWidgetState extends State<RideAcceptWidget> {
   UserModel? userData;
+  double duration = 0;
 
   @override
   void initState() {
     super.initState();
     init();
+    listenForNewDuration();
   }
 
   void init() async {
@@ -45,6 +29,21 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
       setState(() {});
     }).catchError((error) {
       appStore.setLoading(false);
+    });
+  }
+
+  void listenForNewDuration() {
+    FirebaseFirestore.instance.collection(RIDE_COLLECTION).where('rider_id', isEqualTo: sharedPref.getInt(USER_ID)!).where('ride_id', isEqualTo: widget.rideRequest!.id).snapshots().listen((QuerySnapshot snapshot) {
+      for (var doc in snapshot.docs) {
+        var rideData = doc.data() as Map<String, dynamic>;
+
+        if (rideData['duration'] != null) {
+          duration = (rideData['duration'] as num).toDouble();
+        } else {
+          duration = 0;
+        }
+        setState(() {});
+      }
     });
   }
 
@@ -93,30 +92,52 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
             ),
           ),
           SizedBox(height: 12),
-          Align(
-            alignment: Alignment.topLeft,
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-              decoration: BoxDecoration(color: primaryColor, borderRadius: radius()),
-              child: InkWell(
-                onTap: () {},
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    ImageIcon(
-                      AssetImage(statusTypeIcon(type: widget.rideRequest!.status.validate())),
-                      color: Colors.white,
-                      size: 18,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Align(
+                alignment: Alignment.topLeft,
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  decoration: BoxDecoration(color: primaryColor, borderRadius: radius()),
+                  child: InkWell(
+                    onTap: () {},
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        ImageIcon(
+                          AssetImage(statusTypeIcon(type: widget.rideRequest!.status.validate())),
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        SizedBox(
+                          width: 4,
+                        ),
+                        Text(
+                          statusName(status: widget.rideRequest!.status.validate()),
+                          style: boldTextStyle(color: Colors.white),
+                        ),
+                      ],
                     ),
-                    SizedBox(
-                      width: 4,
-                    ),
-                    Text(statusName(status: widget.rideRequest!.status.validate()), style: boldTextStyle(color: Colors.white)),
-                  ],
+                  ),
                 ),
               ),
-            ),
+              if (widget.rideRequest!.status == ACCEPTED || widget.rideRequest!.status == BID_ACCEPTED || widget.rideRequest!.status == ARRIVING)
+                if (duration != 0)
+                  Row(
+                    children: [
+                      Text("${language.ETA} :", style: boldTextStyle()),
+                      5.width,
+                      Text(
+                        (duration ?? 0) < 1 ? language.arrivingNow : "${duration.toString()} min",
+                        style: boldTextStyle(
+                          color: (duration ?? 0) < 1 ? Color(0xFF2E7D32) : Color(0xFF1E88E5),
+                        ),
+                      ),
+                    ],
+                  )
+            ],
           ),
           SizedBox(height: 12),
           Row(
@@ -275,13 +296,7 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
                     ],
                   ),
                   onTap: () {
-                    showOnlyDropLocationsDialog(
-                        context,
-                        widget.rideRequest!.multiDropLocation!
-                            .map(
-                              (e) => e.address,
-                            )
-                            .toList());
+                    showOnlyDropLocationsDialog(context, widget.rideRequest!.multiDropLocation!);
                   },
                 )
             ],
@@ -346,7 +361,10 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
   }
 }
 
-void showOnlyDropLocationsDialog(BuildContext context, List<String> dropLocations) {
+void showOnlyDropLocationsDialog(
+  BuildContext context,
+  List<MultiDropLocation> dropLocations,
+) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -367,7 +385,12 @@ void showOnlyDropLocationsDialog(BuildContext context, List<String> dropLocation
                     children: [
                       Icon(Icons.location_on, color: Colors.green, size: 18),
                       SizedBox(width: 8),
-                      Expanded(child: Text(location ?? ''.validate(), style: primaryTextStyle(size: 14), overflow: TextOverflow.ellipsis, maxLines: 2)),
+                      Expanded(child: Text(location.address, style: primaryTextStyle(size: 14), overflow: TextOverflow.ellipsis, maxLines: 2)),
+                      if (location.droppedAt != null)
+                        Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                        )
                     ],
                   ),
                   Divider(

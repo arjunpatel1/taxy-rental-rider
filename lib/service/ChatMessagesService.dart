@@ -1,10 +1,4 @@
-import 'dart:developer';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-import '../model/ChatMessageModel.dart';
-import '../utils/Constants.dart';
-import 'BaseServices.dart';
+import '../manage_imports.dart';
 
 class ChatMessageService extends BaseService {
   FirebaseFirestore fireStore = FirebaseFirestore.instance;
@@ -20,19 +14,27 @@ class ChatMessageService extends BaseService {
     rideChatRef = fireStore.collection(RIDE_CHAT);
   }
 
-  Query chatMessagesWithPagination({String? riderId, required String driverID, required int filter_msg}) {
+  Query chatMessagesWithPagination(
+      {String? riderId, required String driverID, required int filter_msg}) {
     // ref!.doc('${currentUserId}_${receiverUserId}');
-    return ref!.doc("${riderId}_${driverID}").collection("chats").orderBy("createdAt", descending: true);
+    return ref!
+        .doc("${riderId}_${driverID}")
+        .collection("chats")
+        .orderBy("createdAt", descending: true);
     // return ref!.doc(currentUserId).collection(receiverUserId).orderBy("createdAt", descending: true);
     // return ref!.doc(currentUserId).collection(receiverUserId).orderBy("createdAt", descending: true);
   }
 
   Query rideSpecificChatMessagesWithPagination({required String rideId}) {
-    return rideChatRef.doc(rideId).collection("messages").orderBy("createdAt", descending: true);
+    return rideChatRef
+        .doc(rideId)
+        .collection("messages")
+        .orderBy("createdAt", descending: true);
   }
 
   Future<bool> isRideChatHistory({required String rideId}) async {
-    QuerySnapshot<Map<String, dynamic>> b = await rideChatRef.doc(rideId).collection("messages").get();
+    QuerySnapshot<Map<String, dynamic>> b =
+        await rideChatRef.doc(rideId).collection("messages").get();
     if (b.docs.isEmpty) {
       return false;
     }
@@ -40,18 +42,22 @@ class ChatMessageService extends BaseService {
   }
 
   Future<DocumentReference> addMessage(ChatMessageModel data) async {
-    var doc2 = await ref!.doc("${data.senderId}_${data.receiverId}").collection("chats").add(data.toJson());
+    var doc2 = await ref!
+        .doc("${data.senderId}_${data.receiverId}")
+        .collection("chats")
+        .add(data.toJson());
     doc2.update({'id': doc2.id});
     return doc2;
-    var doc = await ref!.doc(data.senderId).collection(data.receiverId!).add(data.toJson());
-    doc.update({'id': doc.id});
-    return doc;
   }
 
-  Future<void> deleteSingleMessage({String? riderID, required String driverID, String? documentId}) async {
+  Future<void> deleteSingleMessage(
+      {String? riderID, required String driverID, String? documentId}) async {
     try {
       // ref!.doc("${riderID}_${driverID}").collection("chats").doc(documentId).delete();
-      final chatDocRef = ref!.doc("${riderID}_${driverID}").collection("chats").doc(documentId);
+      final chatDocRef = ref!
+          .doc("${riderID}_${driverID}")
+          .collection("chats")
+          .doc(documentId);
       await chatDocRef.update({'deleted': true});
     } on Exception catch (e) {
       log(e.toString());
@@ -59,8 +65,16 @@ class ChatMessageService extends BaseService {
     }
   }
 
-  Future<void> setUnReadStatusToTrue({required String riderID, required String driverID, String? documentId}) async {
-    ref!.doc("${riderID}_${driverID}").collection("chats").where('senderId', isNotEqualTo: riderID).get().then((value) {
+  Future<void> setUnReadStatusToTrue(
+      {required String riderID,
+      required String driverID,
+      String? documentId}) async {
+    ref!
+        .doc("${riderID}_${driverID}")
+        .collection("chats")
+        .where('senderId', isNotEqualTo: riderID)
+        .get()
+        .then((value) {
       value.docs.forEach((element) {
         element.reference.update({
           'isMessageRead': true,
@@ -93,7 +107,8 @@ class ChatMessageService extends BaseService {
     print("Check CHAT ROOM Id:::${senderId}_${receiverId}");
     try {
       var documentPath = "${senderId}_${receiverId}";
-      CollectionReference collectionRef = ref!.doc(documentPath).collection("chats");
+      CollectionReference collectionRef =
+          ref!.doc(documentPath).collection("chats");
       QuerySnapshot querySnapshot = await collectionRef.get();
       for (QueryDocumentSnapshot doc in querySnapshot.docs) {
         await doc.reference.delete();
@@ -142,7 +157,8 @@ class ChatMessageService extends BaseService {
   //   return true;
   // }
 
-  Stream<int> getUnReadCount({String? senderId, required String receiverId, String? documentId}) {
+  Stream<int> getUnReadCount(
+      {String? senderId, required String receiverId, String? documentId}) {
     print("CHekYourUSErId::${senderId}:::$receiverId");
     return ref!
         .doc("${senderId}_${receiverId}")

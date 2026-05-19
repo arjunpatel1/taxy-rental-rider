@@ -1,37 +1,5 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:country_code_picker/country_code_picker.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '/model/FileModel.dart';
-import '../network/RestApis.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
-import 'AppTheme.dart';
-import 'languageConfiguration/AppLocalizations.dart';
-import 'languageConfiguration/BaseLanguage.dart';
-import 'languageConfiguration/LanguageDataConstant.dart';
-import 'languageConfiguration/LanguageDefaultJson.dart';
-import 'languageConfiguration/ServerLanguageResponse.dart';
-import 'screens/NoInternetScreen.dart';
-import 'screens/SplashScreen.dart';
-import 'service/ChatMessagesService.dart';
-import 'service/NotificationService.dart';
-import 'service/UserServices.dart';
-import 'store/AppStore.dart';
-import 'utils/Colors.dart';
-import 'utils/Common.dart';
-import 'utils/Constants.dart';
-import 'utils/Extensions/app_common.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'manage_imports.dart';
 
 LanguageJsonData? selectedServerLanguageData;
 List<LanguageJsonData>? defaultServerLanguageData = [];
@@ -44,7 +12,6 @@ Color defaultLoaderBgColorGlobal = Colors.white;
 LatLng polylineSource = LatLng(0.00, 0.00);
 LatLng polylineDestination = LatLng(0.00, 0.00);
 late BaseLanguage language;
-late List<FileModel> fileList = [];
 bool mIsEnterKey = false;
 final GlobalKey netScreenKey = GlobalKey();
 final GlobalKey locationScreenKey = GlobalKey();
@@ -60,9 +27,14 @@ LatLng? sourceLocation;
 late BitmapDescriptor riderIcon;
 String sourceLocationTitle = '';
 
+// const int marker_size_width = 150;
+const int marker_size_height = 120;
+bool isPopupOpen = false;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   sharedPref = await SharedPreferences.getInstance();
+
   if (Platform.isIOS) {
     await Firebase.initializeApp();
   } else {
@@ -94,19 +66,7 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  FlutterError.onError = (FlutterErrorDetails details) {
-    // FlutterError.dumpErrorToConsole(details);
-    // print("ERRORTYPE1::${details.runtimeType}");
-    // print("ERRORTYPE2::${details.library}");
-    // print("ERRORTYPE3::${details.silent}");
-    // print("ERRORTYPE3::${details.stackFilter}");
-    // details.
-    // if(!details.exception.toString().contains("Warning")&&!details.exception.toString().contains("RenderFlex")){
-    //   print("CheckError:::${details.exception} ==>${details.stack}");
-    //   runApp(CustomErrorView(details));
-    // }
-  };
-  print("CheckPlayerID:::${sharedPref.getString(PLAYER_ID)}");
+  tz.initializeTimeZones();
   runApp(MyApp());
 }
 
@@ -168,7 +128,7 @@ class _MyAppState extends State<MyApp> {
         darkTheme: AppTheme.darkTheme,
         themeMode: appStore.isDarkMode ? ThemeMode.dark : ThemeMode.light,
         builder: (context, child) {
-          return ScrollConfiguration(behavior: MyBehavior(), child: child!);
+          return SafeArea(top: false, child: ScrollConfiguration(behavior: MyBehavior(), child: child!));
         },
         home: SplashScreen(),
         supportedLocales: getSupportedLocales(),

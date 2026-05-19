@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../manage_imports.dart';
 
 class ContactDataModel {
   String? uid;

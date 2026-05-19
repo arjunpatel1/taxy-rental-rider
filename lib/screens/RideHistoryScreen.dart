@@ -1,12 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:timeline_tile/timeline_tile.dart';
-
-import '../../utils/Colors.dart';
-import '../../utils/Common.dart';
-import '../../utils/Extensions/app_common.dart';
-import '../main.dart';
-import '../model/OrderHistory.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../manage_imports.dart';
 
 class RideHistoryScreen extends StatefulWidget {
   final List<RideHistory> rideHistory;
@@ -37,7 +29,8 @@ class RideHistoryScreenState extends State<RideHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(language.rideHistory, style: boldTextStyle(color: Colors.white)),
+        title: Text(language.rideHistory,
+            style: boldTextStyle(color: Colors.white)),
       ),
       body: ListView.builder(
         padding: EdgeInsets.all(16),
@@ -57,8 +50,14 @@ class RideHistoryScreenState extends State<RideHistoryScreen> {
               height: 40,
               indicator: Container(
                 padding: EdgeInsets.all(8),
-                child: ImageIcon(AssetImage(statusTypeIcon(type: mData.historyType)), color: Colors.black),
-                decoration: BoxDecoration(color: Colors.transparent, border: Border.all(color: dividerColor.withOpacity(0.5)), borderRadius: radius()),
+                child: ImageIcon(
+                    AssetImage(statusTypeIcon(type: mData.historyType)),
+                    color: Colors.black),
+                decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    border:
+                        Border.all(color: dividerColor.withValues(alpha: 0.5)),
+                    borderRadius: radius()),
               ),
             ),
             afterLineStyle: LineStyle(color: primaryColor, thickness: 1),
@@ -67,11 +66,15 @@ class RideHistoryScreenState extends State<RideHistoryScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${printDate('${mData.createdAt}')}', style: secondaryTextStyle(size: 12)),
+                  Text('${printDate('${mData.createdAt}')}',
+                      style: secondaryTextStyle(size: 12)),
                   SizedBox(height: 2),
-                  Text('${mData.historyType!.replaceAll("_", " ").capitalizeFirstLetter()}', style: boldTextStyle()),
+                  Text(
+                      '${mData.historyType!.replaceAll("_", " ").capitalizeFirstLetter()}',
+                      style: boldTextStyle()),
                   SizedBox(height: 2),
-                  Text(mData.historyMessage.validate(), style: secondaryTextStyle(color: textPrimaryColorGlobal)),
+                  Text(mData.historyMessage.validate(),
+                      style: secondaryTextStyle(color: textPrimaryColorGlobal)),
                 ],
               ),
             ),

@@ -1,14 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-
-import '../../main.dart';
-import '../../network/RestApis.dart';
-import '../../utils/Colors.dart';
-import '../../utils/Common.dart';
-import '../../utils/Constants.dart';
-import '../../utils/Extensions/AppButtonWidget.dart';
-import '../../utils/Extensions/app_common.dart';
-import '../../utils/Extensions/app_textfield.dart';
+import '../manage_imports.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   @override
@@ -44,9 +34,9 @@ class ChangePasswordScreenState extends State<ChangePasswordScreen> {
       };
       appStore.setLoading(true);
 
-      await sharedPref.setString(USER_PASSWORD, newPassController.text.trim());
-
-      await changePassword(req).then((value) {
+      await changePassword(req).then((value) async {
+        await updateUserPassword(oldPassController.text.trim(), newPassController.text.trim());
+        await sharedPref.setString(USER_PASSWORD, newPassController.text.trim());
         toast(value.message.toString());
         appStore.setLoading(false);
 

@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-
-import '../../main.dart';
+import '../manage_imports.dart';
 
 Color primaryColor = Color(0xFF3D3D3D);
 Color borderColor = Color(0xFFEAEAEA);
@@ -12,11 +10,11 @@ const dividerColor = Color(0xFFD3D3D3);
 const textPrimaryColor = Color(0xFF2E3033);
 const textSecondaryColor = Color(0xFF757575);
 const viewLineColor = Color(0xFFEAEAEA);
-
 Color appBarBackgroundColorGlobal = Colors.white;
 Color appButtonBackgroundColorGlobal = primaryColor;
 Color defaultAppButtonTextColorGlobal = textPrimaryColorGlobal;
 const appButtonTextStyleColor = Colors.white;
 const appTextPrimaryColorWhite = Colors.white;
 const polyLineColor = Color.fromARGB(255, 33, 83, 229);
+const polyLineColor2 = Color.fromARGB(255, 229, 33, 33);
 // const polyLineColor = Color.fromARGB(255, 40, 122, 198);

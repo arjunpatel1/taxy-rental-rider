@@ -1,15 +1,8 @@
-import 'dart:convert';
-import 'dart:developer';
-import 'dart:io';
-
-import 'package:http/http.dart';
-
-import '../main.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../manage_imports.dart';
 
 class NotificationService {
-  Future<void> sendPushNotifications(String title, String content, {String? id, String? image, String? receiverPlayerId}) async {
+  Future<void> sendPushNotifications(String title, String content,
+      {String? id, String? image, String? receiverPlayerId}) async {
     log('####$receiverPlayerId!');
     Map req = {
       'headings': {

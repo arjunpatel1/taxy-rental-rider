@@ -1,14 +1,5 @@
-import 'package:flutter/material.dart';
+import '../manage_imports.dart';
 
-import '../../main.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/DataProvider.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/LiveStream.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/app_textfield.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
 
 class CancelOrderDialog extends StatefulWidget {
   static String tag = '/CancelOrderDialog';
@@ -23,18 +14,16 @@ class CancelOrderDialog extends StatefulWidget {
 
 class CancelOrderDialogState extends State<CancelOrderDialog> {
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
-
   TextEditingController reasonController = TextEditingController();
-  String? reason;
   int selectedReason = 0;
-  List<String> cancelReasonList = getCancelReasonList();
+  List<CancleData> cancelReasonList = [];
   late FocusNode myFocusNode;
 
   @override
   void initState() {
     myFocusNode = FocusNode();
     super.initState();
-    init();
+    getCancelReasonApi();
   }
 
   @override
@@ -43,11 +32,16 @@ class CancelOrderDialogState extends State<CancelOrderDialog> {
     super.dispose();
   }
 
-  Future<void> init() async {
-    LiveStream().on('UpdateLanguage', (p0) {
+  Future<void> getCancelReasonApi() async {
+    appStore.setLoading(true);
+    await getCancelReasonList(type: "rider").then((value) {
+      appStore.setLoading(false);
       cancelReasonList.clear();
-      cancelReasonList.addAll(getCancelReasonList());
+      cancelReasonList.addAll(value.data);
+      appStore.setLoading(false);
       setState(() {});
+    }).catchError((error) {
+      appStore.setLoading(false);
     });
   }
 
@@ -82,53 +76,58 @@ class CancelOrderDialogState extends State<CancelOrderDialog> {
                       ],
                     ),
                   ),
-                  SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: Form(
-                      key: formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (int i = 0; i < cancelReasonList.length; i++)
-                            RadioListTile(
-                              value: i,
-                              groupValue: selectedReason,
-                              onChanged: (value) {
-                                selectedReason = value ?? -1;
-                                if (selectedReason != -1 && cancelReasonList[selectedReason] == language.others) {
-                                  myFocusNode.requestFocus();
-                                }
-                                setState(() {});
-                              },
-                              title: Text(cancelReasonList[i]),
-                              activeColor: primaryColor,
-                              contentPadding: EdgeInsets.zero,
-                              visualDensity: VisualDensity(vertical: VisualDensity.minimumDensity, horizontal: VisualDensity.minimumDensity),
-                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  cancelReasonList.isNotEmpty
+                      ? SingleChildScrollView(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Form(
+                            key: formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                for (int i = 0; i < cancelReasonList.length; i++)
+                                  RadioListTile(
+                                    value: i,
+                                    groupValue: selectedReason,
+                                    onChanged: (value) {
+                                      selectedReason = value ?? -1;
+                                      if (selectedReason != -1 && cancelReasonList[selectedReason] == language.others) {
+                                        myFocusNode.requestFocus();
+                                      }
+                                      setState(() {});
+                                    },
+                                    title: Text(cancelReasonList[i].title),
+                                    activeColor: primaryColor,
+                                    contentPadding: EdgeInsets.zero,
+                                    visualDensity: VisualDensity(vertical: VisualDensity.minimumDensity, horizontal: VisualDensity.minimumDensity),
+                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                if (selectedReason != -1 && cancelReasonList[selectedReason] == language.others)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: AppTextField(
+                                      focus: myFocusNode,
+                                      controller: reasonController,
+                                      textFieldType: TextFieldType.OTHER,
+                                      maxLength: 1000,
+                                      decoration: inputDecoration(context, label: language.writeReasonHere),
+                                      maxLines: 3,
+                                      minLines: 3,
+                                      validator: (value) {
+                                        if (value!.isEmpty) return language.thisFieldRequired;
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                if (selectedReason != -1 && cancelReasonList[selectedReason] == language.others) SizedBox(height: 16),
+                              ],
                             ),
-                          if (selectedReason != -1 && cancelReasonList[selectedReason] == language.others)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: AppTextField(
-                                focus: myFocusNode,
-                                controller: reasonController,
-                                textFieldType: TextFieldType.OTHER,
-                                maxLength: 1000,
-                                decoration: inputDecoration(context, label: language.writeReasonHere),
-                                maxLines: 3,
-                                minLines: 3,
-                                validator: (value) {
-                                  if (value!.isEmpty) return language.thisFieldRequired;
-                                  return null;
-                                },
-                              ),
-                            ),
-                          if (selectedReason != -1 && cancelReasonList[selectedReason] == language.others) SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
-                  ),
+                          ),
+                        )
+                      : !appStore.isLoading
+                          ? emptyWidget()
+                          : SizedBox(),
+                  loaderWidget().center().visible(appStore.isLoading),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Align(
@@ -136,7 +135,7 @@ class CancelOrderDialogState extends State<CancelOrderDialog> {
                       child: AppButtonWidget(
                         onTap: () {
                           if (formKey.currentState!.validate()) {
-                            widget.onCancel?.call(selectedReason != -1 && cancelReasonList[selectedReason] != language.others ? cancelReasonList[selectedReason].validate() : reasonController.text);
+                            widget.onCancel?.call(selectedReason != -1 && cancelReasonList[selectedReason] != language.others ? cancelReasonList[selectedReason].title : reasonController.text);
                           }
                         },
                         text: language.submit,

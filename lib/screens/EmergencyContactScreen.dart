@@ -1,18 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
-import 'package:flutter_native_contact_picker/model/contact.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-
-import '../../model/ContactNumberListModel.dart';
-import '../../network/RestApis.dart';
-import '../../utils/Common.dart';
-import '../main.dart';
-import '../utils/Colors.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/ConformationDialog.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../manage_imports.dart';
 
 class EmergencyContactScreen extends StatefulWidget {
   @override
@@ -39,7 +25,6 @@ class EmergencyContactScreenState extends State<EmergencyContactScreen> {
       if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
         if (currentPage < totalPage) {
           currentPage++;
-
           appStore.setLoading(true);
           setState(() {});
           init();
@@ -51,7 +36,7 @@ class EmergencyContactScreenState extends State<EmergencyContactScreen> {
 
   void init() async {
     appStore.setLoading(true);
-    await getSosList().then((value) {
+    await getSosList(page: currentPage).then((value) {
       appStore.setLoading(false);
       currentPage = value.pagination!.currentPage!;
       totalPage = value.pagination!.totalPages!;
@@ -110,47 +95,45 @@ class EmergencyContactScreenState extends State<EmergencyContactScreen> {
       body: Observer(builder: (context) {
         return Stack(
           children: [
-            SingleChildScrollView(
+            ListView.separated(
+              controller: scrollController,
               padding: EdgeInsets.all(16),
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: contactNumber.length,
-                itemBuilder: (_, index) {
-                  return Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: primaryColor),
-                        child: Text(contactNumber[index].title![0], style: boldTextStyle(color: Colors.white)),
+              shrinkWrap: true,
+              itemCount: contactNumber.length,
+              itemBuilder: (_, index) {
+                return Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: primaryColor),
+                      child: Text(contactNumber[index].title![0], style: boldTextStyle(color: Colors.white)),
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(contactNumber[index].title.validate(), style: boldTextStyle()),
+                          SizedBox(height: 4),
+                          Text(contactNumber[index].contactNumber.validate(), style: primaryTextStyle()),
+                        ],
                       ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(contactNumber[index].title.validate(), style: boldTextStyle()),
-                            SizedBox(height: 4),
-                            Text(contactNumber[index].contactNumber.validate(), style: primaryTextStyle()),
-                          ],
-                        ),
-                      ),
-                      if (contactNumber[index].regionId == null)
-                        inkWellWidget(
-                          onTap: () async {
-                            showConfirmDialogCustom(context, title: language.areYouSureYouWantDeleteThisNumber, positiveText: language.yes, negativeText: language.no, dialogType: DialogType.DELETE,
-                                onAccept: (c) async {
-                              await delete(id: contactNumber[index].id!);
-                            }, primaryColor: primaryColor);
-                          },
-                          child: Icon(MaterialIcons.delete_outline, color: primaryColor),
-                        )
-                    ],
-                  );
-                },
-                separatorBuilder: (_, index) {
-                  return Divider();
-                },
-              ),
+                    ),
+                    if (contactNumber[index].regionId == null)
+                      inkWellWidget(
+                        onTap: () async {
+                          showConfirmDialogCustom(context, title: language.areYouSureYouWantDeleteThisNumber, positiveText: language.yes, negativeText: language.no, dialogType: DialogType.DELETE, onAccept: (c) async {
+                            await delete(id: contactNumber[index].id!);
+                          }, primaryColor: primaryColor);
+                        },
+                        child: Icon(MaterialIcons.delete_outline, color: primaryColor),
+                      )
+                  ],
+                );
+              },
+              separatorBuilder: (_, index) {
+                return Divider();
+              },
             ),
             Visibility(
               visible: appStore.isLoading,

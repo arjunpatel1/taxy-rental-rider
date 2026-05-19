@@ -1,4 +1,4 @@
-import '../model/PaginationModel.dart';
+import '../manage_imports.dart';
 
 class WithDrawListModel {
   List<WithDrawModel>? data;
@@ -9,9 +9,17 @@ class WithDrawListModel {
 
   factory WithDrawListModel.fromJson(Map<String, dynamic> json) {
     return WithDrawListModel(
-      data: json['data'] != null ? (json['data'] as List).map((i) => WithDrawModel.fromJson(i)).toList() : null,
-      pagination: json['pagination'] != null ? PaginationModel.fromJson(json['pagination']) : null,
-      wallet_balance: json['wallet_balance'] != null ? WalletBalance.fromJson(json['wallet_balance']) : null,
+      data: json['data'] != null
+          ? (json['data'] as List)
+              .map((i) => WithDrawModel.fromJson(i))
+              .toList()
+          : null,
+      pagination: json['pagination'] != null
+          ? PaginationModel.fromJson(json['pagination'])
+          : null,
+      wallet_balance: json['wallet_balance'] != null
+          ? WalletBalance.fromJson(json['wallet_balance'])
+          : null,
     );
   }
 

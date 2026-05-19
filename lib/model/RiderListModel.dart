@@ -1,6 +1,4 @@
-import '../model/OrderHistory.dart';
-import '../model/RiderModel.dart';
-import 'PaginationModel.dart';
+import '../manage_imports.dart';
 
 class RiderListModel {
   List<RiderModel>? data;
@@ -11,9 +9,17 @@ class RiderListModel {
 
   factory RiderListModel.fromJson(Map<String, dynamic> json) {
     return RiderListModel(
-      data: json['data'] != null ? (json['data'] as List).map((i) => RiderModel.fromJson(i)).toList() : null,
-      pagination: json['pagination'] != null ? PaginationModel.fromJson(json['pagination']) : null,
-      rideHistory: json['ride_history'] != null ? (json['ride_history'] as List).map((i) => RideHistory.fromJson(i)).toList() : null,
+      data: json['data'] != null
+          ? (json['data'] as List).map((i) => RiderModel.fromJson(i)).toList()
+          : null,
+      pagination: json['pagination'] != null
+          ? PaginationModel.fromJson(json['pagination'])
+          : null,
+      rideHistory: json['ride_history'] != null
+          ? (json['ride_history'] as List)
+              .map((i) => RideHistory.fromJson(i))
+              .toList()
+          : null,
     );
   }
 

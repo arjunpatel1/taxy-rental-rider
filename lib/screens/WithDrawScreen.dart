@@ -1,18 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-
-import '../main.dart';
-import '../model/UserDetailModel.dart';
-import '../model/WithDrawListModel.dart';
-import '../network/RestApis.dart';
-import '../utils/Colors.dart';
-import '../utils/Common.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/AppButtonWidget.dart';
-import '../utils/Extensions/app_common.dart';
-import '../utils/Extensions/app_textfield.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
+import '../manage_imports.dart';
 
 class WithDrawScreen extends StatefulWidget {
   final UserBankAccount bankInfo;
@@ -43,7 +29,8 @@ class WithDrawScreenState extends State<WithDrawScreen> {
     super.initState();
     init();
     scrollController.addListener(() {
-      if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
+      if (scrollController.position.pixels ==
+          scrollController.position.maxScrollExtent) {
         if (currentPage < totalPage) {
           appStore.setLoading(true);
           currentPage++;
@@ -107,7 +94,8 @@ class WithDrawScreenState extends State<WithDrawScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(language.withDraw, style: boldTextStyle(color: Colors.white)),
+        title:
+            Text(language.withDraw, style: boldTextStyle(color: Colors.white)),
       ),
       body: Observer(builder: (context) {
         return Form(
@@ -123,7 +111,10 @@ class WithDrawScreenState extends State<WithDrawScreen> {
                     Container(
                       padding: EdgeInsets.all(12),
                       margin: EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(border: Border.all(color: Colors.grey.withOpacity(0.4)), borderRadius: BorderRadius.circular(defaultRadius)),
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Colors.grey.withValues(alpha: 0.4)),
+                          borderRadius: BorderRadius.circular(defaultRadius)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -132,14 +123,24 @@ class WithDrawScreenState extends State<WithDrawScreen> {
                             child: Container(
                               padding: EdgeInsets.all(12),
                               margin: EdgeInsets.only(bottom: 16),
-                              decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(defaultRadius)),
+                              decoration: BoxDecoration(
+                                  color: primaryColor,
+                                  borderRadius:
+                                      BorderRadius.circular(defaultRadius)),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(language.availableBalance, style: secondaryTextStyle(color: Colors.white)),
+                                  Text(language.availableBalance,
+                                      style: secondaryTextStyle(
+                                          color: Colors.white)),
                                   SizedBox(height: 8),
-                                  printAmountWidget(amount: '${totalAmount.toStringAsFixed(digitAfterDecimal)}', size: 22, color: Colors.white, weight: FontWeight.normal)
+                                  printAmountWidget(
+                                      amount:
+                                          '${totalAmount.toStringAsFixed(digitAfterDecimal)}',
+                                      size: 22,
+                                      color: Colors.white,
+                                      weight: FontWeight.normal)
                                 ],
                               ),
                             ),
@@ -147,10 +148,13 @@ class WithDrawScreenState extends State<WithDrawScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(language.bankName, style: primaryTextStyle(size: 14)),
+                              Text(language.bankName,
+                                  style: primaryTextStyle(size: 14)),
                               SizedBox(width: 16),
                               Expanded(
-                                child: Text(widget.bankInfo.bankName.validate(), style: boldTextStyle(size: 15), textAlign: TextAlign.end),
+                                child: Text(widget.bankInfo.bankName.validate(),
+                                    style: boldTextStyle(size: 15),
+                                    textAlign: TextAlign.end),
                               ),
                             ],
                           ),
@@ -158,10 +162,13 @@ class WithDrawScreenState extends State<WithDrawScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(language.bankCode, style: primaryTextStyle(size: 14)),
+                              Text(language.bankCode,
+                                  style: primaryTextStyle(size: 14)),
                               SizedBox(width: 16),
                               Expanded(
-                                child: Text(widget.bankInfo.bankCode.validate(), style: boldTextStyle(size: 14), textAlign: TextAlign.end),
+                                child: Text(widget.bankInfo.bankCode.validate(),
+                                    style: boldTextStyle(size: 14),
+                                    textAlign: TextAlign.end),
                               ),
                             ],
                           ),
@@ -169,10 +176,15 @@ class WithDrawScreenState extends State<WithDrawScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(language.accountHolderName, style: primaryTextStyle(size: 14)),
+                              Text(language.accountHolderName,
+                                  style: primaryTextStyle(size: 14)),
                               SizedBox(width: 16),
                               Expanded(
-                                child: Text(widget.bankInfo.accountHolderName.validate(), style: boldTextStyle(size: 14), textAlign: TextAlign.end),
+                                child: Text(
+                                    widget.bankInfo.accountHolderName
+                                        .validate(),
+                                    style: boldTextStyle(size: 14),
+                                    textAlign: TextAlign.end),
                               ),
                             ],
                           ),
@@ -180,10 +192,14 @@ class WithDrawScreenState extends State<WithDrawScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(language.accountNumber, style: primaryTextStyle(size: 14)),
+                              Text(language.accountNumber,
+                                  style: primaryTextStyle(size: 14)),
                               SizedBox(width: 16),
                               Expanded(
-                                child: Text(widget.bankInfo.accountNumber.validate(), style: boldTextStyle(size: 14), textAlign: TextAlign.end),
+                                child: Text(
+                                    widget.bankInfo.accountNumber.validate(),
+                                    style: boldTextStyle(size: 14),
+                                    textAlign: TextAlign.end),
                               ),
                             ],
                           ),
@@ -191,7 +207,8 @@ class WithDrawScreenState extends State<WithDrawScreen> {
                       ),
                     ),
                     SizedBox(height: 4),
-                    Text(language.withdrawHistory, style: boldTextStyle(size: 18)),
+                    Text(language.withdrawHistory,
+                        style: boldTextStyle(size: 18)),
                     SizedBox(height: 10),
                     !appStore.isLoading && withDrawData.isEmpty
                         ? emptyWidget()
@@ -205,16 +222,25 @@ class WithDrawScreenState extends State<WithDrawScreen> {
                               return Container(
                                 margin: EdgeInsets.only(top: 8, bottom: 8),
                                 padding: EdgeInsets.all(12),
-                                decoration: BoxDecoration(border: Border.all(color: Colors.grey.withOpacity(0.4)), borderRadius: BorderRadius.circular(defaultRadius)),
+                                decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color:
+                                            Colors.grey.withValues(alpha: 0.4)),
+                                    borderRadius:
+                                        BorderRadius.circular(defaultRadius)),
                                 child: Row(
                                   children: [
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text(language.withDraw, style: boldTextStyle(size: 14)),
+                                          Text(language.withDraw,
+                                              style: boldTextStyle(size: 14)),
                                           SizedBox(height: 4),
-                                          Text(printDate(data.created_at!), style: secondaryTextStyle(size: 12)),
+                                          Text(printDate(data.created_at!),
+                                              style:
+                                                  secondaryTextStyle(size: 12)),
                                         ],
                                       ),
                                     ),
@@ -234,7 +260,12 @@ class WithDrawScreenState extends State<WithDrawScreen> {
                                                       : Colors.blue),
                                         ),
                                         SizedBox(height: 4),
-                                        printAmountWidget(amount: '${data.amount!.toStringAsFixed(digitAfterDecimal)}', color: textSecondaryColorGlobal, size: 12, weight: FontWeight.normal)
+                                        printAmountWidget(
+                                            amount:
+                                                '${data.amount!.toStringAsFixed(digitAfterDecimal)}',
+                                            color: textSecondaryColorGlobal,
+                                            size: 12,
+                                            weight: FontWeight.normal)
                                       ],
                                     )
                                   ],
@@ -270,7 +301,10 @@ class WithDrawScreenState extends State<WithDrawScreen> {
               }
               showModalBottomSheet(
                 context: context,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(defaultRadius), topRight: Radius.circular(defaultRadius))),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(defaultRadius),
+                        topRight: Radius.circular(defaultRadius))),
                 builder: (_) {
                   return StatefulBuilder(
                     builder: (BuildContext context, StateSetter setState) {
@@ -283,9 +317,11 @@ class WithDrawScreenState extends State<WithDrawScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(language.withDraw, style: boldTextStyle()),
+                                  Text(language.withDraw,
+                                      style: boldTextStyle()),
                                   CloseButton(
                                     onPressed: () {
                                       Navigator.pop(context);
@@ -299,45 +335,94 @@ class WithDrawScreenState extends State<WithDrawScreen> {
                                 controller: addMoneyController,
                                 textFieldType: TextFieldType.OTHER,
                                 inputFormatters: [
-                                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d*\.?\d*$')),
                                 ],
                                 keyboardType: TextInputType.number,
-                                errorThisFieldRequired: language.thisFieldRequired,
+                                errorThisFieldRequired:
+                                    language.thisFieldRequired,
                                 onChanged: (val) {
                                   if (val.isNotEmpty) {
                                     if (totalAmount < num.parse(val)) {
-                                      addMoneyController.text = totalAmount.toString();
+                                      addMoneyController.text =
+                                          totalAmount.toString();
                                       setState(() {});
                                     }
                                   }
                                 },
-                                decoration: inputDecoration(context, label: language.amount),
+                                decoration: inputDecoration(context,
+                                    label: language.amount),
                               ),
                               SizedBox(height: 16),
                               Wrap(
                                 runSpacing: 8,
                                 spacing: 8,
-                                children: appStore.walletPresetTopUpAmount.split('|').map((e) {
+                                children: appStore.walletPresetTopUpAmount
+                                    .split('|')
+                                    .map((e) {
                                   return inkWellWidget(
                                     onTap: () {
-                                      currentIndex = appStore.walletPresetTopUpAmount.split('|').indexOf(e);
-                                      if (totalAmount < num.parse(appStore.walletPresetTopUpAmount.split("|")[currentIndex])) {
-                                        addMoneyController.text = totalAmount.toString();
-                                        addMoneyController.selection = TextSelection.fromPosition(TextPosition(offset: totalAmount.toString().length));
+                                      currentIndex = appStore
+                                          .walletPresetTopUpAmount
+                                          .split('|')
+                                          .indexOf(e);
+                                      if (totalAmount <
+                                          num.parse(appStore
+                                              .walletPresetTopUpAmount
+                                              .split("|")[currentIndex])) {
+                                        addMoneyController.text =
+                                            totalAmount.toString();
+                                        addMoneyController.selection =
+                                            TextSelection.fromPosition(
+                                                TextPosition(
+                                                    offset: totalAmount
+                                                        .toString()
+                                                        .length));
                                       } else {
-                                        addMoneyController.text = appStore.walletPresetTopUpAmount.split("|")[currentIndex];
-                                        addMoneyController.selection = TextSelection.fromPosition(TextPosition(offset: appStore.walletPresetTopUpAmount.split("|")[currentIndex].toString().length));
+                                        addMoneyController.text = appStore
+                                            .walletPresetTopUpAmount
+                                            .split("|")[currentIndex];
+                                        addMoneyController.selection =
+                                            TextSelection.fromPosition(
+                                                TextPosition(
+                                                    offset: appStore
+                                                        .walletPresetTopUpAmount
+                                                        .split(
+                                                            "|")[currentIndex]
+                                                        .toString()
+                                                        .length));
                                       }
                                       setState(() {});
                                     },
                                     child: Container(
                                       padding: EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: currentIndex == appStore.walletPresetTopUpAmount.split('|').indexOf(e) ? primaryColor : Colors.white,
-                                        border: Border.all(color: currentIndex == appStore.walletPresetTopUpAmount.split('|').indexOf(e) ? primaryColor : Colors.grey),
-                                        borderRadius: BorderRadius.circular(defaultRadius),
+                                        color: currentIndex ==
+                                                appStore.walletPresetTopUpAmount
+                                                    .split('|')
+                                                    .indexOf(e)
+                                            ? primaryColor
+                                            : Colors.white,
+                                        border: Border.all(
+                                            color: currentIndex ==
+                                                    appStore
+                                                        .walletPresetTopUpAmount
+                                                        .split('|')
+                                                        .indexOf(e)
+                                                ? primaryColor
+                                                : Colors.grey),
+                                        borderRadius: BorderRadius.circular(
+                                            defaultRadius),
                                       ),
-                                      child: printAmountWidget(amount: '${e}', color: currentIndex == appStore.walletPresetTopUpAmount.split('|').indexOf(e) ? Colors.white : primaryColor),
+                                      child: printAmountWidget(
+                                          amount: '${e}',
+                                          color: currentIndex ==
+                                                  appStore
+                                                      .walletPresetTopUpAmount
+                                                      .split('|')
+                                                      .indexOf(e)
+                                              ? Colors.white
+                                              : primaryColor),
                                     ),
                                   );
                                 }).toList(),
@@ -350,8 +435,11 @@ class WithDrawScreenState extends State<WithDrawScreen> {
                                       text: language.withDraw,
                                       width: MediaQuery.of(context).size.width,
                                       onTap: () async {
-                                        if (addMoneyController.text.isNotEmpty) {
-                                          await withDrawRequest(amount: num.parse(addMoneyController.text));
+                                        if (addMoneyController
+                                            .text.isNotEmpty) {
+                                          await withDrawRequest(
+                                              amount: num.parse(
+                                                  addMoneyController.text));
                                           addMoneyController.clear();
                                           currentIndex = -1;
                                         } else {

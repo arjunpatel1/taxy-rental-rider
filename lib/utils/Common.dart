@@ -1,31 +1,9 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'dart:math';
+import 'dart:ui' as ui;
 
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:html/parser.dart';
-import 'package:intl/intl.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:crypto/crypto.dart';
+import 'package:http/http.dart' as http;
 
-import '../../main.dart';
-import '../model/LoginResponse.dart';
-import '../network/RestApis.dart';
-import '../screens/ChatScreen.dart';
-import '../screens/RideDetailScreen.dart';
-import '../utils/Colors.dart';
-import '../utils/Constants.dart';
-import '../utils/Extensions/dataTypeExtensions.dart';
-import '../utils/images.dart';
-import 'Extensions/Loader.dart';
-import 'Extensions/app_common.dart';
+import '../manage_imports.dart';
 
 Widget dotIndicator(list, i) {
   return SizedBox(
@@ -40,7 +18,7 @@ Widget dotIndicator(list, i) {
             height: 8,
             width: 8,
             margin: EdgeInsets.all(4),
-            decoration: BoxDecoration(color: i == ind ? Colors.white : Colors.grey.withOpacity(0.5), borderRadius: BorderRadius.circular(defaultRadius)),
+            decoration: BoxDecoration(color: i == ind ? Colors.white : Colors.grey.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(defaultRadius)),
           );
         },
       ),
@@ -123,22 +101,6 @@ Widget placeHolderWidget({double? height, double? width, BoxFit? fit, AlignmentG
   return Image.asset(placeholder, height: height, width: width, fit: fit ?? BoxFit.cover, alignment: alignment ?? Alignment.center);
 }
 
-List<BoxShadow> defaultBoxShadow({
-  Color? shadowColor,
-  double? blurRadius,
-  double? spreadRadius,
-  Offset offset = const Offset(0.0, 0.0),
-}) {
-  return [
-    BoxShadow(
-      color: shadowColor ?? Colors.grey.withOpacity(0.2),
-      blurRadius: blurRadius ?? 4.0,
-      spreadRadius: spreadRadius ?? 1.0,
-      offset: offset,
-    )
-  ];
-}
-
 /// Hide soft keyboard
 void hideKeyboard(context) => FocusScope.of(context).requestFocus(FocusNode());
 
@@ -163,7 +125,7 @@ Widget loaderWidget() {
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
-          BoxShadow(color: Colors.grey.withOpacity(0.4), blurRadius: 10, spreadRadius: 0, offset: Offset(0.0, 0.0)),
+          BoxShadow(color: Colors.grey.withValues(alpha: 0.4), blurRadius: 10, spreadRadius: 0, offset: Offset(0.0, 0.0)),
         ],
       ),
       width: 50,
@@ -246,7 +208,7 @@ Widget totalCount({String? title, num? amount, bool? isTotal = false, double? sp
   }
 }
 
-Widget printAmountWidget({required String amount, double? size, Color? color, FontWeight? weight, TextDecoration? textDecoration}) {
+Widget printAmountWidget({required String amount, double? size, Color? color, FontWeight? weight, TextDecoration? textDecoration, double? decorationThickness, Color? decorationColor}) {
   return Row(
     mainAxisSize: MainAxisSize.min,
     // mainAxisAlignment: MainAxisAlignment.start,
@@ -262,6 +224,8 @@ Widget printAmountWidget({required String amount, double? size, Color? color, Fo
                   color: color ?? textPrimaryColorGlobal,
                   fontWeight: weight ?? FontWeight.bold,
                   fontFamily: GoogleFonts.roboto().fontFamily,
+                  decorationThickness: decorationThickness,
+                  decorationColor: decorationColor,
                   decoration: textDecoration ?? TextDecoration.none),
             ),
             Text(
@@ -269,22 +233,28 @@ Widget printAmountWidget({required String amount, double? size, Color? color, Fo
               // appStore.currencyPosition.toString().toLowerCase().trim() == LEFT.toLowerCase().trim() ? '${appStore.currencyCode}$amount' : '$amount ${appStore.currencyCode}',
               // textDirection: TextDirection.LTR,
               style: TextStyle(
-                  fontSize: size ?? textPrimarySizeGlobal,
-                  color: color ?? textPrimaryColorGlobal,
-                  fontWeight: weight ?? FontWeight.bold,
-                  fontFamily: GoogleFonts.roboto().fontFamily,
-                  decoration: textDecoration ?? TextDecoration.none),
+                fontSize: size ?? textPrimarySizeGlobal,
+                color: color ?? textPrimaryColorGlobal,
+                fontWeight: weight ?? FontWeight.bold,
+                fontFamily: GoogleFonts.roboto().fontFamily,
+                decoration: textDecoration ?? TextDecoration.none,
+                decorationThickness: decorationThickness,
+                decorationColor: decorationColor,
+              ),
             ),
           ]
         : [
             Text(
               "$amount ",
               style: TextStyle(
-                  fontSize: size ?? textPrimarySizeGlobal,
-                  color: color ?? textPrimaryColorGlobal,
-                  fontWeight: weight ?? FontWeight.bold,
-                  fontFamily: GoogleFonts.roboto().fontFamily,
-                  decoration: textDecoration ?? TextDecoration.none),
+                fontSize: size ?? textPrimarySizeGlobal,
+                color: color ?? textPrimaryColorGlobal,
+                fontWeight: weight ?? FontWeight.bold,
+                fontFamily: GoogleFonts.roboto().fontFamily,
+                decorationThickness: decorationThickness,
+                decorationColor: decorationColor,
+                decoration: textDecoration ?? TextDecoration.none,
+              ),
             ),
             Text(
               "${appStore.currencyCode}",
@@ -295,6 +265,73 @@ Widget printAmountWidget({required String amount, double? size, Color? color, Fo
                   color: color ?? textPrimaryColorGlobal,
                   fontWeight: weight ?? FontWeight.bold,
                   fontFamily: GoogleFonts.roboto().fontFamily,
+                  decorationThickness: decorationThickness,
+                  decorationColor: decorationColor,
+                  decoration: textDecoration ?? TextDecoration.none),
+            ),
+          ],
+  );
+}
+
+Widget printAmountWidgetForEstimate({required String amount, required String sign, double? size, Color? color, FontWeight? weight, TextDecoration? textDecoration, double? decorationThickness, Color? decorationColor}) {
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    // mainAxisAlignment: MainAxisAlignment.start,
+    // crossAxisAlignment: CrossAxisAlignment.center,
+    children: appStore.currencyPosition.toString().toLowerCase().trim() == LEFT.toLowerCase().trim()
+        ? [
+            Text(
+              "$sign ${appStore.currencyCode} ",
+              // appStore.currencyPosition.toString().toLowerCase().trim() == LEFT.toLowerCase().trim() ? '${appStore.currencyCode}$amount' : '$amount ${appStore.currencyCode}',
+              // textDirection: TextDirection.LTR,
+              style: TextStyle(
+                  fontSize: size ?? textPrimarySizeGlobal,
+                  color: color ?? textPrimaryColorGlobal,
+                  fontWeight: weight ?? FontWeight.bold,
+                  fontFamily: GoogleFonts.roboto().fontFamily,
+                  decorationThickness: decorationThickness,
+                  decorationColor: decorationColor,
+                  decoration: textDecoration ?? TextDecoration.none),
+            ),
+            Text(
+              "$amount",
+              // appStore.currencyPosition.toString().toLowerCase().trim() == LEFT.toLowerCase().trim() ? '${appStore.currencyCode}$amount' : '$amount ${appStore.currencyCode}',
+              // textDirection: TextDirection.LTR,
+              style: TextStyle(
+                fontSize: size ?? textPrimarySizeGlobal,
+                color: color ?? textPrimaryColorGlobal,
+                fontWeight: weight ?? FontWeight.bold,
+                fontFamily: GoogleFonts.roboto().fontFamily,
+                decoration: textDecoration ?? TextDecoration.none,
+                decorationThickness: decorationThickness,
+                decorationColor: decorationColor,
+              ),
+            ),
+          ]
+        : [
+            Text(
+              "$sign $amount ",
+              style: TextStyle(
+                fontSize: size ?? textPrimarySizeGlobal,
+                color: color ?? textPrimaryColorGlobal,
+                fontWeight: weight ?? FontWeight.bold,
+                fontFamily: GoogleFonts.roboto().fontFamily,
+                decorationThickness: decorationThickness,
+                decorationColor: decorationColor,
+                decoration: textDecoration ?? TextDecoration.none,
+              ),
+            ),
+            Text(
+              "${appStore.currencyCode}",
+              // appStore.currencyPosition.toString().toLowerCase().trim() == LEFT.toLowerCase().trim() ? '${appStore.currencyCode}$amount' : '$amount ${appStore.currencyCode}',
+              // textDirection: TextDirection.LTR,
+              style: TextStyle(
+                  fontSize: size ?? textPrimarySizeGlobal,
+                  color: color ?? textPrimaryColorGlobal,
+                  fontWeight: weight ?? FontWeight.bold,
+                  fontFamily: GoogleFonts.roboto().fontFamily,
+                  decorationThickness: decorationThickness,
+                  decorationColor: decorationColor,
                   decoration: textDecoration ?? TextDecoration.none),
             ),
           ],
@@ -360,7 +397,7 @@ Future<bool> setValue(String key, dynamic value, {bool print1 = true}) async {
   if (value is String) {
     return await sharedPref.setString(key, value.validate());
   } else if (value is int) {
-    return await sharedPref.setInt(key, value.validate());
+    return await sharedPref.setInt(key, value);
   } else if (value is bool) {
     return await sharedPref.setBool(key, value.validate());
   } else if (value is double) {
@@ -377,10 +414,12 @@ Future<bool> setValue(String key, dynamic value, {bool print1 = true}) async {
 String statusName({String? status}) {
   if (status == NEW_RIDE_REQUESTED) {
     status = language.newRideRequested;
-  } else if (status == ACCEPTED || status == BID_ACCEPTED) {
+  } else if (status == ACCEPTED || status == BID_ACCEPTED || status == 'assign_driver') {
     status = language.accepted;
   } else if (status == ARRIVING) {
     status = language.arriving;
+  } else if (status == ASSIGN_DRIVER) {
+    status = 'Assign Driver';
   } else if (status == ARRIVED) {
     status = language.arrived;
   } else if (status == IN_PROGRESS) {
@@ -390,7 +429,7 @@ String statusName({String? status}) {
   } else if (status == COMPLETED) {
     status = language.completed;
   }
-  return status!;
+  return status ?? "";
 }
 
 String paymentStatus(String paymentStatus) {
@@ -436,8 +475,6 @@ String getMessageFromErrorCode(FirebaseException error) {
     case "operation-not-allowed":
       return "Too many requests to log into this account.";
     case "ERROR_OPERATION_NOT_ALLOWED":
-    case "operation-not-allowed":
-      return "Server error, please try again later.";
     case "ERROR_INVALID_EMAIL":
     case "invalid-email":
       return "Email address is invalid.";
@@ -502,6 +539,67 @@ oneSignalSettings() async {
   });
 }
 
+Widget chatCallWidget(IconData icon, {String? uid}) {
+  if (uid != null) {
+    return Stack(
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(border: Border.all(color: dividerColor), color: appStore.isDarkMode ? scaffoldColorDark : scaffoldColorLight, borderRadius: BorderRadius.circular(defaultRadius)),
+          child: Icon(icon, size: 18, color: primaryColor),
+        ),
+        StreamBuilder<int>(
+            stream: chatMessageService.getUnReadCount(receiverId: "${uid}", senderId: "${sharedPref.getString(UID)}"),
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data != null && snapshot.data! > 0) {
+                // return Positioned(top: -2, right: 0, child: Lottie.asset(messageDetect, width: 18, height: 18, fit: BoxFit.cover));
+              }
+              return SizedBox();
+            })
+      ],
+    );
+  } else {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(border: Border.all(color: dividerColor), color: appStore.isDarkMode ? scaffoldColorDark : scaffoldColorLight, borderRadius: BorderRadius.circular(defaultRadius)),
+      child: Icon(icon, size: 18, color: primaryColor),
+    );
+  }
+}
+
+String getTripTypeValue(String val) {
+  // 'regular','airport_pickup','airport_drop','zone_wise','zone_to_airport','airport_to_zone'
+  if (val == tripTypeRegular) {
+    return 'regular';
+  } else if (val == tripTypeAirportPickup) {
+    return 'airport_pickup';
+  } else if (val == tripTypeAirportDropoff) {
+    return 'airport_drop';
+  } else if (val == tripTypeZoneWise) {
+    return 'zone_wise';
+  } else if (val == tripTypeZoneToAirport) {
+    return 'zone_to_airport';
+  } else if (val == tripTypeAirportToZone) {
+    return 'airport_to_zone';
+  }
+  return 'regular';
+}
+
+bool isDistanceMoreThan100Meters({
+  required double startLat,
+  required double startLng,
+  required double endLat,
+  required double endLng,
+}) {
+  double distanceInMeters = Geolocator.distanceBetween(
+    startLat,
+    startLng,
+    endLat,
+    endLng,
+  );
+  return distanceInMeters > 100;
+}
+
 Future<void> saveOneSignalPlayerId() async {
   // await OneSignal.shared.getDeviceState().then((value) async {
   // });
@@ -512,15 +610,24 @@ Future<void> saveOneSignalPlayerId() async {
 
 Future<void> exportedLog({required String logMessage, required String file_name}) async {
   return;
-  final downloadsDirectory = Directory('/storage/emulated/0/Download');
-  if (!await downloadsDirectory.exists()) {
-    await downloadsDirectory.create(recursive: true);
+}
+
+String getMultiLanguageTripType(String val) {
+  // 'regular','airport_pickup','airport_drop','zone_wise','zone_to_airport','airport_to_zone'
+  if (val == tripTypeRegular) {
+    return language.regular;
+  } else if (val == tripTypeAirportPickup) {
+    return language.airPickup;
+  } else if (val == tripTypeAirportDropoff) {
+    return language.airDropOff;
+  } else if (val == tripTypeZoneWise) {
+    return language.zoneWise;
+  } else if (val == tripTypeZoneToAirport) {
+    return language.zoneToAir;
+  } else if (val == tripTypeAirportToZone) {
+    return language.airToZone;
   }
-  final filePath = '${downloadsDirectory.path}/${file_name + "${DateTime.now().hour}_${DateTime.now().minute}"}.txt';
-  final file = File(filePath);
-  try {
-    await file.writeAsString(logMessage, mode: FileMode.append);
-  } catch (e) {}
+  return language.regular;
 }
 
 Color paymentStatusColor(String paymentStatus) {
@@ -538,8 +645,10 @@ Color paymentStatusColor(String paymentStatus) {
 }
 
 Future<void> getAppSettingsData() async {
-  // appStore.setisBidEnable(element.value ?? "0");
   await getAppSetting().then((value) {
+    sharedPref.setString("reference_amount", value.reference_amount ?? "0");
+    sharedPref.setString("reference_type", value.reference_type ?? "fixed");
+    sharedPref.setString("maxEarningPerMonth", value.maxEarningPerMonth ?? "0");
     if (value.walletSetting != null) {
       value.walletSetting!.forEach((element) {
         if (element.key == PRESENT_TOPUP_AMOUNT) {
@@ -591,4 +700,165 @@ Future<void> getAppSettingsData() async {
     // FirebaseCrashlytics.instance.recordError("setting_update_issue::" + error.toString(), stack, fatal: true);
     log('${error.toString()} STack:::${stack}');
   });
+}
+
+Future<BitmapDescriptor> getResizedMarker(
+  String assetPath,
+) async {
+  final ByteData data = await rootBundle.load(assetPath);
+  print("----686---${assetPath}");
+
+  final Uint8List bytes = data.buffer.asUint8List();
+  final ui.Codec codec = await ui.instantiateImageCodec(bytes,
+      // targetWidth: marker_size_width, // Resize image width
+      targetHeight: marker_size_height);
+  final ui.FrameInfo fi = await codec.getNextFrame();
+  final ByteData? resizedBytes = await fi.image.toByteData(format: ui.ImageByteFormat.png);
+  // ignore:deprecated_member_use
+  return BitmapDescriptor.fromBytes(resizedBytes!.buffer.asUint8List());
+}
+
+Future<BitmapDescriptor> getNetworkImageMarker(String imageUrl) async {
+  final http.Response response = await http.get(Uri.parse(imageUrl));
+
+  final Uint8List bytes = response.bodyBytes;
+  final ui.Codec codec = await ui.instantiateImageCodec(bytes, targetHeight: marker_size_height);
+  final ui.FrameInfo frameInfo = await codec.getNextFrame();
+  final ByteData? byteData = await frameInfo.image.toByteData(format: ui.ImageByteFormat.png);
+  final Uint8List resizedBytes = byteData!.buffer.asUint8List();
+
+  ///  print("----827---${resizedBytes}");
+  // ignore:deprecated_member_use
+  return BitmapDescriptor.fromBytes(resizedBytes);
+}
+
+String generateNonceData([int length = 32]) {
+  const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+  final random = Random.secure();
+  return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+}
+
+String sha256ofString(String input) {
+  final bytes = utf8.encode(input);
+  final digest = sha256.convert(bytes);
+  return digest.toString();
+}
+
+List<LatLng> decodePolyline(String encoded) {
+  List<LatLng> polyline = [];
+  int index = 0;
+  int len = encoded.length;
+  int lat = 0;
+  int lng = 0;
+
+  while (index < len) {
+    int b;
+    int shift = 0;
+    int result = 0;
+
+    do {
+      b = encoded.codeUnitAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+
+    int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+    lat += dlat;
+
+    shift = 0;
+    result = 0;
+
+    do {
+      b = encoded.codeUnitAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+
+    int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+    lng += dlng;
+
+    polyline.add(LatLng(lat / 1E5, lng / 1E5));
+  }
+
+  return polyline;
+}
+
+Widget popupDialog(String title, String message, BuildContext context) {
+  return Dialog(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          /// Warning Icon
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.red.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.warning_rounded,
+              color: Colors.red,
+              size: 40,
+            ),
+          ),
+          SizedBox(height: 16),
+
+          /// Title
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
+          ),
+          SizedBox(height: 12),
+
+          /// Message
+          Text(
+            message,
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+            ),
+          ),
+          SizedBox(height: 24),
+
+          /// Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                padding: EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                "UNDERSTOOD",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

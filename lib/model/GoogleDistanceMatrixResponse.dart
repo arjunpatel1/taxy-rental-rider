@@ -6,9 +6,9 @@ class GoogleDistanceMatrixResponse {
 
   GoogleDistanceMatrixResponse(
       {this.destinationAddresses,
-        this.originAddresses,
-        this.rows,
-        this.status});
+      this.originAddresses,
+      this.rows,
+      this.status});
 
   GoogleDistanceMatrixResponse.fromJson(Map<String, dynamic> json) {
     destinationAddresses = json['destination_addresses'].cast<String>();

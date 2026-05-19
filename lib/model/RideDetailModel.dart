@@ -1,9 +1,4 @@
-import '../model/ComplaintModel.dart';
-import '../model/DriverRatting.dart';
-import '../model/OrderHistory.dart';
-import '../model/RiderModel.dart';
-
-import 'CurrentRequestModel.dart';
+import '../manage_imports.dart';
 
 class RideDetailModel {
   RiderModel? data;
@@ -15,7 +10,10 @@ class RideDetailModel {
   String? invoice_url;
   String? invoice_name;
   int? ride_has_bids;
-  RideDetailModel({this.data, this.rideHistory,this.ride_has_bids, this.driverRatting, this.riderRatting, this.complaintModel, this.payment,this.invoice_url,this.invoice_name});
+  num? riderWalletBalance;
+  num? coinEarnings;
+
+  RideDetailModel({this.data, this.rideHistory, this.ride_has_bids, this.driverRatting, this.riderRatting, this.complaintModel, this.payment, this.invoice_url, this.invoice_name, this.riderWalletBalance, this.coinEarnings});
 
   factory RideDetailModel.fromJson(Map<String, dynamic> json) {
     return RideDetailModel(
@@ -28,6 +26,8 @@ class RideDetailModel {
       riderRatting: json['rider_rating'] != null ? DriverRatting.fromJson(json['rider_rating']) : null,
       complaintModel: json['complaint'] != null ? ComplaintModel.fromJson(json['complaint']) : null,
       payment: json['payment'] != null ? Payment.fromJson(json['payment']) : null,
+      riderWalletBalance: json['rider_wallet_balance'],
+      coinEarnings: json['coin_earnings'],
     );
   }
 
@@ -56,8 +56,15 @@ class RideDetailModel {
     }
     if (this.invoice_url != null) {
       data['invoice_url'] = this.invoice_url;
-    }if (this.ride_has_bids != null) {
+    }
+    if (this.ride_has_bids != null) {
       data['ride_has_bids'] = this.ride_has_bids;
+    }
+    if (this.riderWalletBalance != null) {
+      data['rider_wallet_balance'] = this.riderWalletBalance;
+    }
+    if (this.coinEarnings != null) {
+      data['coinEarnings'] = this.coinEarnings;
     }
     return data;
   }
