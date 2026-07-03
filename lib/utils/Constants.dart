@@ -7,7 +7,8 @@ const mAppName = 'Rider App';
 const PRODUCTION_MODE = true;
 
 // region Google map key
-final GOOGLE_MAP_API_KEY = Platform.isAndroid ? '<YOUR_GOOGLE_MAP_API_KEY_ANDROID>' : "<YOUR_GOOGLE_MAP_API_KEY_IOS>";
+final GOOGLE_MAP_API_KEY = Platform.isAndroid ? 'AIzaSyAHwbL0sp0-_Aa9seQCQmFEDfpdMObrpGM'
+     : "<YOUR_GOOGLE_MAP_API_KEY_IOS>";
 //endregion
 
 //region DomainUrl

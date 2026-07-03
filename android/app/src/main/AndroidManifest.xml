@@ -19,7 +19,8 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="TEMP_KEY" />
+            android:value="AIzaSyAHwbL0sp0-_Aa9seQCQmFEDfpdMObrpGM
+ " />
 
         <activity
             android:name=".MainActivity"

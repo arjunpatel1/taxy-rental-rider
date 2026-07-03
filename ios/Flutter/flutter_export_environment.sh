@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
 export "FLUTTER_ROOT=C:\Users\mahes\Downloads\flutter_windows_3.32.0-stable\flutter"
-export "FLUTTER_APPLICATION_PATH=C:\fllutter projects\texibooking_flutter"
+export "FLUTTER_APPLICATION_PATH=C:\fllutter projects\rider_app_oldcode_git_hub\taxy-rental-rider"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"
