@@ -24,9 +24,12 @@ class OTPDialogState extends State<OTPDialog> {
   Future<void> submit() async {
     appStore.setLoading(true);
 
-    AuthCredential credential = PhoneAuthProvider.credential(verificationId: widget.verificationId!, smsCode: verId.validate());
+    // OTP is delivered on WhatsApp by our server; after it is verified the server returns a
+    // Firebase custom token so the app still gets a Firebase user for chat / Firestore.
+    await verifyWhatsappOtp(widget.phoneNumber!.replaceAll(" ", ""), verId.validate()).then((result) async {
+      String firebaseToken = (result['firebase_token'] ?? '').toString();
+      if (firebaseToken.isNotEmpty) await FirebaseAuth.instance.signInWithCustomToken(firebaseToken);
 
-    await FirebaseAuth.instance.signInWithCredential(credential).then((result) async {
       Map req = {
         "email": "",
         "login_type": "mobile",
@@ -35,6 +38,8 @@ class OTPDialogState extends State<OTPDialog> {
         'accessToken': widget.phoneNumber!.split(" ").last,
         'contact_number': widget.phoneNumber!.replaceAll(" ", ""),
         "player_id": sharedPref.getString(PLAYER_ID).validate(),
+        // One-time proof from the WhatsApp OTP check; the server requires it for phone logins.
+        'otp_token': (result['otp_token'] ?? '').toString(),
       };
 
       log(req);
@@ -66,8 +71,16 @@ class OTPDialogState extends State<OTPDialog> {
 
       String number = '$otpCode ${phoneController.text.trim()}';
 
-      log('sendotp $otpCode${phoneController.text.trim()}');
-      await authService.loginWithOTP(context, number).then((value) {}).catchError((e) {
+      await sendWhatsappOtp(number.replaceAll(" ", "")).then((value) async {
+        appStore.setLoading(false);
+        final navigator = Navigator.of(context);
+        navigator.pop();
+        await showDialog(
+          context: navigator.context,
+          builder: (context) => AlertDialog(content: OTPDialog(isCodeSent: true, phoneNumber: number)),
+          barrierDismissible: false,
+        );
+      }).catchError((e) {
         appStore.setLoading(false);
         toast(e.toString());
       });

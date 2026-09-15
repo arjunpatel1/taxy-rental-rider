@@ -1,6 +1,12 @@
 import '../manage_imports.dart';
 
-Color primaryColor = Color(0xFF3D3D3D);
+// S Taxi brand palette (from the app logo)
+const brandYellow = Color(0xFFFFE000);
+const brandBlue = Color(0xFF0A3D96);
+const brandLightBlue = Color(0xFF1E90F0);
+const brandBlack = Color(0xFF111111);
+
+Color primaryColor = brandBlue;
 Color borderColor = Color(0xFFEAEAEA);
 const scaffoldSecondaryDark = Color(0xFF1E1E1E);
 const scaffoldColorDark = Color(0xFF090909);
@@ -15,6 +21,6 @@ Color appButtonBackgroundColorGlobal = primaryColor;
 Color defaultAppButtonTextColorGlobal = textPrimaryColorGlobal;
 const appButtonTextStyleColor = Colors.white;
 const appTextPrimaryColorWhite = Colors.white;
-const polyLineColor = Color.fromARGB(255, 33, 83, 229);
+const polyLineColor = brandLightBlue;
 const polyLineColor2 = Color.fromARGB(255, 229, 33, 33);
 // const polyLineColor = Color.fromARGB(255, 40, 122, 198);

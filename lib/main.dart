@@ -35,22 +35,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   sharedPref = await SharedPreferences.getInstance();
 
-  if (Platform.isIOS) {
-    await Firebase.initializeApp();
-  } else {
-    try {
-      await Firebase.initializeApp(
-          options: FirebaseOptions(
-        apiKey: apiKeyFirebase,
-        appId: appIdAndroid,
-        messagingSenderId: messagingSenderId,
-        projectId: projectId,
-        storageBucket: storageBucket,
-      ));
-    } catch (e) {
-      await Firebase.initializeApp();
-    }
-  }
+  // Android reads its Firebase config from android/app/google-services.json, iOS from GoogleService-Info.plist
+  await Firebase.initializeApp();
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   appStore.setLanguage(sharedPref.getString(SELECTED_LANGUAGE_CODE) ?? defaultLanguageCode);
   await appStore.setLoggedIn(sharedPref.getBool(IS_LOGGED_IN) ?? false, isInitializing: true);

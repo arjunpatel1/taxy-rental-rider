@@ -502,7 +502,7 @@ void scheduleFunction({required DateTime scheduledTime, required Function functi
 }
 
 oneSignalSettings() async {
-  await Permission.notification.request();
+  // Notification permission is requested by the splash screen once its intro has played.
   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
   OneSignal.Debug.setAlertLevel(OSLogLevel.none);
   OneSignal.consentRequired(false);

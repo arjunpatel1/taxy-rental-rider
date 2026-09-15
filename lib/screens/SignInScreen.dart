@@ -1,3 +1,4 @@
+import '../components/AnimatedTaxiRoad.dart';
 import '../manage_imports.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -172,6 +173,44 @@ class SignInScreenState extends State<SignInScreen> {
     if (mounted) super.setState(fn);
   }
 
+  Widget _brandHeader() {
+    return Container(
+      height: 230,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [brandYellow, Color(0xFFFFC800)]),
+        boxShadow: [BoxShadow(color: brandYellow.withValues(alpha: 0.45), blurRadius: 24, offset: Offset(0, 12))],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: Stack(
+          children: [
+            Positioned(left: 0, right: 0, bottom: 0, child: AnimatedTaxiRoad(height: 110)),
+            Align(
+              alignment: Alignment(0, -0.55),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRRect(borderRadius: BorderRadius.circular(18), child: Image.asset(ic_app_logo, width: 78, height: 78, fit: BoxFit.cover)),
+                  SizedBox(width: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(mAppName, style: TextStyle(color: brandBlack, fontSize: 28, fontWeight: FontWeight.w800)),
+                      Text('Your Smile is Our Destination', style: TextStyle(color: brandBlack.withValues(alpha: 0.7), fontSize: 13, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -184,23 +223,42 @@ class SignInScreenState extends State<SignInScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(height: context.statusBarHeight + 16),
-                  ClipRRect(borderRadius: radius(50), child: Image.asset(ic_app_logo, width: 100, height: 100)),
-                  SizedBox(height: 16),
-                  InkWell(
-                      onTap: () {
-                        throw Exception("CHECKING  EXCEPTION::::");
-                      },
-                      child: Text(language.welcome, style: boldTextStyle(size: 22))),
-                  RichText(
-                    text: TextSpan(
+                  SizedBox(height: context.statusBarHeight + 8),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: Duration(milliseconds: 900),
+                    curve: Curves.easeOutBack,
+                    builder: (context, t, child) => Opacity(
+                      opacity: t.clamp(0.0, 1.0),
+                      child: Transform.scale(scale: 0.85 + 0.15 * t, child: child),
+                    ),
+                    child: _brandHeader(),
+                  ),
+                  SizedBox(height: 24),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: Duration(milliseconds: 700),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, t, child) => Opacity(
+                      opacity: t,
+                      child: Transform.translate(offset: Offset(0, 20 * (1 - t)), child: child),
+                    ),
+                    child: Column(
                       children: [
-                        TextSpan(text: '${language.signContinue} ', style: primaryTextStyle(size: 14)),
-                        TextSpan(text: '🚗', style: primaryTextStyle(size: 20)),
+                        Text(language.welcome, style: boldTextStyle(size: 24)),
+                        SizedBox(height: 4),
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(text: '${language.signContinue} ', style: primaryTextStyle(size: 14)),
+                              TextSpan(text: '🚗', style: primaryTextStyle(size: 20)),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  SizedBox(height: 40),
+                  SizedBox(height: 32),
                   AppTextField(
                     controller: emailController,
                     nextFocus: passFocus,

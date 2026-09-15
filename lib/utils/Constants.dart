@@ -1,21 +1,21 @@
 import '../manage_imports.dart';
 
 //region App name
-const mAppName = 'Rider App';
+const mAppName = 'S Taxi';
 //endregion
 
 const PRODUCTION_MODE = true;
 
 // region Google map key
-final GOOGLE_MAP_API_KEY = Platform.isAndroid ? 'AIzaSyAHwbL0sp0-_Aa9seQCQmFEDfpdMObrpGM'
+final GOOGLE_MAP_API_KEY = Platform.isAndroid ? 'AIzaSyCqIdr9VWtre1CUTEZxAVenvWnqOD3Hm5A'
      : "<YOUR_GOOGLE_MAP_API_KEY_IOS>";
 //endregion
 
 //region DomainUrl
 final DOMAIN_URL = AppServerConfig.baseUrl;
 
-const PRIVACY_URL = "<PRIVACY_POLICY_URL>";
-const TNC_URL = "<TERMS_OF_SERVICE_URL>";
+const PRIVACY_URL = "https://staxi.co.in/privacypolicy";
+const TNC_URL = "https://staxi.co.in/termofservice";
 //endregion
 
 //region OneSignal Keys
@@ -46,8 +46,8 @@ const USER_COLLECTION = PRODUCTION_MODE ? "users" : 'users_dev';
 //endregion
 
 //region Currency & country code
-const currencySymbol = '\$';
-const currencyNameConst = 'usd';
+const currencySymbol = '₹';
+const currencyNameConst = 'inr';
 const defaultCountry = 'IN';
 const digitAfterDecimal = 2;
 //endregion

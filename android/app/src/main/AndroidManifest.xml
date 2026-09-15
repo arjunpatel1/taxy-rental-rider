@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
-        android:label="Rider App"
+        android:label="S Taxi"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:extractNativeLibs="true"
@@ -19,8 +19,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAHwbL0sp0-_Aa9seQCQmFEDfpdMObrpGM
- " />
+            android:value="AIzaSyCqIdr9VWtre1CUTEZxAVenvWnqOD3Hm5A" />
 
         <activity
             android:name=".MainActivity"

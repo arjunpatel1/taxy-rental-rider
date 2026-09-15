@@ -161,6 +161,16 @@ Future<ChangePasswordResponseModel> forgotPassword(Map req) async {
   return ChangePasswordResponseModel.fromJson(await handleResponse(await buildHttpResponse('forget-password', request: req, method: HttpMethod.POST)));
 }
 
+/// Sends a sign-in / registration OTP to the number on WhatsApp.
+Future<Map<String, dynamic>> sendWhatsappOtp(String contactNumber) async {
+  return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse('whatsapp-otp/send', request: {'contact_number': contactNumber}, method: HttpMethod.POST)));
+}
+
+/// Verifies the WhatsApp OTP; the response carries a Firebase custom token (`firebase_token`).
+Future<Map<String, dynamic>> verifyWhatsappOtp(String contactNumber, String otp) async {
+  return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse('whatsapp-otp/verify', request: {'contact_number': contactNumber, 'otp': otp}, method: HttpMethod.POST)));
+}
+
 Future<LoginResponse> getUserDetail({int? userId}) async {
   return LoginResponse.fromJson(await handleResponse(await buildHttpResponse('user-detail?id=$userId', method: HttpMethod.GET)));
 }
