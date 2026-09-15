@@ -130,6 +130,7 @@ export '../screens/ChatScreen.dart';
 export '../screens/ChooseAirportOrZoneScreen.dart';
 export '../screens/ComplaintScreen.dart';
 export '../screens/DashBoardScreen.dart';
+export '../screens/HomeScreen.dart';
 export '../screens/EditProfileScreen.dart';
 export '../screens/EmergencyContactScreen.dart';
 export '../screens/NewEstimateRideListWidget.dart';

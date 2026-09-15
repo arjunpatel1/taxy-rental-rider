@@ -93,12 +93,12 @@ class SplashScreenState extends State<SplashScreen> with TickerProviderStateMixi
               await Geolocator.getCurrentPosition().then((value) {
                 sharedPref.setDouble(LATITUDE, value.latitude);
                 sharedPref.setDouble(LONGITUDE, value.longitude);
-                launchScreen(context, DashBoardScreen(),
+                launchScreen(context, HomeScreen(),
                     pageRouteAnimation: PageRouteAnimation.Slide,
                     isNewTask: true);
               });
             }).catchError((e) {
-              launchScreen(context, DashBoardScreen(),
+              launchScreen(context, HomeScreen(),
                   pageRouteAnimation: PageRouteAnimation.Slide,
                   isNewTask: true);
             });

@@ -79,7 +79,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
         if (Navigator.canPop(context)) {
           return true;
         } else {
-          launchScreen(context, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+          launchScreen(context, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
           return false;
         }
       },
@@ -138,7 +138,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                           text: language.continueNewRide,
                           width: MediaQuery.of(context).size.width,
                           onTap: () {
-                            launchScreen(context, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+                            launchScreen(context, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
                           },
                         ),
                       ),

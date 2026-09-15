@@ -70,12 +70,12 @@ class AuthServices {
             if (isOtpLogin) {
               appStore.setLoading(false);
               updateProfileUid();
-              launchScreen(context, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+              launchScreen(context, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
             } else {
               await logInApi(request).then((res) async {
                 appStore.setLoading(false);
                 updateProfileUid();
-                launchScreen(context, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+                launchScreen(context, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
               }).catchError((e) {
                 appStore.setLoading(false);
                 log(e.toString());
@@ -625,18 +625,18 @@ Future<void> loginFromFirebase(User currentUser, String loginType, String? acces
             userEmail: currentUser.email.validate(),
             file: imgFile != null ? imgFile : null,
           ).then((value) {
-            launchScreen(getContext, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+            launchScreen(getContext, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
           }).catchError((error) {
             log(error.toString());
           });
         } else if (value.data!.playerId.isEmptyOrNull) {
           await updatePlayerId().then((value) {
-            launchScreen(getContext, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+            launchScreen(getContext, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
           }).catchError((error) {
             log(error.toString());
           });
         } else {
-          launchScreen(getContext, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+          launchScreen(getContext, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
         }
       }
     } else {

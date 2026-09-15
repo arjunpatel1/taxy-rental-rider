@@ -5,7 +5,10 @@ class DashBoardScreen extends StatefulWidget {
   DashBoardScreenState createState() => DashBoardScreenState();
   final String? cancelReason;
 
-  DashBoardScreen({this.cancelReason});
+  /// Opens the map with the "book a ride" panel already showing (used by the Home dashboard).
+  final bool openBooking;
+
+  DashBoardScreen({this.cancelReason, this.openBooking = false});
 }
 
 class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProviderStateMixin {
@@ -48,6 +51,7 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
   @override
   void initState() {
     super.initState();
+    if (widget.openBooking) serviceType = 1;
     listenForNewRideRequests();
     _animController = AnimationController(vsync: this, duration: Duration(milliseconds: 800))..repeat(reverse: true);
 

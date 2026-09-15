@@ -129,7 +129,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
         appStore.setLoading(false);
         toast(language.profileUpdateMsg);
         if (widget.isGoogle == true) {
-          launchScreen(context, DashBoardScreen(),
+          launchScreen(context, HomeScreen(),
               isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
         } else {
           // Navigator.pop(context);

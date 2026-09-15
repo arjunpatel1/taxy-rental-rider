@@ -51,7 +51,7 @@ class OTPDialogState extends State<OTPDialog> {
         } else {
           updatePlayerId();
           Navigator.pop(context);
-          launchScreen(context, DashBoardScreen(), isNewTask: true);
+          launchScreen(context, HomeScreen(), isNewTask: true);
         }
       }).catchError((e) {
         Navigator.pop(context);

@@ -48,7 +48,7 @@ class ScratchCouponScreenState extends State<ScratchCouponScreen> {
       toast(value.message.validate());
       launchScreen(
         getContext,
-        DashBoardScreen(),
+        HomeScreen(),
         isNewTask: true,
         pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
       );
@@ -64,7 +64,7 @@ class ScratchCouponScreenState extends State<ScratchCouponScreen> {
       canPop: false,
       onPopInvoked: (didPop) async {
         if (didPop) return;
-        launchScreen(getContext, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+        launchScreen(getContext, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
       },
       child: Scaffold(
         backgroundColor: Colors.grey.shade50,
@@ -74,7 +74,7 @@ class ScratchCouponScreenState extends State<ScratchCouponScreen> {
           leading: IconButton(
             icon: const Icon(Icons.close_rounded, color: Colors.white),
             onPressed: () {
-              launchScreen(getContext, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+              launchScreen(getContext, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
             },
           ),
           title: Text(

@@ -115,7 +115,7 @@ class SignInScreenState extends State<SignInScreen> {
               });
             });
             appStore.setLoading(false);
-            launchScreen(context, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+            launchScreen(context, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
           }).catchError((e) {
             appStore.setLoading(false);
             if (e.toString().contains('user-not-found') || e.toString().contains('invalid')) {
@@ -130,7 +130,7 @@ class SignInScreenState extends State<SignInScreen> {
                 userType: RIDER,
               );
             } else {
-              launchScreen(context, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
+              launchScreen(context, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
             }
             log(e.toString());
           });

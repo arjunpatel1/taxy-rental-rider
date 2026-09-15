@@ -169,7 +169,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
           Future.delayed(
             Duration(seconds: 3),
             () {
-              launchScreen(getContext, DashBoardScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+              launchScreen(getContext, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
             },
           );
         }

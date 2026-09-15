@@ -43,7 +43,7 @@ class ReviewScreenState extends State<ReviewScreen> {
         Future.delayed(
           Duration(seconds: 1),
           () {
-            launchScreen(context, DashBoardScreen(),
+            launchScreen(context, HomeScreen(),
                 isNewTask: true,
                 pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
           },
