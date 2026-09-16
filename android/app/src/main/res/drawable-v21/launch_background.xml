@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S Taxi launch screen: brand yellow with the logo centred -->
+<!-- S Taxi launch screen: brand blue with the logo centred -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
-        <color android:color="#FFFFE000" />
+        <color android:color="#FF0A3D96" />
     </item>
     <item>
         <bitmap

@@ -126,12 +126,16 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
     Widget typeCard(String type, String title, String subtitle, IconData icon) {
       final selected = rideType == type;
       return Expanded(
-        child: GestureDetector(
-          onTap: () {
-            setState(() => rideType = type);
-            if (type == rideTypeRental && rentalPackages.isEmpty) _loadRentalPackages();
-          },
-          child: AnimatedContainer(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            splashColor: brandBlue.withValues(alpha: 0.15),
+            onTap: () {
+              setState(() => rideType = type);
+              if (type == rideTypeRental && rentalPackages.isEmpty) _loadRentalPackages();
+            },
+            child: AnimatedContainer(
             duration: Duration(milliseconds: 200),
             margin: EdgeInsets.symmetric(horizontal: 4),
             padding: EdgeInsets.symmetric(vertical: 12, horizontal: 6),
@@ -153,6 +157,7 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                     overflow: TextOverflow.ellipsis),
               ],
             ),
+            ),
           ),
         ),
       );
@@ -160,14 +165,19 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
 
     Widget tripToggle(String label, bool selected, VoidCallback onTap) {
       return Expanded(
-        child: GestureDetector(
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: 200),
-            padding: EdgeInsets.symmetric(vertical: 10),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: selected ? brandBlue : Colors.transparent, borderRadius: BorderRadius.circular(10)),
-            child: Text(label, style: boldTextStyle(size: 14, color: selected ? Colors.white : brandBlack)),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10),
+            splashColor: brandBlue.withValues(alpha: 0.15),
+            onTap: onTap,
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 200),
+              padding: EdgeInsets.symmetric(vertical: 10),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: selected ? brandBlue : Colors.transparent, borderRadius: BorderRadius.circular(10)),
+              child: Text(label, style: boldTextStyle(size: 14, color: selected ? Colors.white : brandBlack)),
+            ),
           ),
         ),
       );

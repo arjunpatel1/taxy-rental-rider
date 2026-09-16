@@ -9,6 +9,10 @@ class AppTheme {
   static final ThemeData lightTheme = ThemeData(
     // every spinner uses the brand blue unless a screen overrides it
     progressIndicatorTheme: ProgressIndicatorThemeData(color: primaryColor),
+    cardTheme: CardThemeData(color: Colors.white, surfaceTintColor: Colors.transparent, elevation: 0),
+    // text / outlined buttons follow the brand instead of Material's default purple
+    textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(foregroundColor: primaryColor)),
+    outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(foregroundColor: primaryColor)),
     // focused fields, checkboxes and radios follow the brand instead of Material's default purple
     inputDecorationTheme: InputDecorationTheme(
       focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: primaryColor, width: 1.4)),
@@ -37,7 +41,11 @@ class AppTheme {
     dialogTheme: DialogThemeData(shape: dialogShape()),
     appBarTheme: AppBarTheme(
       color: primaryColor,
+      // white header text / icons on the brand blue bar
+      foregroundColor: Colors.white,
+      titleTextStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
       iconTheme: IconThemeData(color: Colors.white),
+      actionsIconTheme: IconThemeData(color: Colors.white),
       systemOverlayStyle: SystemUiOverlayStyle(
           statusBarIconBrightness: Brightness.dark,
           statusBarColor: Colors.transparent,

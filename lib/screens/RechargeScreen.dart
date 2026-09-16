@@ -100,6 +100,103 @@ class _RechargeScreenState extends State<RechargeScreen> {
     }
   }
 
+  /// Operator list with a search box - the lists run to 200+ entries for some services.
+  Future<void> _pickOperator() async {
+    if (operators.isEmpty) {
+      toast('No operators available yet');
+      return;
+    }
+
+    final searchController = TextEditingController();
+    final chosen = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
+          final query = searchController.text.trim().toLowerCase();
+          final filtered = query.isEmpty
+              ? operators
+              : operators.where((o) => o['name'].toString().toLowerCase().contains(query)).toList();
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.8,
+              builder: (_, controller) => Column(
+                children: [
+                  SizedBox(height: 12),
+                  Container(height: 4, width: 44, decoration: BoxDecoration(color: dividerColor, borderRadius: BorderRadius.circular(4))),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(16, 14, 16, 8),
+                    child: Row(
+                      children: [
+                        Text('Choose $selectedService operator', style: boldTextStyle(size: 17)),
+                        Spacer(),
+                        Text('${filtered.length}', style: secondaryTextStyle(size: 13)),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      controller: searchController,
+                      autofocus: false,
+                      onChanged: (_) => setSheetState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Search operator',
+                        prefixIcon: Icon(Icons.search_rounded),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        contentPadding: EdgeInsets.symmetric(vertical: 4),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Expanded(
+                    child: filtered.isEmpty
+                        ? Center(child: Text('No operator matches "${searchController.text.trim()}"', style: secondaryTextStyle()))
+                        : ListView.separated(
+                            controller: controller,
+                            itemCount: filtered.length,
+                            separatorBuilder: (_, __) => Divider(height: 1, color: dividerColor.withValues(alpha: 0.5)),
+                            itemBuilder: (_, index) {
+                              final operator = filtered[index];
+                              final selected = selectedOperator?['id'] == operator['id'];
+                              return ListTile(
+                                onTap: () => Navigator.pop(sheetContext, operator),
+                                leading: CircleAvatar(
+                                  backgroundColor: brandBlue.withValues(alpha: 0.1),
+                                  child: Text(operator['name'].toString().characters.first.toUpperCase(),
+                                      style: boldTextStyle(size: 15, color: brandBlue)),
+                                ),
+                                title: Text(operator['name'].toString(), style: primaryTextStyle(size: 15)),
+                                subtitle: operator['has_plans'] == true
+                                    ? Text('Plans available', style: secondaryTextStyle(size: 11))
+                                    : (operator['has_bill_fetch'] == true ? Text('Bill fetch available', style: secondaryTextStyle(size: 11)) : null),
+                                trailing: selected ? Icon(Icons.check_circle_rounded, color: brandBlue) : null,
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+
+    if (chosen != null) {
+      setState(() {
+        selectedOperator = chosen;
+        amountLocked = false;
+        billDetails = [];
+      });
+    }
+  }
+
   Future<void> _showPlans({bool offers = false}) async {
     if (selectedOperator == null) return toast('Select an operator first');
     if (offers && numberController.text.trim().length < 10) return toast('Enter the mobile number first');
@@ -116,70 +213,175 @@ class _RechargeScreenState extends State<RechargeScreen> {
     if (!mounted) return;
     setState(() => busy = false);
 
-    if (list.isEmpty) return toast(offers ? 'No offers found for this number' : 'No plans available');
+    if (list.isEmpty) {
+      toast(offers ? 'No offers found for this number' : 'No plans available');
+      return;
+    }
+
+    // plan types come back grouped (FULLTT, TOPUP, 3G/4G, ...) - show them as filter chips
+    final groups = <String>{for (final plan in list) (plan['group'] ?? '').toString()}..removeWhere((g) => g.isEmpty);
+    final searchController = TextEditingController();
+    String activeGroup = 'All';
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.75,
-        builder: (_, controller) => Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Row(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
+          final query = searchController.text.trim().toLowerCase();
+          final visible = list.where((plan) {
+            final inGroup = activeGroup == 'All' || (plan['group'] ?? '').toString() == activeGroup;
+            if (!inGroup) return false;
+            if (query.isEmpty) return true;
+            return '${plan['amount']} ${plan['validity']} ${plan['data']} ${plan['description']}'.toLowerCase().contains(query);
+          }).toList();
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.85,
+              builder: (_, controller) => Column(
                 children: [
-                  Text(offers ? 'Special offers' : 'Browse plans', style: boldTextStyle(size: 18)),
-                  Spacer(),
-                  if (!offers && circleName != null && circleName!.isNotEmpty) Text(circleName!, style: secondaryTextStyle(size: 12)),
+                  SizedBox(height: 12),
+                  Container(height: 4, width: 44, decoration: BoxDecoration(color: dividerColor, borderRadius: BorderRadius.circular(4))),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(16, 14, 16, 10),
+                    child: Row(
+                      children: [
+                        Icon(offers ? Icons.local_offer_rounded : Icons.list_alt_rounded, color: brandBlue, size: 20),
+                        SizedBox(width: 8),
+                        Text(offers ? 'Special offers' : 'Browse plans', style: boldTextStyle(size: 18)),
+                        Spacer(),
+                        if (!offers && circleName != null && circleName!.isNotEmpty)
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(color: Color(0xFFE3ECFF), borderRadius: BorderRadius.circular(20)),
+                            child: Text(circleName!, style: boldTextStyle(size: 11, color: brandBlue)),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      controller: searchController,
+                      onChanged: (_) => setSheetState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Search amount, data or validity',
+                        prefixIcon: Icon(Icons.search_rounded),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        contentPadding: EdgeInsets.symmetric(vertical: 4),
+                      ),
+                    ),
+                  ),
+                  if (groups.length > 1) ...[
+                    SizedBox(height: 10),
+                    SizedBox(
+                      height: 38,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        children: ['All', ...groups].map((group) {
+                          final selected = activeGroup == group;
+                          return Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 4),
+                            child: ChoiceChip(
+                              label: Text(group, style: boldTextStyle(size: 12, color: selected ? Colors.white : brandBlack)),
+                              selected: selected,
+                              showCheckmark: false,
+                              selectedColor: brandBlue,
+                              backgroundColor: Color(0xFFF1F4F9),
+                              side: BorderSide(color: selected ? brandBlue : Colors.transparent),
+                              onSelected: (_) => setSheetState(() => activeGroup = group),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                  SizedBox(height: 6),
+                  Expanded(
+                    child: visible.isEmpty
+                        ? Center(child: Text('Nothing matches that search', style: secondaryTextStyle()))
+                        : ListView.builder(
+                            controller: controller,
+                            padding: EdgeInsets.fromLTRB(12, 4, 12, 16),
+                            itemCount: visible.length,
+                            itemBuilder: (_, index) {
+                              final plan = visible[index];
+                              final amount = (plan['amount'] as num?) ?? 0;
+                              final validity = (plan['validity'] ?? '').toString();
+                              final data = (plan['data'] ?? '').toString();
+
+                              return Card(
+                                elevation: 0,
+                                color: Colors.white,
+                                margin: EdgeInsets.symmetric(vertical: 5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  side: BorderSide(color: dividerColor.withValues(alpha: 0.6)),
+                                ),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(14),
+                                  onTap: () {
+                                    amountController.text = amount.toStringAsFixed(0);
+                                    Navigator.pop(sheetContext);
+                                    setState(() {});
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.all(14),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text('$currencySymbol${amount.toStringAsFixed(0)}', style: boldTextStyle(size: 20, color: brandBlue)),
+                                            SizedBox(width: 10),
+                                            if (validity.isNotEmpty && validity != 'N/A')
+                                              _planChip(Icons.calendar_today_rounded, validity),
+                                            if (data.isNotEmpty) ...[SizedBox(width: 6), _planChip(Icons.data_usage_rounded, data)],
+                                            Spacer(),
+                                            Icon(Icons.chevron_right_rounded, color: textSecondaryColor),
+                                          ],
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          (plan['description'] ?? '').toString(),
+                                          style: secondaryTextStyle(size: 12),
+                                          maxLines: 4,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
                 ],
               ),
             ),
-            Expanded(
-              child: ListView.separated(
-                controller: controller,
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                itemCount: list.length,
-                separatorBuilder: (_, __) => Divider(height: 18),
-                itemBuilder: (_, index) {
-                  final plan = list[index];
-                  final amount = (plan['amount'] as num?) ?? 0;
-                  return InkWell(
-                    onTap: () {
-                      amountController.text = amount.toStringAsFixed(0);
-                      Navigator.pop(context);
-                      setState(() {});
-                    },
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(color: Color(0xFFE3ECFF), borderRadius: BorderRadius.circular(8)),
-                          child: Text('$currencySymbol${amount.toStringAsFixed(0)}', style: boldTextStyle(size: 14, color: brandBlue)),
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if ((plan['validity'] ?? '').toString().isNotEmpty)
-                                Text('Validity: ${plan['validity']}', style: boldTextStyle(size: 13)),
-                              Text('${plan['description'] ?? ''}', style: secondaryTextStyle(size: 12)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _planChip(IconData icon, String label) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(color: Color(0xFFF1F4F9), borderRadius: BorderRadius.circular(8)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: textSecondaryColor),
+          SizedBox(width: 4),
+          Text(label, style: boldTextStyle(size: 11, color: brandBlack)),
+        ],
       ),
     );
   }
@@ -365,18 +567,33 @@ class _RechargeScreenState extends State<RechargeScreen> {
                   else if (operators.isEmpty)
                     Text('No operators available yet.', style: secondaryTextStyle())
                   else
-                    DropdownButtonFormField<Map<String, dynamic>>(
-                      value: selectedOperator,
-                      isExpanded: true,
-                      decoration: InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12)),
-                      hint: Text('Select operator', style: secondaryTextStyle()),
-                      items: operators
-                          .map((operator) => DropdownMenuItem(
-                                value: operator,
-                                child: Text(operator['name'].toString(), overflow: TextOverflow.ellipsis, style: primaryTextStyle(size: 14)),
-                              ))
-                          .toList(),
-                      onChanged: (value) => setState(() => selectedOperator = value),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: _pickOperator,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: selectedOperator == null ? dividerColor : brandBlue),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.storefront_rounded, size: 20, color: selectedOperator == null ? textSecondaryColor : brandBlue),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  selectedOperator?['name']?.toString() ?? 'Select operator',
+                                  style: selectedOperator == null ? secondaryTextStyle(size: 14) : boldTextStyle(size: 15),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Icon(Icons.keyboard_arrow_down_rounded, color: textSecondaryColor),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   SizedBox(height: 16),
                   Text('Number', style: boldTextStyle(size: 14)),
