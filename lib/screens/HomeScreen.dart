@@ -88,8 +88,8 @@ class HomeScreenState extends State<HomeScreen> {
         backgroundColor: brandBlue,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
         ),
       ),
       body: RefreshIndicator(
@@ -217,6 +217,8 @@ class HomeScreenState extends State<HomeScreen> {
   Widget _activeRideBanner() {
     final ride = currentRequest?.onRideRequest ?? currentRequest?.rideRequest;
     final status = (ride?.status ?? '').replaceAll('_', ' ');
+    final awaitingOutstation = (ride?.trip_type == tripTypeValueOutstationOneway || ride?.trip_type == tripTypeValueOutstationRound) &&
+        ride?.status == NEW_RIDE_REQUESTED;
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Material(
@@ -224,7 +226,7 @@ class HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
-          onTap: () => _open(DashBoardScreen()),
+          onTap: () => _open(awaitingOutstation ? RideListScreen() : DashBoardScreen()),
           child: Padding(
             padding: EdgeInsets.all(16),
             child: Row(
@@ -232,19 +234,21 @@ class HomeScreenState extends State<HomeScreen> {
                 Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                  child: Icon(Icons.local_taxi_rounded, color: brandBlue),
+                  child: Icon(awaitingOutstation ? Icons.alt_route_rounded : Icons.local_taxi_rounded, color: brandBlue),
                 ),
                 SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Your ride is in progress', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
-                      if (status.isNotEmpty) Text(status.capitalizeFirstLetter(), style: TextStyle(color: Colors.white70, fontSize: 13)),
+                      Text(awaitingOutstation ? 'Outstation request received' : 'Your ride is in progress',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
+                      Text(awaitingOutstation ? 'Our team is assigning a driver' : status.capitalizeFirstLetter(),
+                          style: TextStyle(color: Colors.white70, fontSize: 13)),
                     ],
                   ),
                 ),
-                Text('Track', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                Text(awaitingOutstation ? 'View' : 'Track', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
                 Icon(Icons.chevron_right_rounded, color: Colors.white),
               ],
             ),
@@ -338,15 +342,19 @@ class HomeScreenState extends State<HomeScreen> {
 
   Widget _quickActions() {
     final actions = [
-      _QuickAction('Local', Icons.local_taxi_rounded, Color(0xFFE3ECFF), brandBlue, () => _openBooking(rideTypeLocal)),
-      _QuickAction('Rental', Icons.timer_outlined, Color(0xFFE8F0FE), brandBlue, () => _openBooking(rideTypeRental)),
-      _QuickAction('Outstation', Icons.alt_route_rounded, Color(0xFFE6F6FF), brandLightBlue, () => _openBooking(rideTypeOutstation)),
-      _QuickAction('Schedule', Icons.event_available_rounded, Color(0xFFEFF3F8), brandBlack, () => _open(ScheduleRideListScreen())),
-      _QuickAction('My rides', Icons.receipt_long_rounded, Color(0xFFF0F0F3), textSecondaryColor, () => _open(RideListScreen())),
-      _QuickAction('Rewards', Icons.card_giftcard_rounded, Color(0xFFE0F2EF), Color(0xFF12836B), () => _open(RewardListScreen())),
-      _QuickAction('Refer & earn', Icons.group_add_rounded, Color(0xFFE9F8EF), Color(0xFF1E9E57), () => _open(ReferEarnScreen())),
-      _QuickAction('Recharge', Icons.smartphone_rounded, Color(0xFFEDE7FF), Color(0xFF5B3DF5), () => _open(RechargeScreen(title: 'Mobile recharge', serviceTypes: ['Prepaid', 'Postpaid', 'Data Card', 'DTH']))),
-      _QuickAction('Bill payment', Icons.receipt_long_rounded, Color(0xFFE9F8EF), Color(0xFF1E9E57), () => _open(BillPaymentScreen())),
+      _QuickAction('Local Booking', Icons.local_taxi_rounded, Color(0xFFE3ECFF), brandBlue, () => _openBooking(rideTypeLocal)),
+      _QuickAction('Rental Booking', Icons.timer_outlined, Color(0xFFE8F0FE), brandBlue, () => _openBooking(rideTypeRental)),
+      _QuickAction('Outstation Booking', Icons.alt_route_rounded, Color(0xFFE6F6FF), brandLightBlue, () => _openBooking(rideTypeOutstation)),
+      _QuickAction('Ride Later', Icons.event_available_rounded, Color(0xFFEDF2FF), Color(0xFF3B5BDB), () => _open(ScheduleRideListScreen())),
+      _QuickAction('Mobile Recharge', Icons.phone_iphone_rounded, Color(0xFFEDE7FF), Color(0xFF5B3DF5), () => _open(MobileRechargeScreen())),
+      _QuickAction('DTH Recharge', Icons.satellite_alt_rounded, Color(0xFFF3E8FF), Color(0xFF7048E8),
+          () => _open(RechargeScreen(title: 'DTH Recharge', serviceTypes: ['DTH']))),
+      _QuickAction('Google Play Recharge', Icons.shop_rounded, Color(0xFFE6FCF5), Color(0xFF0CA678),
+          () => _open(RechargeScreen(title: 'Google Play Recharge', serviceTypes: ['Google Play']))),
+      _QuickAction('Bill Payment', Icons.receipt_long_rounded, Color(0xFFFFF4E6), Color(0xFFE8590C), () => _open(BillPaymentScreen())),
+      _QuickAction('My Rides', Icons.directions_car_filled_rounded, Color(0xFFF1F3F5), Color(0xFF495057), () => _open(RideListScreen())),
+      _QuickAction('Reward', Icons.card_giftcard_rounded, Color(0xFFE0F2EF), Color(0xFF12836B), () => _open(RewardListScreen())),
+      _QuickAction('Refer and Earn', Icons.group_add_rounded, Color(0xFFE9F8EF), Color(0xFF1E9E57), () => _open(ReferEarnScreen())),
       _QuickAction('SOS', Icons.sos_rounded, Color(0xFFFDE8E8), Color(0xFFD93025), () => _open(EmergencyContactScreen())),
     ];
 
@@ -358,13 +366,15 @@ class HomeScreenState extends State<HomeScreen> {
         physics: NeverScrollableScrollPhysics(),
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.82,
+        childAspectRatio: 0.74,
         children: actions.map((a) {
           return Material(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
+            clipBehavior: Clip.antiAlias,
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
+              splashColor: a.foreground.withValues(alpha: 0.12),
               onTap: a.onTap,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -375,7 +385,14 @@ class HomeScreenState extends State<HomeScreen> {
                     child: Icon(a.icon, color: a.foreground, size: 24),
                   ),
                   SizedBox(height: 8),
-                  Text(a.label, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: brandBlack, fontSize: 12, fontWeight: FontWeight.w700)),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(a.label,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: brandBlack, fontSize: 11.5, height: 1.15, fontWeight: FontWeight.w700)),
+                  ),
                 ],
               ),
             ),

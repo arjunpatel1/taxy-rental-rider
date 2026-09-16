@@ -178,6 +178,7 @@ export './screens/PaymentScreen.dart';
 export './screens/RefferalHistoryScreen.dart';
 export './screens/RideHistoryScreen.dart';
 export './screens/RechargeScreen.dart';
+export './screens/MobileRechargeScreen.dart';
 export './screens/BillPaymentScreen.dart';
 export './screens/RechargeHistoryScreen.dart';
 export './screens/WalletTopupScreen.dart';

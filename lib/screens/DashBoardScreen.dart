@@ -381,6 +381,10 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
             Bidingscreen(dt: servicesListData!.isSchedule == 1 ? servicesListData!.schedule_datetime : servicesListData!.datetime, ride_id: servicesListData!.id!, source: {}, endLocation: {}, multiDropObj: {}, multiDropLocationNamesObj: {}),
             pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
           );
+        } else if ((servicesListData!.trip_type == tripTypeValueOutstationOneway || servicesListData!.trip_type == tripTypeValueOutstationRound) &&
+            servicesListData!.status == NEW_RIDE_REQUESTED) {
+          // outstation request waiting for the team to assign a driver - no driver search screen
+          setState(() {});
         } else if (servicesListData!.status != COMPLETED && servicesListData!.status != CANCELED) {
           int x = 0;
           if (value.rideRequest == null && value.onRideRequest == null) {

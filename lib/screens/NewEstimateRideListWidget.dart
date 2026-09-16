@@ -2159,6 +2159,49 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
         },
       );
       widget.isCurrentRequest = true;
+
+      // Outstation trips are assigned to a driver by the S Taxi team, so there is no driver search.
+      final bookedTripType = widget.tripDetail != null ? widget.tripDetail['trip_type']?.toString() : null;
+      if (bookedTripType == tripTypeValueOutstationOneway || bookedTripType == tripTypeValueOutstationRound) {
+        appStore.setLoading(false);
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: brandBlue.withValues(alpha: 0.1), shape: BoxShape.circle),
+                  child: Icon(Icons.alt_route_rounded, color: brandBlue, size: 40),
+                ),
+                SizedBox(height: 14),
+                Text('Outstation request received', style: boldTextStyle(size: 18), textAlign: TextAlign.center),
+                SizedBox(height: 8),
+                Text('Our team will assign a driver for your trip and you will be notified with the driver details shortly.',
+                    style: secondaryTextStyle(size: 13), textAlign: TextAlign.center),
+                SizedBox(height: 10),
+                Text('Request #$rideRequestId', style: boldTextStyle(size: 13, color: brandBlue)),
+              ],
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: brandBlue, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text('Okay'),
+                ),
+              ),
+            ],
+          ),
+        );
+        launchScreen(context, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
+        return;
+      }
+
       if (schduleRideDateTime != null || formattedTime != null) {
         appStore.setLoading(false);
         launchScreen(

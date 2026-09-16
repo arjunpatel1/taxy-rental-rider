@@ -91,10 +91,10 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
                           ? Center(child: Text('No service matches "${searchController.text.trim()}"', style: secondaryTextStyle()))
                           : GridView.count(
                               padding: EdgeInsets.fromLTRB(16, 8, 16, 20),
-                              crossAxisCount: 3,
-                              mainAxisSpacing: 12,
-                              crossAxisSpacing: 12,
-                              childAspectRatio: 0.82,
+                              crossAxisCount: 4,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                              childAspectRatio: 0.78,
                               children: visible.map((service) {
                                 final name = service['service_type'].toString();
                                 final count = (service['operator_count'] as num?)?.toInt() ?? 0;
@@ -102,7 +102,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
 
                                 return Material(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(18),
+                                  borderRadius: BorderRadius.circular(14),
                                   clipBehavior: Clip.antiAlias,
                                   child: InkWell(
                                     splashColor: colour.withValues(alpha: 0.12),
@@ -113,22 +113,20 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Container(
-                                          height: 52,
-                                          width: 52,
+                                          height: 42,
+                                          width: 42,
                                           decoration: BoxDecoration(color: colour.withValues(alpha: 0.12), shape: BoxShape.circle),
-                                          child: Icon(icon, color: colour, size: 26),
+                                          child: Icon(icon, color: colour, size: 21),
                                         ),
-                                        SizedBox(height: 10),
+                                        SizedBox(height: 6),
                                         Padding(
                                           padding: EdgeInsets.symmetric(horizontal: 6),
                                           child: Text(name,
                                               textAlign: TextAlign.center,
                                               maxLines: 2,
                                               overflow: TextOverflow.ellipsis,
-                                              style: boldTextStyle(size: 12)),
+                                              style: boldTextStyle(size: 11)),
                                         ),
-                                        SizedBox(height: 2),
-                                        Text('$count operators', style: secondaryTextStyle(size: 10)),
                                       ],
                                     ),
                                   ),
