@@ -56,9 +56,12 @@ class NotificationScreenState extends State<NotificationScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF4F6F9),
       appBar: AppBar(
-        title: Text(language.notification,
-            style: boldTextStyle(color: appTextPrimaryColorWhite)),
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
+        title: Text(language.notification, style: boldTextStyle(color: Colors.white)),
       ),
       body: Observer(builder: (context) {
         return Stack(

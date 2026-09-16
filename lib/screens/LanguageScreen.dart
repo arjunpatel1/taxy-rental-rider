@@ -15,8 +15,11 @@ class LanguageScreenState extends State<LanguageScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
         title: Text(language.language,
-            style: boldTextStyle(color: appTextPrimaryColorWhite)),
+            style: boldTextStyle(color: brandBlack)),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),

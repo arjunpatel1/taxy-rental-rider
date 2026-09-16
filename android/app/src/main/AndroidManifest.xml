@@ -55,4 +55,12 @@
             android:value="2" />
 
     </application>
+
+    <!-- Android 11+ needs this to list the installed UPI apps for wallet top-up -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="upi" />
+        </intent>
+    </queries>
 </manifest>

@@ -20,8 +20,11 @@ class AboutScreenState extends State<AboutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
         title: Text(language.aboutUs,
-            style: boldTextStyle(color: appTextPrimaryColorWhite)),
+            style: boldTextStyle(color: brandBlack)),
       ),
       body: Container(
         alignment: Alignment.center,

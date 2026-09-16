@@ -30,9 +30,12 @@ class RideListScreenState extends State<RideListScreen> {
     return DefaultTabController(
       length: riderStatus.length,
       child: Scaffold(
+        backgroundColor: Color(0xFFF4F6F9),
         appBar: AppBar(
-          title: Text(language.rides,
-              style: boldTextStyle(color: appTextPrimaryColorWhite)),
+          elevation: 0,
+          backgroundColor: brandBlue,
+          iconTheme: IconThemeData(color: Colors.white),
+          title: Text(language.rides, style: boldTextStyle(color: Colors.white)),
         ),
         body: Column(children: [
           Container(

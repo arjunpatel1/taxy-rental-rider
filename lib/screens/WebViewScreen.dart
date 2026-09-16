@@ -161,9 +161,12 @@ class WebViewScreenState extends State<WebViewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
         title: Text("Paypal",
-            style: boldTextStyle(color: appTextPrimaryColorWhite)),
+            style: boldTextStyle(color: brandBlack)),
       ),
       // appBar: appBarWidget("",
       //     context: context,

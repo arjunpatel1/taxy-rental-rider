@@ -58,8 +58,11 @@ class _FAQScreenState extends State<FAQScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
         title:
-            Text(language.lblfaq, style: boldTextStyle(color: appTextPrimaryColorWhite)),
+            Text(language.lblfaq, style: boldTextStyle(color: brandBlack)),
       ),
       body: ListView.builder(
         padding: EdgeInsets.zero,

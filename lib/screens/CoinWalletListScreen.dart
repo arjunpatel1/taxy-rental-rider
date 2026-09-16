@@ -65,11 +65,12 @@ class _CoinWalletListScreenState extends State<CoinWalletListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF4F6F9),
       appBar: AppBar(
-        title: Text(
-          'Coin Wallet',
-          style: TextStyle(color: Colors.white),
-        ),
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
+        title: Text('Points', style: boldTextStyle(color: Colors.white)),
       ),
       body: Observer(
         builder: (_) => Stack(

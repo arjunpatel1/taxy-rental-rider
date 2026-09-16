@@ -150,8 +150,11 @@ class EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
         title: Text(language.editProfile,
-            style: boldTextStyle(color: appTextPrimaryColorWhite)),
+            style: boldTextStyle(color: brandBlack)),
         actions: [
           if (widget.isGoogle!)
             IconButton(

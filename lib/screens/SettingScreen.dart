@@ -30,9 +30,12 @@ class SettingScreenState extends State<SettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF4F6F9),
       appBar: AppBar(
-        title: Text(language.settings,
-            style: boldTextStyle(color: appTextPrimaryColorWhite)),
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
+        title: Text(language.settings, style: boldTextStyle(color: Colors.white)),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.only(bottom: 16, top: 16),

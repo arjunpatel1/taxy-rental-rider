@@ -371,6 +371,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       "pickup_airport_id": widget.is_taxi_service != true || widget.tripDetail == null ? "" : widget.tripDetail["pickup_airport_id"],
       "drop_airport_id": widget.is_taxi_service != true || widget.tripDetail == null ? "" : widget.tripDetail["drop_airport_id"],
       "trip_type": widget.is_taxi_service != true || widget.tripDetail == null ? "" : widget.tripDetail["trip_type"],
+      if (widget.is_taxi_service == true && widget.tripDetail?["rental_hours"] != null) "rental_hours": widget.tripDetail["rental_hours"],
+      if (widget.is_taxi_service == true && widget.tripDetail?["return_datetime"] != null) "return_datetime": widget.tripDetail["return_datetime"],
       if (coupon) "coupon_code": promoCode.text.trim(),
     };
     var dataJustCheck = [];
@@ -442,6 +444,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       "pickup_airport_id": widget.is_taxi_service != true || tripDetail == null ? "" : tripDetail["pickup_airport_id"] ?? "",
       "drop_airport_id": widget.is_taxi_service != true || tripDetail == null ? "" : tripDetail["drop_airport_id"] ?? "",
       "trip_type": widget.is_taxi_service != true || tripDetail == null ? "" : tripDetail["trip_type"] ?? "",
+      if (widget.is_taxi_service == true && tripDetail?["rental_hours"] != null) "rental_hours": tripDetail["rental_hours"],
+      if (widget.is_taxi_service == true && tripDetail?["return_datetime"] != null) "return_datetime": tripDetail["return_datetime"],
       if (promoCode.text.trim().isNotEmpty) "coupon_code": promoCode.text.trim(),
       if (useCoinsEnabled && usedCoins > 0) "use_coins": usedCoins, // ADDED FOR COINS
     };
@@ -1566,6 +1570,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                       commonCachedNetworkImage(e.serviceImage.validate(), height: 50, width: 100, fit: BoxFit.contain, alignment: Alignment.center),
                       // SizedBox(height: 6),
                       Text(e.name.validate(), style: boldTextStyle(color: selectedIndex == serviceList.indexOf(e) ? Colors.white : textPrimaryColorGlobal)),
+                      if (e.tripFareSummary != null)
+                        Text(e.tripFareSummary!, style: secondaryTextStyle(size: 11, color: selectedIndex == serviceList.indexOf(e) ? Colors.white : textSecondaryColorGlobal)),
                       // SizedBox(height: 6),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2103,6 +2109,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       req['preferred_pickup_time'] = widget.tripDetail["preferred_pickup_time"];
       req['preferred_dropoff_time'] = widget.tripDetail["preferred_dropoff_time"];
       req['trip_type'] = widget.tripDetail["trip_type"];
+      if (widget.tripDetail["rental_hours"] != null) req['rental_hours'] = widget.tripDetail["rental_hours"];
+      if (widget.tripDetail["return_datetime"] != null) req['return_datetime'] = widget.tripDetail["return_datetime"];
       req['airport_pickup'] = widget.tripDetail["airport_pickup"];
       req['airport_name'] = widget.tripDetail["airport_name"];
       req['pickup_airport_id'] = widget.tripDetail["pickup_airport_id"];

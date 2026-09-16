@@ -79,6 +79,29 @@ class ServicesListData {
   String? distanceUnit;
   num? dropoffDistanceInKm;
 
+  /// car / bike / auto
+  String? vehicleType;
+
+  /// GST included in totalAmount (vehicle's GST %).
+  num? gstAmount;
+  num? gstPercent;
+
+  /// Server fare breakdown for rental / outstation rides (null for local rides).
+  Map<String, dynamic>? tripFareData;
+
+  /// Short line for rental / outstation fares, e.g. "4 hrs / 40 km" or "250 km · 1 day".
+  String? get tripFareSummary {
+    final fare = tripFareData;
+    if (fare == null) return null;
+    if (fare['type'] == 'rental') return '${fare['hours']} ${fare['hours'] == 1 ? 'hr' : 'hrs'} / ${fare['km']} km';
+    if (fare['type'] == 'outstation_oneway' && fare['billable_km'] != null) return '${(fare['billable_km'] as num).round()} km · estimate';
+    if (fare['billable_km'] != null) {
+      final days = (fare['days'] as num? ?? 1).toInt();
+      return '${(fare['billable_km'] as num).round()} km · $days ${days == 1 ? 'day' : 'days'}';
+    }
+    return null;
+  }
+
   ServicesListData({
     this.adminCommission,
     this.baseFare,
@@ -125,6 +148,10 @@ class ServicesListData {
     this.description,
     this.distanceUnit,
     this.dropoffDistanceInKm,
+    this.vehicleType,
+    this.gstAmount,
+    this.gstPercent,
+    this.tripFareData,
   });
 
   factory ServicesListData.fromJson(Map<String, dynamic> json) {
@@ -174,6 +201,10 @@ class ServicesListData {
       endLatitude: json['end_latitude'],
       description: json['description'],
       couponData: json['coupon_data'] != null ? CouponData.fromJson(json['coupon_data']) : null,
+      vehicleType: json['vehicle_type'],
+      gstAmount: json['gst_amount'],
+      gstPercent: json['gst_percent'],
+      tripFareData: json['trip_fare_data'] is Map ? Map<String, dynamic>.from(json['trip_fare_data']) : null,
     );
   }
 
@@ -224,6 +255,8 @@ class ServicesListData {
     data['end_longitude'] = this.endLongitude;
     data['service_id'] = this.serviceId;
     data['description'] = this.description;
+    data['vehicle_type'] = this.vehicleType;
+    data['trip_fare_data'] = this.tripFareData;
     if (this.couponData != null) {
       data['coupon_data'] = this.couponData!.toJson();
     }

@@ -109,9 +109,12 @@ class ReviewScreenState extends State<ReviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
         title: Text(language.driverReview,
-            style: boldTextStyle(color: appTextPrimaryColorWhite)),
+            style: boldTextStyle(color: brandBlack)),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),

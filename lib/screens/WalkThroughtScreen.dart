@@ -170,7 +170,7 @@ class WalkThroughScreenState extends State<WalkThroughScreen> {
                       width: i == currentPage ? 28 : 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: i == currentPage ? brandYellow : Colors.white38,
+                        color: i == currentPage ? Colors.white : Colors.white38,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -192,9 +192,9 @@ class WalkThroughScreenState extends State<WalkThroughScreen> {
                     width: _isLastPage ? 220 : 64,
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
-                      color: brandYellow,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(32),
-                      boxShadow: [BoxShadow(color: brandYellow.withValues(alpha: 0.5), blurRadius: 20, offset: Offset(0, 8))],
+                      boxShadow: [BoxShadow(color: Colors.white.withValues(alpha: 0.35), blurRadius: 20, offset: Offset(0, 8))],
                     ),
                     child: Stack(
                       alignment: Alignment.center,
@@ -209,16 +209,16 @@ class WalkThroughScreenState extends State<WalkThroughScreen> {
                               child: CircularProgressIndicator(
                                 value: value,
                                 strokeWidth: 3,
-                                color: brandBlack,
-                                backgroundColor: brandBlack.withValues(alpha: 0.12),
+                                color: brandBlue,
+                                backgroundColor: brandBlue.withValues(alpha: 0.12),
                               ),
                             ),
                           ),
                         _isLastPage
                             ? Text('Get Started',
                                 maxLines: 1, softWrap: false, overflow: TextOverflow.clip,
-                                style: boldTextStyle(size: 18, color: brandBlack))
-                            : Icon(Icons.arrow_forward, color: brandBlack),
+                                style: boldTextStyle(size: 18, color: brandBlue))
+                            : Icon(Icons.arrow_forward, color: brandBlue),
                       ],
                     ),
                   ),

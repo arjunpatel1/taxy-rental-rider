@@ -490,7 +490,10 @@ class PaymentScreenState extends State<PaymentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(language.payment, style: boldTextStyle(color: appTextPrimaryColorWhite)),
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
+        title: Text(language.payment, style: boldTextStyle(color: Colors.white)),
       ),
       body: Stack(
         children: [

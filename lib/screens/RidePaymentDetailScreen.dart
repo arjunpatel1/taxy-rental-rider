@@ -205,8 +205,11 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
-        title: Text(language.detailScreen, style: boldTextStyle(color: appTextPrimaryColorWhite)),
+        title: Text(language.detailScreen, style: boldTextStyle(color: Colors.white)),
       ),
       body: StreamBuilder(
           stream: rideService.fetchRide(rideId: widget.rideId),
@@ -497,9 +500,9 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
     }
     return Container(
       decoration: BoxDecoration(
-        color: Colors.transparent,
-        border: Border.all(color: dividerColor.withValues(alpha: 0.5).withValues(alpha: 0.5)),
-        borderRadius: radius(),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: Offset(0, 4))],
       ),
       padding: EdgeInsets.all(16),
       child: Column(
@@ -676,9 +679,9 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
     }
     return Container(
       decoration: BoxDecoration(
-        color: Colors.transparent,
-        border: Border.all(color: dividerColor.withValues(alpha: 0.5).withValues(alpha: 0.5)),
-        borderRadius: radius(),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: Offset(0, 4))],
       ),
       padding: EdgeInsets.all(16),
       child: Column(
@@ -712,9 +715,9 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
     }
     return Container(
       decoration: BoxDecoration(
-        color: Colors.transparent,
-        border: Border.all(color: dividerColor.withValues(alpha: 0.5).withValues(alpha: 0.5)),
-        borderRadius: radius(),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: Offset(0, 4))],
       ),
       padding: EdgeInsets.all(16),
       child: riderModel!.ride_has_bids == 1
@@ -848,9 +851,9 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
     }
     return Container(
       decoration: BoxDecoration(
-        color: Colors.transparent,
-        border: Border.all(color: dividerColor.withValues(alpha: 0.5).withValues(alpha: 0.5)),
-        borderRadius: radius(),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: Offset(0, 4))],
       ),
       padding: EdgeInsets.all(16),
       child: Column(
@@ -902,9 +905,9 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
     }
     return Container(
       decoration: BoxDecoration(
-        color: Colors.transparent,
-        border: Border.all(color: dividerColor.withValues(alpha: 0.5).withValues(alpha: 0.5)),
-        borderRadius: radius(),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: Offset(0, 4))],
       ),
       padding: EdgeInsets.all(16),
       child: Column(

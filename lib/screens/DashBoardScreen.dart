@@ -8,7 +8,10 @@ class DashBoardScreen extends StatefulWidget {
   /// Opens the map with the "book a ride" panel already showing (used by the Home dashboard).
   final bool openBooking;
 
-  DashBoardScreen({this.cancelReason, this.openBooking = false});
+  /// Ride type pre-selected in the booking panel: rideTypeLocal, rideTypeRental or rideTypeOutstation.
+  final String initialRideType;
+
+  DashBoardScreen({this.cancelReason, this.openBooking = false, this.initialRideType = rideTypeLocal});
 }
 
 class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProviderStateMixin {
@@ -32,6 +35,14 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
   List<OnRideRequest> schedule_ride_request = [];
   String selectedTripType = tripTypeRegular;
 
+  // Booking panel: Local / Rental (hour packages) / Outstation (one-way or round trip).
+  String rideType = rideTypeLocal;
+  List<Map<String, dynamic>> rentalPackages = [];
+  bool rentalLoading = false;
+  int? selectedRentalHours;
+  bool outstationRoundTrip = false;
+  DateTime? returnDateTime;
+
   int notificationCount = 0;
 
   var flightNumberController = TextEditingController();
@@ -52,6 +63,8 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
   void initState() {
     super.initState();
     if (widget.openBooking) serviceType = 1;
+    rideType = widget.initialRideType;
+    if (rideType == rideTypeRental) _loadRentalPackages();
     listenForNewRideRequests();
     _animController = AnimationController(vsync: this, duration: Duration(milliseconds: 800))..repeat(reverse: true);
 
@@ -70,6 +83,193 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
       init();
       checkAndShowFirebasePopup();
     });
+  }
+
+  Future<void> _loadRentalPackages() async {
+    setState(() => rentalLoading = true);
+    try {
+      rentalPackages = await getRentalPackages();
+      if (selectedRentalHours == null && rentalPackages.isNotEmpty) {
+        selectedRentalHours = (rentalPackages.firstWhere((p) => p['hours'] == 4, orElse: () => rentalPackages.first)['hours'] as num).toInt();
+      }
+    } catch (e) {
+      toast(e.toString());
+    }
+    if (mounted) setState(() => rentalLoading = false);
+  }
+
+  Future<void> _pickReturnDateTime() async {
+    final now = DateTime.now();
+    final pickerTheme = (BuildContext context, Widget? child) => Theme(
+          data: ThemeData.light().copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
+          child: child!,
+        );
+    final date = await showDatePicker(
+      context: context,
+      builder: pickerTheme,
+      initialDate: returnDateTime ?? now.add(Duration(days: 1)),
+      firstDate: now,
+      lastDate: now.add(Duration(days: 30)),
+    );
+    if (date == null) return;
+    final time = await showTimePicker(context: context, builder: pickerTheme, initialTime: TimeOfDay.fromDateTime(returnDateTime ?? DateTime(date.year, date.month, date.day, 20)));
+    if (time == null) return;
+    final picked = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    if (!picked.isAfter(now.add(Duration(hours: 1)))) {
+      toast('Return time should be at least an hour from now');
+      return;
+    }
+    setState(() => returnDateTime = picked);
+  }
+
+  Widget _rideTypePanel() {
+    Widget typeCard(String type, String title, String subtitle, IconData icon) {
+      final selected = rideType == type;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () {
+            setState(() => rideType = type);
+            if (type == rideTypeRental && rentalPackages.isEmpty) _loadRentalPackages();
+          },
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 200),
+            margin: EdgeInsets.symmetric(horizontal: 4),
+            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+            decoration: BoxDecoration(
+              color: selected ? brandBlue : Color(0xFFF1F4F9),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: selected ? brandBlue : Colors.transparent, width: 1.2),
+            ),
+            child: Column(
+              children: [
+                Icon(icon, color: selected ? Colors.white : brandBlue, size: 26),
+                SizedBox(height: 6),
+                Text(title, style: boldTextStyle(size: 14, color: selected ? Colors.white : brandBlack)),
+                SizedBox(height: 2),
+                Text(subtitle,
+                    style: secondaryTextStyle(size: 11, color: selected ? Colors.white70 : textSecondaryColor),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget tripToggle(String label, bool selected, VoidCallback onTap) {
+      return Expanded(
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 200),
+            padding: EdgeInsets.symmetric(vertical: 10),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: selected ? brandBlue : Colors.transparent, borderRadius: BorderRadius.circular(10)),
+            child: Text(label, style: boldTextStyle(size: 14, color: selected ? Colors.white : brandBlack)),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Choose your ride', style: boldTextStyle(size: 16)),
+        SizedBox(height: 12),
+        Row(
+          children: [
+            typeCard(rideTypeLocal, 'Local', 'Car · Bike · Auto', Icons.local_taxi_rounded),
+            typeCard(rideTypeRental, 'Rental', 'Car by the hour', Icons.timer_outlined),
+            typeCard(rideTypeOutstation, 'Outstation', 'Car to other cities', Icons.alt_route_rounded),
+          ],
+        ),
+        if (rideType == rideTypeRental) ...[
+          SizedBox(height: 14),
+          Text('Select a package', style: primaryTextStyle(size: 14)),
+          SizedBox(height: 8),
+          if (rentalLoading)
+            Center(child: Padding(padding: EdgeInsets.all(8), child: SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2))))
+          else if (rentalPackages.isEmpty)
+            Text('Rental packages are not available right now.', style: secondaryTextStyle())
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: rentalPackages.map((p) {
+                final hours = (p['hours'] as num).toInt();
+                final selected = selectedRentalHours == hours;
+                return ChoiceChip(
+                  showCheckmark: false,
+                  selected: selected,
+                  selectedColor: brandBlue,
+                  backgroundColor: Colors.grey.withValues(alpha: 0.08),
+                  side: BorderSide(color: selected ? brandBlue : dividerColor),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  onSelected: (_) => setState(() => selectedRentalHours = hours),
+                  label: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(p['label'].toString(), style: boldTextStyle(size: 13, color: selected ? Colors.white : brandBlack)),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('from ', style: secondaryTextStyle(size: 11, color: selected ? Colors.white70 : textSecondaryColor)),
+                          printAmountWidget(amount: (p['starting_price'] as num).toStringAsFixed(0), size: 11, weight: FontWeight.normal, color: selected ? Colors.white70 : textSecondaryColor),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+        ],
+        if (rideType == rideTypeOutstation) ...[
+          SizedBox(height: 14),
+          Container(
+            padding: EdgeInsets.all(4),
+            decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+            child: Row(
+              children: [
+                tripToggle('One-way trip', !outstationRoundTrip, () => setState(() => outstationRoundTrip = false)),
+                tripToggle('Round trip', outstationRoundTrip, () => setState(() => outstationRoundTrip = true)),
+              ],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            outstationRoundTrip ? 'Your driver stays with you and brings you back.' : 'Get dropped at your destination city.',
+            style: secondaryTextStyle(size: 12),
+          ),
+          if (outstationRoundTrip) ...[
+            SizedBox(height: 10),
+            InkWell(
+              onTap: _pickReturnDateTime,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(border: Border.all(color: returnDateTime == null ? dividerColor : brandBlue), borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  children: [
+                    Icon(Icons.event_rounded, color: brandBlue, size: 20),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        returnDateTime == null ? 'Select return date & time' : 'Return: ${DateFormat('EEE, dd MMM · hh:mm a').format(returnDateTime!)}',
+                        style: primaryTextStyle(size: 14),
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: textSecondaryColor),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ],
+    );
   }
 
   void init() async {
@@ -487,37 +687,7 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                         ),
                       ],
                     ),
-                    Text("${language.tripType}".capitalizeFirstLetter(), style: primaryTextStyle()),
-                    SizedBox(height: 12),
-                    Container(
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(defaultRadius), color: Colors.grey.withValues(alpha: 0.15)),
-                      width: MediaQuery.of(context).size.width,
-                      padding: EdgeInsets.only(right: 8),
-                      child: DropdownButton<String>(
-                        value: selectedTripType,
-                        borderRadius: BorderRadius.circular(defaultRadius),
-                        isExpanded: true,
-                        dropdownColor: Colors.white,
-                        underline: SizedBox(),
-                        items: tripTypeList.map((e) {
-                          return DropdownMenuItem(
-                            value: e,
-                            child: Padding(
-                              padding: EdgeInsets.only(left: 16, right: 16),
-                              child: Text(getMultiLanguageTripType(e.validate()), style: primaryTextStyle()),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (val) {
-                          selectedTripType = val ?? '';
-                          pickupTimeValue = null;
-                          pickupTimeController.clear();
-                          flightNumberController.clear();
-                          terminalAddressController.clear();
-                          setState(() {});
-                        },
-                      ),
-                    ),
+                    _rideTypePanel(),
                     // if Airport Pick Or Drop case view
                     if (selectedTripType == tripTypeAirportDropoff || selectedTripType == tripTypeAirportPickup || selectedTripType == tripTypeAirportToZone || selectedTripType == tripTypeZoneToAirport)
                       Column(
@@ -623,17 +793,20 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                       color: primaryColor,
                       onTap: () async {
                         var tripDetail = {};
-                        if (selectedTripType == tripTypeAirportDropoff || selectedTripType == tripTypeAirportPickup || selectedTripType == tripTypeAirportToZone || selectedTripType == tripTypeZoneToAirport) {
-                          tripDetail['flight_number'] = flightNumberController.text;
-                          tripDetail['pickup_point'] = terminalAddressController.text;
-                          tripDetail['preferred_pickup_time'] = pickupTimeValue;
-                        }
-                        tripDetail['trip_type'] = getTripTypeValue(selectedTripType);
-                        if (selectedTripType.toLowerCase().contains("airport") && flightNumberController.text.isEmpty) {
-                          return toast("Please Provide Flight Number");
-                        }
-                        if (selectedTripType.toLowerCase().contains("airport") && pickupTimeController.text.isEmpty) {
-                          return toast("Please Pickup Time");
+                        if (rideType == rideTypeRental) {
+                          if (selectedRentalHours == null) return toast('Please choose a rental package');
+                          tripDetail['trip_type'] = tripTypeValueRental;
+                          tripDetail['rental_hours'] = selectedRentalHours;
+                        } else if (rideType == rideTypeOutstation) {
+                          if (outstationRoundTrip) {
+                            if (returnDateTime == null) return toast('Please choose your return date and time');
+                            tripDetail['trip_type'] = tripTypeValueOutstationRound;
+                            tripDetail['return_datetime'] = returnDateTime!.toUtc().toString().replaceAll('Z', '');
+                          } else {
+                            tripDetail['trip_type'] = tripTypeValueOutstationOneway;
+                          }
+                        } else {
+                          tripDetail['trip_type'] = getTripTypeValue(tripTypeRegular);
                         }
                         showModalBottomSheet(
                           isScrollControlled: true,
@@ -642,8 +815,9 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                           ),
                           context: context,
                           builder: (_) {
+                            // Rental / outstation pick locations like a regular ride; tripDetail['trip_type'] carries the real type.
                             return TripTypeLocationComponent(
-                              trip_type: selectedTripType,
+                              trip_type: tripTypeRegular,
                               tripDetail: tripDetail,
                               pickupTimeValue: pickupTimeValue,
                               // lat: lat,

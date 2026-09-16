@@ -162,11 +162,14 @@ class BidingscreenState extends State<Bidingscreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(language.bid_for_ride, style: boldTextStyle(color: appTextPrimaryColorWhite)),
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
+        title: Text(language.bid_for_ride, style: boldTextStyle(color: Colors.white)),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(language.lblRide + " #${widget.ride_id}", style: primaryTextStyle(color: appTextPrimaryColorWhite)),
+            child: Text(language.lblRide + " #${widget.ride_id}", style: primaryTextStyle(color: brandBlack)),
           )
         ],
       ),

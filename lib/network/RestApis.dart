@@ -203,6 +203,12 @@ Future<ContactNumberListModel> deleteSosList({int? id}) async {
   return ContactNumberListModel.fromJson(await handleResponse(await buildHttpResponse('sos-delete/$id', method: HttpMethod.POST)));
 }
 
+/// Rental package tiers (e.g. 4 hrs / 40 km) with their lowest price across car types.
+Future<List<Map<String, dynamic>>> getRentalPackages() async {
+  final res = await handleResponse(await buildHttpResponse('rental-package-list', method: HttpMethod.GET));
+  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+}
+
 Future<EstimatePriceModel> estimatePriceList(Map request) async {
   return EstimatePriceModel.fromJson(await handleResponse(await buildHttpResponse('estimate-price-time', method: HttpMethod.POST, request: request)));
 }
@@ -379,6 +385,94 @@ logOutSuccess() async {
 
 Future<NearByDriverModel> getNearByDriverList({LatLng? latLng}) async {
   return NearByDriverModel.fromJson(await handleResponse(await buildHttpResponse('near-by-driver?latitude=${latLng!.latitude}&longitude=${latLng.longitude}', method: HttpMethod.GET)));
+}
+
+/// Recharge / bill payment services that have active operators.
+Future<List<Map<String, dynamic>>> getRechargeServices() async {
+  final res = await handleResponse(await buildHttpResponse('recharge-service-list', method: HttpMethod.GET));
+  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+}
+
+/// Operators of one service (Prepaid, DTH, Electricity, ...).
+Future<List<Map<String, dynamic>>> getRechargeOperators({required String serviceType}) async {
+  final res = await handleResponse(await buildHttpResponse('recharge-operator-list?service_type=${Uri.encodeComponent(serviceType)}', method: HttpMethod.GET));
+  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+}
+
+/// Places a recharge / bill payment; it is paid from the rider wallet.
+Future<Map<String, dynamic>> saveRecharge(Map request) async {
+  return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse('recharge-save', method: HttpMethod.POST, request: request)));
+}
+
+Future<List<Map<String, dynamic>>> getRechargeHistory({int page = 1}) async {
+  final res = await handleResponse(await buildHttpResponse('recharge-history?page=$page', method: HttpMethod.GET));
+  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+}
+
+Future<Map<String, dynamic>> getRechargeStatus({required String clientId}) async {
+  final res = await handleResponse(await buildHttpResponse('recharge-status?client_id=$clientId', method: HttpMethod.GET));
+  return Map<String, dynamic>.from(res['data']);
+}
+
+/// Starts a wallet top-up and returns the UPI link to open (money is credited after verification).
+Future<Map<String, dynamic>> initiateWalletTopup({required num amount}) async {
+  final res = await handleResponse(await buildHttpResponse('wallet-topup-initiate', method: HttpMethod.POST, request: {'amount': amount}));
+  return Map<String, dynamic>.from(res['data']);
+}
+
+/// Reports what the UPI app returned; the server still verifies before crediting.
+Future<Map<String, dynamic>> confirmWalletTopup({required String reference, required String appStatus, String? utr}) async {
+  return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse('wallet-topup-confirm', method: HttpMethod.POST, request: {
+    'reference': reference,
+    'app_status': appStatus,
+    if (utr != null && utr.isNotEmpty) 'utr': utr,
+  })));
+}
+
+/// Rider paid outside the app: raises a manual top-up request with an optional screenshot.
+Future<void> submitManualTopup({required num amount, String? utr, String? note, File? screenshot, Function(dynamic)? onSuccess, Function(dynamic)? onError}) async {
+  final request = await getMultiPartRequest('wallet-topup-manual');
+  request.fields['amount'] = amount.toString();
+  if (utr != null && utr.isNotEmpty) request.fields['utr'] = utr;
+  if (note != null && note.isNotEmpty) request.fields['note'] = note;
+  if (screenshot != null) request.files.add(await MultipartFile.fromPath('screenshot', screenshot.path));
+
+  await sendMultiPartRequest(request, onSuccess: onSuccess, onError: onError);
+}
+
+Future<List<Map<String, dynamic>>> getWalletTopups({int page = 1}) async {
+  final res = await handleResponse(await buildHttpResponse('wallet-topup-list?page=$page', method: HttpMethod.GET));
+  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+}
+
+/// Telecom circles used by the plan list.
+Future<List<Map<String, dynamic>>> getRechargeCircles() async {
+  final res = await handleResponse(await buildHttpResponse('recharge-circle-list', method: HttpMethod.GET));
+  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+}
+
+/// Prepaid / DTH plans of an operator.
+Future<List<Map<String, dynamic>>> getRechargePlans({required int operatorId, String? circle}) async {
+  final res = await handleResponse(await buildHttpResponse('recharge-plan-list?operator_id=$operatorId&circle=${circle ?? ''}', method: HttpMethod.GET));
+  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+}
+
+/// Special offers for one mobile number.
+Future<List<Map<String, dynamic>>> getRechargeOffers({required int operatorId, required String number}) async {
+  final res = await handleResponse(await buildHttpResponse('recharge-offer-list?operator_id=$operatorId&number=$number', method: HttpMethod.GET));
+  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+}
+
+/// Detects operator + circle from a mobile number.
+Future<Map<String, dynamic>?> detectRechargeOperator({required String number, String serviceType = 'Prepaid'}) async {
+  final res = await handleResponse(await buildHttpResponse('recharge-detect-operator?number=$number&service_type=${Uri.encodeComponent(serviceType)}', method: HttpMethod.GET));
+  return res['data'] == null ? null : Map<String, dynamic>.from(res['data']);
+}
+
+/// Fetches the due bill amount for postpaid / biller services.
+Future<Map<String, dynamic>?> fetchRechargeBill(Map request) async {
+  final res = await handleResponse(await buildHttpResponse('recharge-fetch-bill', method: HttpMethod.POST, request: request));
+  return res['data'] == null ? null : Map<String, dynamic>.from(res['data']);
 }
 
 Future<WalletInfoModel> getWalletData() async {

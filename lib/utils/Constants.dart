@@ -265,6 +265,16 @@ const tripTypeZoneWise = 'Zone Wise';
 const tripTypeZoneToAirport = 'Zone to Airport';
 const tripTypeAirportToZone = 'Airport to Zone';
 
+// S Taxi ride types shown to riders: Local (car / bike / auto), Rental and Outstation (cars only).
+const rideTypeLocal = 'local';
+const rideTypeRental = 'rental';
+const rideTypeOutstation = 'outstation';
+
+// trip_type values the server prices differently from a regular metered ride.
+const tripTypeValueRental = 'rental';
+const tripTypeValueOutstationOneway = 'outstation_oneway';
+const tripTypeValueOutstationRound = 'outstation_round';
+
 double? defaultInkWellRadius;
 Color? defaultInkWellSplashColor;
 Color? defaultInkWellHoverColor;

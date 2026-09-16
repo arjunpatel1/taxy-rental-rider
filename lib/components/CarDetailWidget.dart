@@ -36,6 +36,57 @@ class CarDetailWidgetState extends State<CarDetailWidget> {
     if (mounted) super.setState(fn);
   }
 
+  Widget _fareRow(String label, num amount, {String? sign}) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(child: Text(label, style: primaryTextStyle())),
+          sign == null
+              ? printAmountWidget(amount: amount.toStringAsFixed(digitAfterDecimal), weight: FontWeight.normal)
+              : printAmountWidgetForEstimate(amount: amount.toStringAsFixed(digitAfterDecimal), weight: FontWeight.normal, sign: sign),
+        ],
+      ),
+    );
+  }
+
+  /// Breakdown for rental (package + extra rates) and outstation (km x rate + driver allowance) fares.
+  List<Widget> _tripFareRows(Map<String, dynamic> fare) {
+    num value(String key) => (fare[key] as num?) ?? 0;
+
+    if (fare['type'] == 'rental') {
+      return [
+        _fareRow('Rental package (${fare['hours']} ${fare['hours'] == 1 ? 'hr' : 'hrs'} / ${fare['km']} km)', value('package_price')),
+        _fareRow('Extra km (per km)', value('extra_km_rate')),
+        _fareRow('Extra time (per hour)', value('extra_hour_rate')),
+        if (value('gst_amount') > 0) _fareRow('GST (${value('gst_percent')}%) on package', value('gst_amount'), sign: '+'),
+        Text('Estimated fare. The final bill uses the odometer km and trip time: extra km and extra hours beyond the package are added at the rates above.', style: secondaryTextStyle(size: 12)),
+        SizedBox(height: 8),
+      ];
+    }
+
+    final days = value('days').toInt();
+    final isRound = fare['type'] == 'outstation_round';
+    return [
+      Padding(
+        padding: EdgeInsets.only(bottom: 8),
+        child: Text(isRound ? 'Outstation · Round trip' : 'Outstation · One-way', style: boldTextStyle()),
+      ),
+      _fareRow('Distance (${value('billable_km').round()} km × ${value('per_km')})', value('distance_price')),
+      if (value('time_price') > 0) _fareRow('Drive time (${value('minutes').round()} min × ${value('per_minute')})', value('time_price'), sign: '+'),
+      if (value('driver_allowance') > 0) _fareRow('Driver allowance ($days ${days == 1 ? 'day' : 'days'})', value('driver_allowance'), sign: '+'),
+      if (value('gst_amount') > 0) _fareRow('GST (${value('gst_percent')}%)', value('gst_amount'), sign: '+'),
+      Text(
+        isRound
+            ? 'Round trip is billed on total km, with a minimum km per day. Tolls, parking and state tax are extra.'
+            : 'This is an estimated fare. The final fare is calculated from the actual km and trip time when the trip ends. Tolls, parking and state tax are extra.',
+        style: secondaryTextStyle(size: 12),
+      ),
+      SizedBox(height: 8),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -57,7 +108,29 @@ class CarDetailWidgetState extends State<CarDetailWidget> {
           SizedBox(height: 8),
           Text(language.fareBreakdown, style: boldTextStyle(size: 20)),
           SizedBox(height: 8),
-          if (widget.tripType == tripTypeZoneWise) ...[
+          if (widget.service.tripFareData != null) ...[
+            ..._tripFareRows(widget.service.tripFareData!),
+            if (widget.service.discountAmount != null && widget.service.discountAmount! > 0) ...[
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [Text(language.couponDiscount, style: primaryTextStyle(color: Colors.green)), printAmountWidgetForEstimate(amount: '${widget.service.discountAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal, color: Colors.green, sign: "-")],
+              ),
+            ],
+            if (widget.service.coinsUsed != null && widget.service.coinsUsed! > 0) ...[
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [Text('Coins', style: primaryTextStyle(color: Colors.green)), printAmountWidgetForEstimate(amount: '${widget.service.coinsUsed!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal, color: Colors.green, sign: "-")],
+              ),
+            ],
+            Divider(),
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Text(language.totalFare, style: boldTextStyle(size: 24)), printAmountWidget(amount: '${widget.service.totalAmountAfterDiscount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold, size: 24)],
+            ),
+          ] else if (widget.tripType == tripTypeZoneWise) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [Text(language.fixedPrice, style: primaryTextStyle()), printAmountWidget(amount: '${widget.service.subtotal!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.normal)],
@@ -130,6 +203,7 @@ class CarDetailWidgetState extends State<CarDetailWidget> {
               children: [Text(language.subTotal, style: boldTextStyle()), printAmountWidget(amount: '${widget.service.subtotal!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold)],
             ),
             SizedBox(height: 8),
+            if ((widget.service.gstAmount ?? 0) > 0) _fareRow('GST (${widget.service.gstPercent}%)', widget.service.gstAmount!, sign: '+'),
             if (widget.service.surgeAmount != null && widget.service.surgeAmount! > 0) ...[
               SizedBox(height: 8),
               Row(

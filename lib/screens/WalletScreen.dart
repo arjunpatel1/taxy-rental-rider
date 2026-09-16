@@ -81,9 +81,12 @@ class WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF4F6F9),
       appBar: AppBar(
-        title: Text(language.wallet,
-            style: boldTextStyle(color: appTextPrimaryColorWhite)),
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
+        title: Text(language.wallet, style: boldTextStyle(color: Colors.white)),
       ),
       body: Observer(builder: (context) {
         return Stack(
@@ -94,37 +97,66 @@ class WalletScreenState extends State<WalletScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      padding: EdgeInsets.all(16),
-                      margin: EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                          color: primaryColor,
-                          borderRadius: BorderRadius.circular(defaultRadius)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(language.availableBalance,
-                              style: secondaryTextStyle(color: Colors.white)),
-                          SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              printAmountWidget(
-                                  amount: totalAmount
-                                      .toStringAsFixed(digitAfterDecimal),
-                                  size: 22,
-                                  color: Colors.white),
-                            ],
-                          )
-                        ],
-                      ),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    padding: EdgeInsets.all(20),
+                    margin: EdgeInsets.only(bottom: 18),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [brandBlue, Color(0xFF1760C8)]),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [BoxShadow(color: brandBlue.withValues(alpha: 0.25), blurRadius: 16, offset: Offset(0, 8))],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(12)),
+                              child: Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 24),
+                            ),
+                            SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(language.availableBalance, style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                                SizedBox(height: 2),
+                                printAmountWidget(amount: totalAmount.toStringAsFixed(digitAfterDecimal), size: 26, color: Colors.white, weight: FontWeight.bold),
+                              ],
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 18),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Material(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(14),
+                                  onTap: () => launchScreen(context, WalletTopupScreen(currentBalance: totalAmount), pageRouteAnimation: PageRouteAnimation.Slide).then((_) => init()),
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 12),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.add_rounded, color: brandBlue, size: 20),
+                                        SizedBox(width: 6),
+                                        Text('Add money', style: boldTextStyle(color: brandBlue, size: 15)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  Text(language.recentTransactions, style: primaryTextStyle()),
+                  Text(language.recentTransactions, style: boldTextStyle(size: 16)),
                   AnimationLimiter(
                     child: ListView.builder(
                       padding: EdgeInsets.only(top: 8, bottom: 8),
@@ -140,29 +172,23 @@ class WalletScreenState extends State<WalletScreen> {
                           duration: Duration(milliseconds: 375),
                           child: SlideAnimation(
                             child: Container(
-                              margin: EdgeInsets.only(top: 8, bottom: 8),
-                              padding: EdgeInsets.all(8),
+                              margin: EdgeInsets.only(top: 6, bottom: 6),
+                              padding: EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                  border: Border.all(
-                                      color:
-                                          Colors.grey.withValues(alpha: 0.4)),
-                                  borderRadius:
-                                      BorderRadius.circular(defaultRadius)),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: Offset(0, 4))]),
                               child: Row(
-                                // crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Container(
                                     decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(
-                                            defaultRadius),
-                                        color:
-                                            Colors.grey.withValues(alpha: 0.2)),
-                                    padding: EdgeInsets.all(8),
+                                        shape: BoxShape.circle,
+                                        color: (data.type == CREDIT ? Color(0xFF1E9E57) : Color(0xFFD93025)).withValues(alpha: 0.12)),
+                                    padding: EdgeInsets.all(10),
                                     child: Icon(
-                                        data.type == CREDIT
-                                            ? Icons.add
-                                            : Icons.remove,
-                                        color: primaryColor),
+                                        data.type == CREDIT ? Icons.south_west_rounded : Icons.north_east_rounded,
+                                        size: 20,
+                                        color: data.type == CREDIT ? Color(0xFF1E9E57) : Color(0xFFD93025)),
                                   ),
                                   SizedBox(width: 8),
                                   Expanded(
@@ -174,11 +200,11 @@ class WalletScreenState extends State<WalletScreen> {
                                             data.type == DEBIT
                                                 ? language.moneyDebit
                                                 : language.moneyDeposited,
-                                            style: boldTextStyle(size: 16)),
-                                        SizedBox(height: 4),
+                                            style: boldTextStyle(size: 15)),
+                                        SizedBox(height: 2),
                                         Text(printDate(data.createdAt!),
                                             style:
-                                                secondaryTextStyle(size: 12)),
+                                                secondaryTextStyle(size: 11)),
                                         Row(
                                           children: [
                                             if (data.description != null && data.description!.isNotEmpty)

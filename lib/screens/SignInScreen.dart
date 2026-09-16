@@ -179,8 +179,8 @@ class SignInScreenState extends State<SignInScreen> {
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [brandYellow, Color(0xFFFFC800)]),
-        boxShadow: [BoxShadow(color: brandYellow.withValues(alpha: 0.45), blurRadius: 24, offset: Offset(0, 12))],
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [brandBlue, Color(0xFF1B5FD0)]),
+        boxShadow: [BoxShadow(color: brandBlue.withValues(alpha: 0.35), blurRadius: 24, offset: Offset(0, 12))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
@@ -198,8 +198,8 @@ class SignInScreenState extends State<SignInScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(mAppName, style: TextStyle(color: brandBlack, fontSize: 28, fontWeight: FontWeight.w800)),
-                      Text('Your Smile is Our Destination', style: TextStyle(color: brandBlack.withValues(alpha: 0.7), fontSize: 13, fontWeight: FontWeight.w600)),
+                      Text(mAppName, style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w800)),
+                      Text('Your Smile is Our Destination', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13, fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ],

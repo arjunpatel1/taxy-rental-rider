@@ -115,7 +115,7 @@ class SplashScreenState extends State<SplashScreen> with TickerProviderStateMixi
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: brandYellow,
+      backgroundColor: brandBlue,
       appBar: AppBar(
         toolbarHeight: 0,
         backgroundColor: Colors.transparent,
@@ -136,7 +136,7 @@ class SplashScreenState extends State<SplashScreen> with TickerProviderStateMixi
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [brandYellow, Color(0xFFFFC800)],
+                      colors: [brandBlue, Color(0xFF1B5FD0)],
                     ),
                   ),
                 ),
@@ -172,7 +172,7 @@ class SplashScreenState extends State<SplashScreen> with TickerProviderStateMixi
                         offset: Offset(0, 16 * (1 - _tagline.value)),
                         child: Text(
                           'Your Smile is Our Destination',
-                          style: TextStyle(color: brandBlack.withValues(alpha: 0.75), fontSize: 15, fontWeight: FontWeight.w600),
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 15, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),
@@ -203,7 +203,7 @@ class SplashScreenState extends State<SplashScreen> with TickerProviderStateMixi
       height: 160,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(38),
-        boxShadow: [BoxShadow(color: brandBlack.withValues(alpha: 0.25), blurRadius: 30, offset: const Offset(0, 14))],
+        boxShadow: [BoxShadow(color: Color(0xFF041F4D).withValues(alpha: 0.35), blurRadius: 30, offset: const Offset(0, 14))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(38),
@@ -227,7 +227,7 @@ class SplashScreenState extends State<SplashScreen> with TickerProviderStateMixi
                 offset: Offset(0, 24 * (1 - t)),
                 child: Text(
                   letters[i],
-                  style: TextStyle(color: brandBlack, fontSize: 36, fontWeight: FontWeight.w800, letterSpacing: 1),
+                  style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w800, letterSpacing: 1),
                 ),
               ),
             );
@@ -248,7 +248,7 @@ class SplashScreenState extends State<SplashScreen> with TickerProviderStateMixi
             child: Container(
               width: 11,
               height: 11,
-              decoration: BoxDecoration(color: i == 1 ? brandBlue : brandBlack, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: i == 1 ? Colors.white : Colors.white54, shape: BoxShape.circle),
             ),
           ),
         );

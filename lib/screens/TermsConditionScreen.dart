@@ -25,7 +25,10 @@ class TermsConditionScreenState extends State<TermsConditionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title!, style: boldTextStyle(color: appTextPrimaryColorWhite)),
+        elevation: 0,
+        backgroundColor: brandBlue,
+        iconTheme: IconThemeData(color: Colors.white),
+        title: Text(widget.title!, style: boldTextStyle(color: Colors.white)),
       ),
       body: InAppWebView(
         initialUrlRequest: URLRequest(url: WebUri(widget.subtitle == null ? 'https://www.google.com' : widget.subtitle ?? '')),

@@ -71,7 +71,8 @@ class HomeScreenState extends State<HomeScreen> {
     return name.isNotEmpty ? name : 'Rider';
   }
 
-  void _openBooking() => launchScreen(context, DashBoardScreen(openBooking: true), pageRouteAnimation: PageRouteAnimation.Slide).then((_) => _load());
+  void _openBooking([String rideType = rideTypeLocal]) =>
+      launchScreen(context, DashBoardScreen(openBooking: true, initialRideType: rideType), pageRouteAnimation: PageRouteAnimation.Slide).then((_) => _load());
 
   void _open(Widget screen) => launchScreen(context, screen, pageRouteAnimation: PageRouteAnimation.Slide).then((_) => _load());
 
@@ -84,7 +85,7 @@ class HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         toolbarHeight: 0,
         elevation: 0,
-        backgroundColor: brandYellow,
+        backgroundColor: brandBlue,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.dark,
@@ -116,7 +117,7 @@ class HomeScreenState extends State<HomeScreen> {
   Widget _header() {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [brandYellow, Color(0xFFFFC800)]),
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [brandBlue, Color(0xFF1B5FD0)]),
         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(28), bottomRight: Radius.circular(28)),
       ),
       child: ClipRRect(
@@ -139,9 +140,9 @@ class HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   SizedBox(height: 18),
-                  Text('$_greeting,', style: TextStyle(color: brandBlack.withValues(alpha: 0.7), fontSize: 15, fontWeight: FontWeight.w600)),
+                  Text('$_greeting,', style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 15, fontWeight: FontWeight.w600)),
                   SizedBox(height: 2),
-                  Text(_displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: brandBlack, fontSize: 26, fontWeight: FontWeight.w800)),
+                  Text(_displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800)),
                   SizedBox(height: 16),
                   _whereToBar(),
                 ],
@@ -194,8 +195,8 @@ class HomeScreenState extends State<HomeScreen> {
             children: [
               Container(
                 padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(color: brandYellow, borderRadius: BorderRadius.circular(10)),
-                child: Icon(Icons.search_rounded, color: brandBlack, size: 20),
+                decoration: BoxDecoration(color: brandBlue, borderRadius: BorderRadius.circular(10)),
+                child: Icon(Icons.search_rounded, color: Colors.white, size: 20),
               ),
               SizedBox(width: 12),
               Expanded(
@@ -230,8 +231,8 @@ class HomeScreenState extends State<HomeScreen> {
               children: [
                 Container(
                   padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: brandYellow, shape: BoxShape.circle),
-                  child: Icon(Icons.local_taxi_rounded, color: brandBlack),
+                  decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  child: Icon(Icons.local_taxi_rounded, color: brandBlue),
                 ),
                 SizedBox(width: 14),
                 Expanded(
@@ -243,8 +244,8 @@ class HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                Text('Track', style: TextStyle(color: brandYellow, fontWeight: FontWeight.w800)),
-                Icon(Icons.chevron_right_rounded, color: brandYellow),
+                Text('Track', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                Icon(Icons.chevron_right_rounded, color: Colors.white),
               ],
             ),
           ),
@@ -264,7 +265,8 @@ class HomeScreenState extends State<HomeScreen> {
               iconBg: brandBlue,
               label: 'Wallet',
               value: isLoading ? Text('...', style: boldTextStyle(size: 20)) : printAmountWidget(amount: walletBalance.toStringAsFixed(digitAfterDecimal), size: 20, color: brandBlack),
-              onTap: () => _open(WalletScreen()),
+              trailing: 'Add',
+              onTap: () => _open(WalletTopupScreen(currentBalance: walletBalance)),
             ),
           ),
           SizedBox(width: 12),
@@ -282,7 +284,7 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _statCard({required IconData icon, required Color iconBg, required String label, required Widget value, required VoidCallback onTap}) {
+  Widget _statCard({required IconData icon, required Color iconBg, required String label, required Widget value, required VoidCallback onTap, String? trailing}) {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
@@ -309,6 +311,12 @@ class HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
+              if (trailing != null)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(color: brandBlue, borderRadius: BorderRadius.circular(20)),
+                  child: Text(trailing, style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
+                ),
             ],
           ),
         ),
@@ -330,14 +338,16 @@ class HomeScreenState extends State<HomeScreen> {
 
   Widget _quickActions() {
     final actions = [
-      _QuickAction('Ride now', Icons.local_taxi_rounded, brandYellow, brandBlack, _openBooking),
-      _QuickAction('Schedule', Icons.event_available_rounded, Color(0xFFE8F0FE), brandBlue, () => _open(ScheduleRideListScreen())),
-      _QuickAction('Airport', Icons.flight_takeoff_rounded, Color(0xFFE6F6FF), brandLightBlue, _openBooking),
-      _QuickAction('My rides', Icons.receipt_long_rounded, Color(0xFFEFF3F8), brandBlack, () => _open(RideListScreen())),
+      _QuickAction('Local', Icons.local_taxi_rounded, Color(0xFFE3ECFF), brandBlue, () => _openBooking(rideTypeLocal)),
+      _QuickAction('Rental', Icons.timer_outlined, Color(0xFFE8F0FE), brandBlue, () => _openBooking(rideTypeRental)),
+      _QuickAction('Outstation', Icons.alt_route_rounded, Color(0xFFE6F6FF), brandLightBlue, () => _openBooking(rideTypeOutstation)),
+      _QuickAction('Schedule', Icons.event_available_rounded, Color(0xFFEFF3F8), brandBlack, () => _open(ScheduleRideListScreen())),
+      _QuickAction('My rides', Icons.receipt_long_rounded, Color(0xFFF0F0F3), textSecondaryColor, () => _open(RideListScreen())),
       _QuickAction('Rewards', Icons.card_giftcard_rounded, Color(0xFFFFF4D6), Color(0xFFD48A00), () => _open(RewardListScreen())),
       _QuickAction('Refer & earn', Icons.group_add_rounded, Color(0xFFE9F8EF), Color(0xFF1E9E57), () => _open(ReferEarnScreen())),
+      _QuickAction('Recharge', Icons.smartphone_rounded, Color(0xFFEDE7FF), Color(0xFF5B3DF5), () => _open(RechargeScreen(title: 'Mobile recharge', serviceTypes: ['Prepaid', 'Postpaid', 'Data Card', 'DTH']))),
+      _QuickAction('Bill payment', Icons.receipt_long_rounded, Color(0xFFE9F8EF), Color(0xFF1E9E57), () => _open(BillPaymentScreen())),
       _QuickAction('SOS', Icons.sos_rounded, Color(0xFFFDE8E8), Color(0xFFD93025), () => _open(EmergencyContactScreen())),
-      _QuickAction('Settings', Icons.settings_rounded, Color(0xFFF0F0F3), textSecondaryColor, () => _open(SettingScreen())),
     ];
 
     return Padding(
@@ -400,14 +410,14 @@ class HomeScreenState extends State<HomeScreen> {
                       SizedBox(height: 12),
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(color: brandYellow, borderRadius: BorderRadius.circular(20)),
-                        child: Text('Refer now', style: TextStyle(color: brandBlack, fontWeight: FontWeight.w800, fontSize: 13)),
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                        child: Text('Refer now', style: TextStyle(color: brandBlue, fontWeight: FontWeight.w800, fontSize: 13)),
                       ),
                     ],
                   ),
                 ),
                 SizedBox(width: 12),
-                Icon(Icons.card_giftcard_rounded, color: brandYellow, size: 64),
+                Icon(Icons.card_giftcard_rounded, color: Colors.white70, size: 64),
               ],
             ),
           ),
