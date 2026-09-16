@@ -61,7 +61,7 @@ class _RechargeHistoryScreenState extends State<RechargeHistoryScreen> {
         elevation: 0,
       ),
       body: loading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: brandBlue))
           : transactions.isEmpty
               ? Center(child: Text('No recharges yet.', style: secondaryTextStyle()))
               : ListView.separated(

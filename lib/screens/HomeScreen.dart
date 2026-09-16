@@ -273,7 +273,7 @@ class HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: _statCard(
               icon: Icons.stars_rounded,
-              iconBg: Color(0xFFF2A900),
+              iconBg: Color(0xFF2E7D6B),
               label: 'Points',
               value: Text(isLoading ? '...' : '${coins.toInt()}', style: TextStyle(color: brandBlack, fontSize: 20, fontWeight: FontWeight.w800)),
               onTap: () => _open(CoinWalletListScreen()),
@@ -343,7 +343,7 @@ class HomeScreenState extends State<HomeScreen> {
       _QuickAction('Outstation', Icons.alt_route_rounded, Color(0xFFE6F6FF), brandLightBlue, () => _openBooking(rideTypeOutstation)),
       _QuickAction('Schedule', Icons.event_available_rounded, Color(0xFFEFF3F8), brandBlack, () => _open(ScheduleRideListScreen())),
       _QuickAction('My rides', Icons.receipt_long_rounded, Color(0xFFF0F0F3), textSecondaryColor, () => _open(RideListScreen())),
-      _QuickAction('Rewards', Icons.card_giftcard_rounded, Color(0xFFFFF4D6), Color(0xFFD48A00), () => _open(RewardListScreen())),
+      _QuickAction('Rewards', Icons.card_giftcard_rounded, Color(0xFFE0F2EF), Color(0xFF12836B), () => _open(RewardListScreen())),
       _QuickAction('Refer & earn', Icons.group_add_rounded, Color(0xFFE9F8EF), Color(0xFF1E9E57), () => _open(ReferEarnScreen())),
       _QuickAction('Recharge', Icons.smartphone_rounded, Color(0xFFEDE7FF), Color(0xFF5B3DF5), () => _open(RechargeScreen(title: 'Mobile recharge', serviceTypes: ['Prepaid', 'Postpaid', 'Data Card', 'DTH']))),
       _QuickAction('Bill payment', Icons.receipt_long_rounded, Color(0xFFE9F8EF), Color(0xFF1E9E57), () => _open(BillPaymentScreen())),

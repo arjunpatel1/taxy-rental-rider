@@ -15,6 +15,8 @@ class SignInScreenState extends State<SignInScreen> {
 
   AuthServices authService = AuthServices();
 
+  /// Mobile + OTP is the primary way in; the password form is opened on demand.
+  bool usePassword = false;
   TextEditingController emailController = TextEditingController();
   TextEditingController passController = TextEditingController();
 
@@ -219,7 +221,8 @@ class SignInScreenState extends State<SignInScreen> {
           Form(
             key: formKey,
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(16.0),
+              // extra bottom room so the pinned sign-up row never covers the social buttons
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 130),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -258,134 +261,153 @@ class SignInScreenState extends State<SignInScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 32),
-                  AppTextField(
-                    controller: emailController,
-                    nextFocus: passFocus,
-                    autoFocus: false,
-                    textFieldType: TextFieldType.EMAIL,
-                    keyboardType: TextInputType.emailAddress,
-                    errorThisFieldRequired: language.thisFieldRequired,
-                    decoration: inputDecoration(context, label: language.email),
-                  ),
-                  SizedBox(height: 16),
-                  AppTextField(
-                    controller: passController,
-                    focus: passFocus,
-                    autoFocus: false,
-                    textFieldType: TextFieldType.PASSWORD,
-                    errorThisFieldRequired: language.thisFieldRequired,
-                    decoration: inputDecoration(context, label: language.password),
-                  ),
-                  SizedBox(height: 16),
+                  SizedBox(height: 28),
+                  _mobileFirstCard(),
+                  SizedBox(height: 18),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          SizedBox(
-                            height: 18.0,
-                            width: 18.0,
-                            child: Checkbox(
-                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              activeColor: primaryColor,
-                              value: mIsRemember,
-                              shape: RoundedRectangleBorder(borderRadius: radius(4)),
-                              onChanged: (v) async {
-                                mIsRemember = v!;
-                                if (!mIsRemember) {
-                                  sharedPref.remove(REMEMBER_ME);
-                                } else {
-                                  await sharedPref.setBool(REMEMBER_ME, mIsRemember);
-                                  await sharedPref.setString(USER_EMAIL, emailController.text);
-                                  await sharedPref.setString(USER_PASSWORD, passController.text);
-                                }
+                      Expanded(child: Divider(color: dividerColor)),
+                      Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('or', style: secondaryTextStyle())),
+                      Expanded(child: Divider(color: dividerColor)),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () => setState(() => usePassword = !usePassword),
+                    icon: Icon(usePassword ? Icons.smartphone_rounded : Icons.lock_outline_rounded, size: 18, color: brandBlue),
+                    label: Text(usePassword ? 'Use mobile number instead' : 'Sign in with email & password',
+                        style: boldTextStyle(size: 14, color: brandBlue)),
+                  ),
+                  if (usePassword) ...[
+                    SizedBox(height: 32),
+                    AppTextField(
+                      controller: emailController,
+                      nextFocus: passFocus,
+                      autoFocus: false,
+                      textFieldType: TextFieldType.EMAIL,
+                      keyboardType: TextInputType.emailAddress,
+                      errorThisFieldRequired: language.thisFieldRequired,
+                      decoration: inputDecoration(context, label: language.email),
+                    ),
+                    SizedBox(height: 16),
+                    AppTextField(
+                      controller: passController,
+                      focus: passFocus,
+                      autoFocus: false,
+                      textFieldType: TextFieldType.PASSWORD,
+                      errorThisFieldRequired: language.thisFieldRequired,
+                      decoration: inputDecoration(context, label: language.password),
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            SizedBox(
+                              height: 18.0,
+                              width: 18.0,
+                              child: Checkbox(
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                activeColor: primaryColor,
+                                value: mIsRemember,
+                                shape: RoundedRectangleBorder(borderRadius: radius(4)),
+                                onChanged: (v) async {
+                                  mIsRemember = v!;
+                                  if (!mIsRemember) {
+                                    sharedPref.remove(REMEMBER_ME);
+                                  } else {
+                                    await sharedPref.setBool(REMEMBER_ME, mIsRemember);
+                                    await sharedPref.setString(USER_EMAIL, emailController.text);
+                                    await sharedPref.setString(USER_PASSWORD, passController.text);
+                                  }
 
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            inkWellWidget(
+                              onTap: () async {
+                                mIsRemember = !mIsRemember;
                                 setState(() {});
                               },
+                              child: Text(language.rememberMe, style: primaryTextStyle(size: 14)),
                             ),
-                          ),
-                          SizedBox(width: 8),
-                          inkWellWidget(
-                            onTap: () async {
-                              mIsRemember = !mIsRemember;
+                          ],
+                        ),
+                        inkWellWidget(
+                          onTap: () {
+                            launchScreen(context, ForgotPasswordScreen(), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+                          },
+                          child: Text(language.forgotPassword, style: primaryTextStyle()),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      children: [
+                        SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: Checkbox(
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            activeColor: primaryColor,
+                            value: isAcceptTermsNPrivacy,
+                            shape: RoundedRectangleBorder(borderRadius: radius(4)),
+                            onChanged: (v) async {
+                              isAcceptTermsNPrivacy = v!;
                               setState(() {});
                             },
-                            child: Text(language.rememberMe, style: primaryTextStyle(size: 14)),
                           ),
-                        ],
-                      ),
-                      inkWellWidget(
-                        onTap: () {
-                          launchScreen(context, ForgotPasswordScreen(), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
-                        },
-                        child: Text(language.forgotPassword, style: primaryTextStyle()),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: Checkbox(
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          activeColor: primaryColor,
-                          value: isAcceptTermsNPrivacy,
-                          shape: RoundedRectangleBorder(borderRadius: radius(4)),
-                          onChanged: (v) async {
-                            isAcceptTermsNPrivacy = v!;
-                            setState(() {});
-                          },
                         ),
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(text: language.iAgreeToThe + " ", style: primaryTextStyle(size: 12)),
-                              TextSpan(
-                                text: language.termsConditions.splitBefore(' &'),
-                                style: boldTextStyle(color: primaryColor, size: 14),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    if (TNC_URL.isNotEmpty) {
-                                      launchScreen(context, TermsConditionScreen(title: language.termsConditions, subtitle: TNC_URL), pageRouteAnimation: PageRouteAnimation.Slide);
-                                    } else {
-                                      toast(language.txtURLEmpty);
-                                    }
-                                  },
-                              ),
-                              TextSpan(text: ' & ', style: primaryTextStyle(size: 12)),
-                              TextSpan(
-                                text: language.privacyPolicy,
-                                style: boldTextStyle(color: primaryColor, size: 14),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    if (PRIVACY_URL.isNotEmpty) {
-                                      launchScreen(context, TermsConditionScreen(title: language.privacyPolicy, subtitle: PRIVACY_URL), pageRouteAnimation: PageRouteAnimation.Slide);
-                                    } else {
-                                      toast(language.txtURLEmpty);
-                                    }
-                                  },
-                              ),
-                            ],
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(text: language.iAgreeToThe + " ", style: primaryTextStyle(size: 12)),
+                                TextSpan(
+                                  text: language.termsConditions.splitBefore(' &'),
+                                  style: boldTextStyle(color: primaryColor, size: 14),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      if (TNC_URL.isNotEmpty) {
+                                        launchScreen(context, TermsConditionScreen(title: language.termsConditions, subtitle: TNC_URL), pageRouteAnimation: PageRouteAnimation.Slide);
+                                      } else {
+                                        toast(language.txtURLEmpty);
+                                      }
+                                    },
+                                ),
+                                TextSpan(text: ' & ', style: primaryTextStyle(size: 12)),
+                                TextSpan(
+                                  text: language.privacyPolicy,
+                                  style: boldTextStyle(color: primaryColor, size: 14),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      if (PRIVACY_URL.isNotEmpty) {
+                                        launchScreen(context, TermsConditionScreen(title: language.privacyPolicy, subtitle: PRIVACY_URL), pageRouteAnimation: PageRouteAnimation.Slide);
+                                      } else {
+                                        toast(language.txtURLEmpty);
+                                      }
+                                    },
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.left,
                           ),
-                          textAlign: TextAlign.left,
-                        ),
-                      )
-                    ],
-                  ),
-                  SizedBox(height: 32),
-                  AppButtonWidget(
-                    width: MediaQuery.of(context).size.width,
-                    text: language.logIn,
-                    onTap: () async {
-                      logIn();
-                    },
-                  ),
+                        )
+                      ],
+                    ),
+                    SizedBox(height: 32),
+                    AppButtonWidget(
+                      width: MediaQuery.of(context).size.width,
+                      text: language.logIn,
+                      onTap: () async {
+                        logIn();
+                      },
+                    ),
+                  ],
                   SizedBox(height: 16),
                   socialWidget(),
                   SizedBox(height: 16),
@@ -429,6 +451,46 @@ class SignInScreenState extends State<SignInScreen> {
     );
   }
 
+  /// Primary sign-in: enter the mobile number, get a WhatsApp OTP.
+  Widget _mobileFirstCard() {
+    return Container(
+      padding: EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: brandBlue.withValues(alpha: 0.15)),
+        boxShadow: [BoxShadow(color: brandBlue.withValues(alpha: 0.08), blurRadius: 18, offset: Offset(0, 8))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(color: brandBlue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                child: Icon(Icons.smartphone_rounded, color: brandBlue, size: 22),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Sign in with mobile number', style: boldTextStyle(size: 16)),
+                    SizedBox(height: 2),
+                    Text('We send a 6-digit code on WhatsApp', style: secondaryTextStyle(size: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16),
+          MobileOtpSignIn(),
+        ],
+      ),
+    );
+  }
+
   Widget socialWidget() {
     return Column(
       children: [
@@ -455,26 +517,6 @@ class SignInScreenState extends State<SignInScreen> {
               },
               child: socialWidgetComponent(img: ic_google),
             ),
-            SizedBox(width: 12),
-            inkWellWidget(
-              onTap: () async {
-                showDialog(
-                  context: context,
-                  builder: (_) {
-                    return AlertDialog(
-                      contentPadding: EdgeInsets.all(16),
-                      content: OTPDialog(),
-                    );
-                  },
-                );
-                appStore.setLoading(false);
-              },
-              child: Container(
-                padding: EdgeInsets.all(4),
-                decoration: BoxDecoration(border: Border.all(color: dividerColor), borderRadius: radius(defaultRadius)),
-                child: Image.asset(ic_mobile, fit: BoxFit.cover, height: 30, width: 30),
-              ),
-            ),
             if (Platform.isIOS) SizedBox(width: 12),
             if (Platform.isIOS)
               inkWellWidget(
@@ -485,6 +527,8 @@ class SignInScreenState extends State<SignInScreen> {
               ),
           ],
         ),
+        // clears the sign-up row pinned at the bottom
+        SizedBox(height: 28),
       ],
     );
   }

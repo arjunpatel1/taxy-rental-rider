@@ -54,7 +54,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
         elevation: 0,
       ),
       body: loading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: brandBlue))
           : services.isEmpty
               ? Center(child: Text('No bill payment services available yet.', style: secondaryTextStyle()))
               : GridView.count(

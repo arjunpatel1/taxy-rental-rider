@@ -7,6 +7,17 @@ class AppTheme {
   AppTheme._();
 
   static final ThemeData lightTheme = ThemeData(
+    // every spinner uses the brand blue unless a screen overrides it
+    progressIndicatorTheme: ProgressIndicatorThemeData(color: primaryColor),
+    // focused fields, checkboxes and radios follow the brand instead of Material's default purple
+    inputDecorationTheme: InputDecorationTheme(
+      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: primaryColor, width: 1.4)),
+      focusColor: primaryColor,
+      labelStyle: TextStyle(color: textSecondaryColorGlobal),
+      floatingLabelStyle: TextStyle(color: primaryColor),
+    ),
+    checkboxTheme: CheckboxThemeData(fillColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? primaryColor : null)),
+    radioTheme: RadioThemeData(fillColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? primaryColor : null)),
     textSelectionTheme: TextSelectionThemeData(
         cursorColor: primaryColor,
         selectionHandleColor: primaryColor,

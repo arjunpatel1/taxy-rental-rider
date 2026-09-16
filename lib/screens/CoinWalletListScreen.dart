@@ -88,7 +88,7 @@ class _CoinWalletListScreenState extends State<CoinWalletListScreen> {
                             if (index == _coinList.length) {
                               return const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 16),
-                                child: Center(child: CircularProgressIndicator()),
+                                child: Center(child: CircularProgressIndicator(color: brandBlue)),
                               );
                             }
                             return _CoinTransactionCard(
