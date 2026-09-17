@@ -503,7 +503,8 @@ void scheduleFunction({required DateTime scheduledTime, required Function functi
 
 oneSignalSettings() async {
   // Notification permission is requested by the splash screen once its intro has played.
-  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+  // verbose logging slows the app and floods logcat; keep it only for debug builds
+  OneSignal.Debug.setLogLevel(kDebugMode ? OSLogLevel.verbose : OSLogLevel.none);
   OneSignal.Debug.setAlertLevel(OSLogLevel.none);
   OneSignal.consentRequired(false);
 
@@ -519,12 +520,15 @@ oneSignalSettings() async {
     updatePlayerId();
   }
   OneSignal.Notifications.addClickListener((notification) async {
-    var notId = notification.notification.additionalData!["id"];
-    log("$notId---" + notification.notification.additionalData!['type'].toString());
-    var notType = notification.notification.additionalData!['type'];
+    // pushes sent from the admin panel may carry no extra data
+    final extra = notification.notification.additionalData ?? {};
+    var notId = extra["id"];
+    var notType = extra['type'];
     if (notId != null) {
       if (notId.toString().contains('CHAT')) {
-        LoginResponse user = await getUserDetail(userId: int.parse(notId.toString().replaceAll("CHAT_", "")));
+        final chatUserId = int.tryParse(notId.toString().replaceAll("CHAT_", ""));
+        if (chatUserId == null) return;
+        LoginResponse user = await getUserDetail(userId: chatUserId);
         launchScreen(
             getContext,
             ChatScreen(
@@ -533,7 +537,8 @@ oneSignalSettings() async {
             ),
             isNewTask: true);
       } else if (notType == SUCCESS) {
-        launchScreen(getContext, RideDetailScreen(orderId: notId), isNewTask: true);
+        final rideId = int.tryParse(notId.toString());
+        if (rideId != null) launchScreen(getContext, RideDetailScreen(orderId: rideId), isNewTask: true);
       }
     }
   });

@@ -106,51 +106,39 @@ enum PageRouteAnimation { Fade, Scale, Rotate, Slide, SlideBottomTop }
 
 Route<T> buildPageRoute<T>(
     Widget? child, PageRouteAnimation? pageRouteAnimation, Duration? duration) {
-  if (pageRouteAnimation != null) {
-    if (pageRouteAnimation == PageRouteAnimation.Fade) {
-      return PageRouteBuilder(
-        pageBuilder: (c, a1, a2) => child!,
-        transitionsBuilder: (c, anim, a2, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: Duration(milliseconds: 1000),
-      );
-    } else if (pageRouteAnimation == PageRouteAnimation.Rotate) {
-      return PageRouteBuilder(
-        pageBuilder: (c, a1, a2) => child!,
-        transitionsBuilder: (c, anim, a2, child) =>
-            RotationTransition(child: child, turns: ReverseAnimation(anim)),
-        transitionDuration: Duration(milliseconds: 700),
-      );
-    } else if (pageRouteAnimation == PageRouteAnimation.Scale) {
-      return PageRouteBuilder(
-        pageBuilder: (c, a1, a2) => child!,
-        transitionsBuilder: (c, anim, a2, child) =>
-            ScaleTransition(child: child, scale: anim),
-        transitionDuration: Duration(milliseconds: 700),
-      );
-    } else if (pageRouteAnimation == PageRouteAnimation.Slide) {
-      return PageRouteBuilder(
-        pageBuilder: (c, a1, a2) => child!,
-        transitionsBuilder: (c, anim, a2, child) => SlideTransition(
-          child: child,
-          position: Tween(begin: Offset(1.0, 0.0), end: Offset(0.0, 0.0))
-              .animate(anim),
-        ),
-        transitionDuration: Duration(milliseconds: 500),
-      );
-    } else if (pageRouteAnimation == PageRouteAnimation.SlideBottomTop) {
-      return PageRouteBuilder(
-        pageBuilder: (c, a1, a2) => child!,
-        transitionsBuilder: (c, anim, a2, child) => SlideTransition(
-          child: child,
-          position: Tween(begin: Offset(0.0, 1.0), end: Offset(0.0, 0.0))
-              .animate(anim),
-        ),
-        transitionDuration: Duration(milliseconds: 500),
-      );
-    }
-  }
-  return MaterialPageRoute<T>(builder: (_) => child!);
+  if (pageRouteAnimation == null) return MaterialPageRoute<T>(builder: (_) => child!);
+
+  // short, eased transitions keep screen changes feeling instant (these were 500-1000ms and linear)
+  final forward = duration ?? Duration(milliseconds: pageRouteAnimation == PageRouteAnimation.Fade ? 220 : 280);
+
+  return PageRouteBuilder<T>(
+    pageBuilder: (c, a1, a2) => child!,
+    transitionDuration: forward,
+    reverseTransitionDuration: Duration(milliseconds: 220),
+    transitionsBuilder: (c, anim, a2, child) {
+      final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+      switch (pageRouteAnimation) {
+        case PageRouteAnimation.Fade:
+          return FadeTransition(opacity: curved, child: child);
+        case PageRouteAnimation.Rotate:
+        case PageRouteAnimation.Scale:
+          return FadeTransition(
+            opacity: curved,
+            child: ScaleTransition(scale: Tween(begin: 0.94, end: 1.0).animate(curved), child: child),
+          );
+        case PageRouteAnimation.Slide:
+          return SlideTransition(
+            position: Tween(begin: Offset(1.0, 0.0), end: Offset.zero).animate(curved),
+            child: child,
+          );
+        case PageRouteAnimation.SlideBottomTop:
+          return SlideTransition(
+            position: Tween(begin: Offset(0.0, 1.0), end: Offset.zero).animate(curved),
+            child: child,
+          );
+      }
+    },
+  );
 }
 
 /// Returns MaterialColor from Color

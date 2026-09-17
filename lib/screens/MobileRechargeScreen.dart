@@ -21,6 +21,7 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
 
   List<Map<String, dynamic>> plans = [];
   String activeGroup = 'All';
+  bool showingOffers = false;
   Map<String, dynamic>? selectedPlan;
 
   bool detecting = false;
@@ -55,6 +56,7 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
   }
 
   Future<void> _loadOperators() async {
+    if (operators.isNotEmpty) return;
     try {
       final list = await getRechargeOperators(serviceType: 'Prepaid');
       if (mounted) setState(() => operators = list);
@@ -84,10 +86,20 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
 
   /// Calls the operator lookup API as soon as a full 10-digit number is entered.
   Future<void> _detectOperator() async {
+    if (detecting) return;
+    final number = _digits;
     setState(() => detecting = true);
     try {
-      final detected = await detectRechargeOperator(number: _digits, serviceType: 'Prepaid');
+      // fees and plan flags come from the operator list, so make sure it is loaded first
+      await _loadOperators();
+      final detected = await detectRechargeOperator(number: number, serviceType: 'Prepaid');
       if (!mounted) return;
+      // the number was edited while the lookup was running - look up the new one instead
+      if (_digits != number) {
+        setState(() => detecting = false);
+        if (_digits.length == 10) _detectOperator();
+        return;
+      }
       if (detected != null && detected['operator_id'] != null) {
         final match = operators.where((o) => o['id'] == detected['operator_id']).toList();
         setState(() {
@@ -113,6 +125,7 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
       plans = [];
       selectedPlan = null;
       activeGroup = 'All';
+      showingOffers = offers;
     });
     try {
       final list = offers
@@ -127,7 +140,9 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
   }
 
   Future<void> _pickOperator() async {
-    if (operators.isEmpty) return;
+    await _loadOperators();
+    if (!mounted) return;
+    if (operators.isEmpty) return toast('Operators are not available right now. Please try again.');
     final chosen = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       backgroundColor: Colors.white,
@@ -188,6 +203,7 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
   }
 
   Future<void> _pay() async {
+    if (paying) return;
     if (_digits.length != 10) return toast('Enter a valid 10-digit mobile number');
     if (operator == null) return toast('Select the operator');
     if (_amount <= 0) return toast('Choose a plan or enter an amount');
@@ -254,6 +270,13 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
       final result = await saveRecharge({'operator_id': operator!['id'], 'number': _digits, 'amount': _amount});
       final data = Map<String, dynamic>.from(result['data'] ?? {});
       walletBalance = (result['wallet_balance'] as num?) ?? walletBalance;
+      if (data['status'] != 'failure' && mounted) {
+        // clear the chosen pack so the same recharge is not paid again by accident
+        setState(() {
+          selectedPlan = null;
+          amountController.clear();
+        });
+      }
       if (mounted) _showResult(data, result['message']?.toString() ?? '');
     } catch (e) {
       toast(e.toString());
@@ -275,24 +298,34 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
 
   void _showResult(Map<String, dynamic> data, String message) {
     final status = (data['status'] ?? 'pending').toString();
-    final colour = status == 'success' ? Color(0xFF1E9E57) : (status == 'pending' ? Color(0xFFD48A00) : Color(0xFFD93025));
-    final icon = status == 'success' ? Icons.check_circle_rounded : (status == 'pending' ? Icons.hourglass_top_rounded : Icons.cancel_rounded);
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 64, color: colour),
-            SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center, style: boldTextStyle(size: 16)),
-            SizedBox(height: 6),
-            Text('+91 $_digits • $currencySymbol${_amount.toStringAsFixed(0)}', style: secondaryTextStyle()),
-            if (data['client_id'] != null) Text('Ref: ${data['client_id']}', style: secondaryTextStyle(size: 11)),
-          ],
-        ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Done'))],
+    final result = TransactionResultScreen.fromStatus(status);
+    final total = (data['total_amount'] as num?) ?? (data['amount'] as num?) ?? 0;
+    final title = result == TransactionResult.success
+        ? 'Recharge successful'
+        : result == TransactionResult.pending
+            ? 'Recharge in process'
+            : 'Recharge failed';
+    final subtitle = result == TransactionResult.pending
+        ? 'The operator is confirming it. We will update the status; if it fails, the money comes back to your wallet.'
+        : result == TransactionResult.failed
+            ? (message.isNotEmpty ? '$message\nThe amount has been returned to your wallet.' : 'The amount has been returned to your wallet.')
+            : null;
+    TransactionResultScreen.show(
+      context,
+      TransactionResultScreen(
+        result: result,
+        title: title,
+        subtitle: subtitle,
+        amount: '$currencySymbol${total.toStringAsFixed(total % 1 == 0 ? 0 : 2)}',
+        details: [
+          if (data['operator_name'] != null) MapEntry('Operator', '${data['operator_name']}'),
+          MapEntry('Mobile number', '${data['number'] ?? _digits}'),
+          if (((data['surcharge'] as num?) ?? 0) > 0) MapEntry('Convenience fee', '$currencySymbol${(data['surcharge'] as num).toStringAsFixed(2)}'),
+          if (data['operator_txn_id'] != null && '${data['operator_txn_id']}'.isNotEmpty) MapEntry('Operator ref', '${data['operator_txn_id']}'),
+          if (data['client_id'] != null) MapEntry('Transaction ID', '${data['client_id']}'),
+        ],
+        secondaryText: 'View history',
+        onSecondary: () => launchScreen(context, RechargeHistoryScreen(), pageRouteAnimation: PageRouteAnimation.Slide),
       ),
     );
   }
@@ -412,9 +445,9 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
                               Spacer(),
                               if (operator!['has_plans'] == true)
                                 TextButton.icon(
-                                  onPressed: loadingPlans ? null : () => _loadPlans(offers: activeGroup != 'Offers'),
-                                  icon: Icon(activeGroup == 'Offers' ? Icons.list_alt_rounded : Icons.local_offer_rounded, size: 16),
-                                  label: Text(activeGroup == 'Offers' ? 'All plans' : 'My offers'),
+                                  onPressed: loadingPlans ? null : () => _loadPlans(offers: !showingOffers),
+                                  icon: Icon(showingOffers ? Icons.list_alt_rounded : Icons.local_offer_rounded, size: 16),
+                                  label: Text(showingOffers ? 'All plans' : 'My offers'),
                                 ),
                             ],
                           ),

@@ -61,6 +61,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
   num get _amount => num.tryParse(amountController.text.trim()) ?? 0;
 
   Future<void> _startTopup() async {
+    if (busy) return;
     if (_amount < 1) {
       toast('Enter the amount you want to add');
       return;
@@ -161,11 +162,31 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
 
     setState(() => busy = true);
     try {
+      final paidAmount = num.tryParse('${pendingTopup?['amount']}') ?? _amount;
       final result = await confirmWalletTopup(reference: reference, appStatus: appStatus, utr: utrController.text.trim());
-      toast(result['message']?.toString() ?? '');
       amountController.clear();
       pendingTopup = null;
-      await _loadHistory();
+      _loadHistory();
+      if (!mounted) return;
+      if (appStatus == 'success') {
+        final data = result['data'] is Map ? Map<String, dynamic>.from(result['data']) : <String, dynamic>{};
+        final state = TransactionResultScreen.fromStatus(data['status']?.toString() ?? 'awaiting_verification');
+        TransactionResultScreen.show(
+          context,
+          TransactionResultScreen(
+            result: state,
+            title: state == TransactionResult.success ? 'Money added to wallet' : 'Payment submitted',
+            subtitle: state == TransactionResult.success ? null : 'We are verifying your UPI payment. The amount will be added to your wallet shortly.',
+            amount: '$currencySymbol${paidAmount.toStringAsFixed(paidAmount % 1 == 0 ? 0 : 2)}',
+            details: [
+              MapEntry('Reference', reference),
+              if (utrController.text.trim().isNotEmpty) MapEntry('UTR', utrController.text.trim()),
+            ],
+          ),
+        );
+      } else {
+        toast(result['message']?.toString() ?? 'Payment cancelled');
+      }
     } catch (e) {
       toast(e.toString());
     }
@@ -254,9 +275,19 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
                       note: manualNote.text.trim(),
                       screenshot: screenshot,
                       onSuccess: (data) async {
-                        toast(data is Map && data['message'] != null ? data['message'].toString() : 'Request sent');
-                        await _loadHistory();
-                        if (mounted) setState(() => busy = false);
+                        _loadHistory();
+                        if (!mounted) return;
+                        setState(() => busy = false);
+                        TransactionResultScreen.show(
+                          context,
+                          TransactionResultScreen(
+                            result: TransactionResult.pending,
+                            title: 'Request sent',
+                            subtitle: 'Our team will check your payment and add the money to your wallet.',
+                            amount: '$currencySymbol${amount.toStringAsFixed(amount % 1 == 0 ? 0 : 2)}',
+                            details: [if (manualUtr.text.trim().isNotEmpty) MapEntry('UTR', manualUtr.text.trim())],
+                          ),
+                        );
                       },
                       onError: (error) {
                         toast(error?.toString() ?? 'Could not send the request');

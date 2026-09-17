@@ -38,6 +38,11 @@ void main() async {
   // Android reads its Firebase config from android/app/google-services.json, iOS from GoogleService-Info.plist
   await Firebase.initializeApp();
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  // async errors outside Flutter callbacks go to Crashlytics instead of being lost
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack);
+    return true;
+  };
   appStore.setLanguage(sharedPref.getString(SELECTED_LANGUAGE_CODE) ?? defaultLanguageCode);
   await appStore.setLoggedIn(sharedPref.getBool(IS_LOGGED_IN) ?? false, isInitializing: true);
   await appStore.setUserEmail(sharedPref.getString(USER_EMAIL) ?? '', isInitialization: true);

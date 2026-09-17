@@ -409,6 +409,14 @@ Future<List<Map<String, dynamic>>> getRechargeHistory({int page = 1}) async {
   return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
 }
 
+/// One page of recharge history plus the total page count, for infinite scroll.
+Future<(List<Map<String, dynamic>>, int)> getRechargeHistoryPage({int page = 1}) async {
+  final res = await handleResponse(await buildHttpResponse('recharge-history?page=$page', method: HttpMethod.GET));
+  final list = (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+  final pages = int.tryParse('${res['pagination']?['totalPages'] ?? 1}') ?? 1;
+  return (list, pages);
+}
+
 Future<Map<String, dynamic>> getRechargeStatus({required String clientId}) async {
   final res = await handleResponse(await buildHttpResponse('recharge-status?client_id=$clientId', method: HttpMethod.GET));
   return Map<String, dynamic>.from(res['data']);

@@ -1,29 +1,16 @@
 import '../manage_imports.dart';
 
+const RIDES_ACTIVE = 'active';
+
 class RideListScreen extends StatefulWidget {
   @override
   RideListScreenState createState() => RideListScreenState();
 }
 
 class RideListScreenState extends State<RideListScreen> {
-  int currentPage = 1;
-  int totalPage = 1;
-  List<String> riderStatus = [COMPLETED, CANCELED];
+  final List<String> riderStatus = [RIDES_ACTIVE, COMPLETED, CANCELED];
 
-  @override
-  void initState() {
-    super.initState();
-    init();
-  }
-
-  void init() async {
-    //
-  }
-
-  @override
-  void setState(fn) {
-    if (mounted) super.setState(fn);
-  }
+  String _tabLabel(String status) => status == RIDES_ACTIVE ? 'Active' : changeStatusText(status);
 
   @override
   Widget build(BuildContext context) {
@@ -39,33 +26,29 @@ class RideListScreenState extends State<RideListScreen> {
         ),
         body: Column(children: [
           Container(
-            height: 40,
-            margin: EdgeInsets.only(right: 16, left: 16, top: 16),
+            height: 44,
+            margin: EdgeInsets.fromLTRB(16, 16, 16, 4),
             decoration: BoxDecoration(
-                color: Colors.transparent,
-                border: Border.all(color: dividerColor),
-                borderRadius: radius(defaultRadius + 2)),
+              color: Colors.white,
+              borderRadius: radius(defaultRadius + 4),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: Offset(0, 3))],
+            ),
             child: TabBar(
               dividerHeight: 0,
-              padding: EdgeInsets.all(2),
-              indicator:
-                  BoxDecoration(borderRadius: radius(), color: primaryColor),
+              padding: EdgeInsets.all(4),
+              indicator: BoxDecoration(borderRadius: radius(defaultRadius + 2), color: brandBlue),
               labelColor: Colors.white,
-              unselectedLabelColor: primaryColor,
+              unselectedLabelColor: brandBlue,
               indicatorSize: TabBarIndicatorSize.tab,
+              splashBorderRadius: radius(defaultRadius + 2),
               labelStyle: boldTextStyle(color: Colors.white, size: 14),
-              tabs: riderStatus.map((e) {
-                return Tab(
-                  child: Text(changeStatusText(e)),
-                );
-              }).toList(),
+              unselectedLabelStyle: primaryTextStyle(size: 14),
+              tabs: riderStatus.map((e) => Tab(child: Text(_tabLabel(e)))).toList(),
             ),
           ),
           Expanded(
             child: TabBarView(
-              children: riderStatus.map((e) {
-                return CreateTabScreen(status: e);
-              }).toList(),
+              children: riderStatus.map((e) => CreateTabScreen(status: e)).toList(),
             ),
           ),
         ]),

@@ -203,3 +203,4 @@ export 'utils/Common.dart';
 export 'utils/Constants.dart';
 export 'utils/Extensions/ResponsiveWidget.dart' hide BooleanExtensions;
 export './components/MobileOtpSignIn.dart';
+export './components/TransactionResultScreen.dart';

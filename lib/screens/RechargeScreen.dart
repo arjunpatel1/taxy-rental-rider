@@ -387,6 +387,7 @@ class _RechargeScreenState extends State<RechargeScreen> {
   }
 
   Future<void> _fetchBill() async {
+    if (busy) return;
     if (selectedOperator == null) return toast('Select an operator first');
     if (numberController.text.trim().isEmpty) return toast('Enter the number first');
 
@@ -409,6 +410,7 @@ class _RechargeScreenState extends State<RechargeScreen> {
   }
 
   Future<void> _pay() async {
+    if (paying || busy) return;
     if (selectedOperator == null) return toast('Select an operator');
     if (numberController.text.trim().isEmpty) return toast('Enter the number');
     if (_amount <= 0) return toast('Enter a valid amount');
@@ -467,25 +469,34 @@ class _RechargeScreenState extends State<RechargeScreen> {
 
   void _showResult(Map<String, dynamic> data, String message) {
     final status = (data['status'] ?? 'pending').toString();
-    final color = status == 'success' ? Color(0xFF1E9E57) : (status == 'pending' ? Color(0xFFD48A00) : Color(0xFFD93025));
-    final icon = status == 'success' ? Icons.check_circle_rounded : (status == 'pending' ? Icons.hourglass_top_rounded : Icons.cancel_rounded);
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 56, color: color),
-            SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center, style: boldTextStyle(size: 16)),
-            if (data['client_id'] != null) ...[
-              SizedBox(height: 8),
-              Text('Reference: ${data['client_id']}', style: secondaryTextStyle(size: 12)),
-            ],
-          ],
-        ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('OK'))],
+    final result = TransactionResultScreen.fromStatus(status);
+    final total = (data['total_amount'] as num?) ?? (data['amount'] as num?) ?? 0;
+    final title = result == TransactionResult.success
+        ? 'Payment successful'
+        : result == TransactionResult.pending
+            ? 'Payment in process'
+            : 'Payment failed';
+    final subtitle = result == TransactionResult.pending
+        ? 'The operator is confirming it. We will update the status; if it fails, the money comes back to your wallet.'
+        : result == TransactionResult.failed
+            ? (message.isNotEmpty ? '$message\nThe amount has been returned to your wallet.' : 'The amount has been returned to your wallet.')
+            : null;
+    TransactionResultScreen.show(
+      context,
+      TransactionResultScreen(
+        result: result,
+        title: title,
+        subtitle: subtitle,
+        amount: '$currencySymbol${total.toStringAsFixed(total % 1 == 0 ? 0 : 2)}',
+        details: [
+          if (data['operator_name'] != null) MapEntry('Operator', '${data['operator_name']}'),
+          MapEntry('Number', '${data['number'] ?? ''}'),
+          if (((data['surcharge'] as num?) ?? 0) > 0) MapEntry('Convenience fee', '$currencySymbol${(data['surcharge'] as num).toStringAsFixed(2)}'),
+          if (data['operator_txn_id'] != null && '${data['operator_txn_id']}'.isNotEmpty) MapEntry('Operator ref', '${data['operator_txn_id']}'),
+          if (data['client_id'] != null) MapEntry('Transaction ID', '${data['client_id']}'),
+        ],
+        secondaryText: 'View history',
+        onSecondary: () => launchScreen(context, RechargeHistoryScreen(), pageRouteAnimation: PageRouteAnimation.Slide),
       ),
     );
   }

@@ -44,6 +44,7 @@ class _MobileOtpSignInState extends State<MobileOtpSignIn> {
   }
 
   Future<void> _sendOtp() async {
+    if (busy) return;
     if (!formKey.currentState!.validate()) return;
 
     hideKeyboard(context);

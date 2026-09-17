@@ -34,6 +34,7 @@ class RiderModel {
   int? seatCount;
   String? reason;
   String? status;
+  String? tripType;
   num? baseFare;
   num? distancePrice;
   num? discountAmount;
@@ -160,6 +161,7 @@ class RiderModel {
     otp = json['otp'];
     adminCommission = num.tryParse(json['admin_commission'].toString()) ?? 0;
     totalAmount = num.tryParse(json['total_amount'].toString()) ?? 0;
+    tripType = json['trip_type'];
     subtotal = num.tryParse(json['subtotal'].toString()) ?? 0;
     extraChargesAmount = num.tryParse(json['extra_charges_amount'].toString()) ?? 0;
     extraChargesPaymentMethod = json['extra_charges_payment_method'];
