@@ -116,5 +116,6 @@ flutter:
     - images/app_images/
     - images/json_files/
     - images/icons/
+    - images/receipt_fonts/
     - staticjson/
     - staticjson/keyword_list.json

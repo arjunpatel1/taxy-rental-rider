@@ -450,7 +450,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('$currencySymbol${(topup['amount'] as num).toStringAsFixed(2)}', style: boldTextStyle(size: 16)),
+                          Text('$currencySymbol${(num.tryParse('${topup['amount']}') ?? 0).toStringAsFixed(2)}', style: boldTextStyle(size: 16)),
                           SizedBox(height: 2),
                           Text('${topup['reference']}', style: secondaryTextStyle(size: 11)),
                           if ((topup['method'] ?? '') == 'manual') Text('Manual request', style: secondaryTextStyle(size: 11)),
@@ -459,10 +459,16 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
                         ],
                       ),
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: _statusColor(status).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
-                      child: Text(_statusLabel(status), style: boldTextStyle(size: 11, color: _statusColor(status))),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(color: _statusColor(status).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
+                          child: Text(_statusLabel(status), style: boldTextStyle(size: 11, color: _statusColor(status))),
+                        ),
+                        if (status == 'success') ReceiptActions(data: WalletTopupReceipt.fromTopup(topup), compact: true),
+                      ],
                     ),
                   ],
                 ),

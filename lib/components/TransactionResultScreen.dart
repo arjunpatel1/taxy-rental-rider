@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../utils/Colors.dart';
+import '../utils/ReceiptService.dart';
+import 'ReceiptActions.dart';
 
 enum TransactionResult { success, pending, failed }
 
@@ -19,6 +21,7 @@ class TransactionResultScreen extends StatefulWidget {
   final String doneText;
   final String? secondaryText;
   final VoidCallback? onSecondary;
+  final ReceiptData? receipt;
 
   const TransactionResultScreen({
     super.key,
@@ -30,6 +33,7 @@ class TransactionResultScreen extends StatefulWidget {
     this.doneText = 'Done',
     this.secondaryText,
     this.onSecondary,
+    this.receipt,
   });
 
   /// Maps the server status strings used by recharge and top-up APIs.
@@ -191,6 +195,10 @@ class _TransactionResultScreenState extends State<TransactionResultScreen> with 
                   padding: EdgeInsets.fromLTRB(20, 8, 20, 20),
                   child: Column(
                     children: [
+                      if (widget.receipt != null && widget.result != TransactionResult.failed) ...[
+                        ReceiptActions(data: widget.receipt!),
+                        SizedBox(height: 10),
+                      ],
                       SizedBox(
                         width: double.infinity,
                         height: 52,

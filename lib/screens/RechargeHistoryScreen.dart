@@ -321,6 +321,10 @@ class _RechargeDetailSheetState extends State<_RechargeDetailSheet> {
             _row('Transaction ID', '${t['client_id']}', copy: true),
             if ('${t['operator_txn_id'] ?? ''}'.isNotEmpty) _row('Operator ref', '${t['operator_txn_id']}', copy: true),
             _row('Date', widget.date(t['created_at'])),
+            if (status != 'failure' && status != 'refund') ...[
+              SizedBox(height: 16),
+              ReceiptActions(data: ReceiptData.fromRecharge(t)),
+            ],
             if (status == 'pending') ...[
               SizedBox(height: 16),
               SizedBox(

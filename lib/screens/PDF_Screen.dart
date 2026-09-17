@@ -31,6 +31,24 @@ class _PDFViewerState extends State<PDFViewer> {
     } catch (e) {}
   }
 
+  bool sharing = false;
+
+  /// Downloads the invoice to a temp file and opens the share sheet (WhatsApp, Gmail...).
+  Future<void> shareInvoice() async {
+    setState(() => sharing = true);
+    try {
+      final response = await http.get(Uri.parse(widget.invoice));
+      if (response.statusCode != 200) throw 'download failed';
+      final name = widget.filename.validate().isEmpty ? 'invoice' : widget.filename.validate();
+      final file = File('${(await getTemporaryDirectory()).path}/$name.pdf');
+      await file.writeAsBytes(response.bodyBytes, flush: true);
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path, mimeType: 'application/pdf')], subject: '$mAppName ride invoice'));
+    } catch (e) {
+      toast('Could not share the invoice');
+    }
+    if (mounted) setState(() => sharing = false);
+  }
+
   Future<void> downloadPDF() async {
     appStore.setLoading(true);
     final response = await http.get(Uri.parse(widget.invoice));
@@ -74,6 +92,12 @@ class _PDFViewerState extends State<PDFViewer> {
           title: Text("${language.invoice}", style: boldTextStyle(color: Colors.white)),
           actions: [
             IconButton(
+              tooltip: 'Share invoice',
+              onPressed: sharing ? null : shareInvoice,
+              icon: sharing ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Icon(Icons.share_rounded, color: Colors.white),
+            ),
+            IconButton(
+              tooltip: 'Download invoice',
               onPressed: () {
                 downloadPDF();
               },

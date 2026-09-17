@@ -324,6 +324,7 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
           if (data['operator_txn_id'] != null && '${data['operator_txn_id']}'.isNotEmpty) MapEntry('Operator ref', '${data['operator_txn_id']}'),
           if (data['client_id'] != null) MapEntry('Transaction ID', '${data['client_id']}'),
         ],
+        receipt: ReceiptData.fromRecharge(data),
         secondaryText: 'View history',
         onSecondary: () => launchScreen(context, RechargeHistoryScreen(), pageRouteAnimation: PageRouteAnimation.Slide),
       ),
