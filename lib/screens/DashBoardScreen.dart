@@ -42,6 +42,9 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
   int? selectedRentalHours;
   bool outstationRoundTrip = false;
   DateTime? returnDateTime;
+  // "Ride later" for local / rental, and the pickup time of every outstation trip
+  bool rideLater = false;
+  DateTime? pickupDateTime;
 
   int notificationCount = 0;
 
@@ -98,8 +101,49 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
     if (mounted) setState(() => rentalLoading = false);
   }
 
+  /// Earliest allowed pickup: 15 minutes from now, rounded up to the next minute.
+  DateTime get _minPickup {
+    final t = DateTime.now().add(Duration(minutes: 15));
+    return DateTime(t.year, t.month, t.day, t.hour, t.minute).add(Duration(minutes: 1));
+  }
+
+  /// Keeps a chosen pickup valid when the rider waited on this screen for a while.
+  DateTime _validPickup() {
+    final min = _minPickup;
+    if (pickupDateTime == null || pickupDateTime!.isBefore(min)) pickupDateTime = min;
+    return pickupDateTime!;
+  }
+
+  Future<void> _pickPickupDateTime() async {
+    final min = _minPickup;
+    final pickerTheme = (BuildContext context, Widget? child) => Theme(
+          data: ThemeData.light().copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
+          child: child!,
+        );
+    final initial = (pickupDateTime != null && pickupDateTime!.isAfter(min)) ? pickupDateTime! : min;
+    final date = await showDatePicker(
+      context: context,
+      builder: pickerTheme,
+      initialDate: initial,
+      firstDate: DateTime(min.year, min.month, min.day),
+      lastDate: min.add(Duration(days: 30)),
+    );
+    if (date == null) return;
+    final time = await showTimePicker(context: context, builder: pickerTheme, initialTime: TimeOfDay.fromDateTime(initial));
+    if (time == null) return;
+    final picked = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    if (picked.isBefore(_minPickup.subtract(Duration(minutes: 1)))) {
+      toast('Pickup time should be at least 15 minutes from now');
+      return;
+    }
+    setState(() {
+      pickupDateTime = picked;
+      if (returnDateTime != null && !returnDateTime!.isAfter(picked.add(Duration(hours: 1)))) returnDateTime = null;
+    });
+  }
+
   Future<void> _pickReturnDateTime() async {
-    final now = DateTime.now();
+    final now = _validPickup();
     final pickerTheme = (BuildContext context, Widget? child) => Theme(
           data: ThemeData.light().copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
           child: child!,
@@ -108,7 +152,7 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
       context: context,
       builder: pickerTheme,
       initialDate: returnDateTime ?? now.add(Duration(days: 1)),
-      firstDate: now,
+      firstDate: DateTime(now.year, now.month, now.day),
       lastDate: now.add(Duration(days: 30)),
     );
     if (date == null) return;
@@ -116,10 +160,37 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
     if (time == null) return;
     final picked = DateTime(date.year, date.month, date.day, time.hour, time.minute);
     if (!picked.isAfter(now.add(Duration(hours: 1)))) {
-      toast('Return time should be at least an hour from now');
+      toast('Return time should be at least an hour after pickup');
       return;
     }
     setState(() => returnDateTime = picked);
+  }
+
+  Widget _dateTile(String label, DateTime? value, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(border: Border.all(color: value == null ? dividerColor : brandBlue), borderRadius: BorderRadius.circular(12)),
+        child: Row(
+          children: [
+            Icon(Icons.event_rounded, color: brandBlue, size: 20),
+            SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('$label date & time', style: secondaryTextStyle(size: 11)),
+                  Text(value == null ? 'Select' : DateFormat('EEE, dd MMM yyyy · hh:mm a').format(value), style: boldTextStyle(size: 14)),
+                ],
+              ),
+            ),
+            Icon(Icons.edit_calendar_rounded, color: brandBlue, size: 20),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _rideTypePanel() {
@@ -148,7 +219,7 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
               children: [
                 Icon(icon, color: selected ? Colors.white : brandBlue, size: 26),
                 SizedBox(height: 6),
-                Text(title, style: boldTextStyle(size: 14, color: selected ? Colors.white : brandBlack)),
+                FittedBox(fit: BoxFit.scaleDown, child: Text(title, maxLines: 1, style: boldTextStyle(size: 14, color: selected ? Colors.white : brandBlack))),
                 SizedBox(height: 2),
                 Text(subtitle,
                     style: secondaryTextStyle(size: 11, color: selected ? Colors.white70 : textSecondaryColor),
@@ -187,15 +258,60 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Choose your ride', style: boldTextStyle(size: 16)),
-        SizedBox(height: 12),
-        Row(
-          children: [
-            typeCard(rideTypeLocal, 'Local', 'Car · Bike · Auto', Icons.local_taxi_rounded),
-            typeCard(rideTypeRental, 'Rental', 'Car by the hour', Icons.timer_outlined),
-            typeCard(rideTypeOutstation, 'Outstation', 'Car to other cities', Icons.alt_route_rounded),
+        // opened from a Home service tile: show only that service
+        if (widget.openBooking) ...[
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(color: brandBlue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                child: Icon(rideType == rideTypeRental ? Icons.timer_outlined : (rideType == rideTypeOutstation ? Icons.alt_route_rounded : Icons.local_taxi_rounded), color: brandBlue),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(rideType == rideTypeRental ? 'Rental booking' : (rideType == rideTypeOutstation ? 'Outstation booking' : 'Local booking'), style: boldTextStyle(size: 17)),
+                    Text(rideType == rideTypeRental ? 'Car by the hour' : (rideType == rideTypeOutstation ? 'Car to other cities' : 'Car · Bike · Auto'), style: secondaryTextStyle(size: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ] else ...[
+          Text('Choose your ride', style: boldTextStyle(size: 16)),
+          SizedBox(height: 12),
+          Row(
+            children: [
+              typeCard(rideTypeLocal, 'Local', 'Car · Bike · Auto', Icons.local_taxi_rounded),
+              typeCard(rideTypeRental, 'Rental', 'Car by the hour', Icons.timer_outlined),
+              typeCard(rideTypeOutstation, 'Outstation', 'Other cities', Icons.alt_route_rounded),
+            ],
+          ),
+        ],
+        if (rideType != rideTypeOutstation) ...[
+          SizedBox(height: 14),
+          Container(
+            padding: EdgeInsets.all(4),
+            decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+            child: Row(
+              children: [
+                tripToggle('Ride now', !rideLater, () => setState(() => rideLater = false)),
+                tripToggle('Ride later', rideLater, () {
+                  setState(() => rideLater = true);
+                  _validPickup();
+                }),
+              ],
+            ),
+          ),
+          if (rideLater) ...[
+            SizedBox(height: 10),
+            _dateTile('Pickup', pickupDateTime, _pickPickupDateTime),
+            SizedBox(height: 6),
+            Text('Ride later bookings are confirmed by our team, who assign a driver for your pickup time.', style: secondaryTextStyle(size: 12)),
           ],
-        ),
+        ],
         if (rideType == rideTypeRental) ...[
           SizedBox(height: 14),
           Text('Select a package', style: primaryTextStyle(size: 14)),
@@ -253,29 +369,11 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
             outstationRoundTrip ? 'Your driver stays with you and brings you back.' : 'Get dropped at your destination city.',
             style: secondaryTextStyle(size: 12),
           ),
+          SizedBox(height: 10),
+          _dateTile('Pickup', pickupDateTime ?? _validPickup(), _pickPickupDateTime),
           if (outstationRoundTrip) ...[
-            SizedBox(height: 10),
-            InkWell(
-              onTap: _pickReturnDateTime,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(border: Border.all(color: returnDateTime == null ? dividerColor : brandBlue), borderRadius: BorderRadius.circular(12)),
-                child: Row(
-                  children: [
-                    Icon(Icons.event_rounded, color: brandBlue, size: 20),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        returnDateTime == null ? 'Select return date & time' : 'Return: ${DateFormat('EEE, dd MMM · hh:mm a').format(returnDateTime!)}',
-                        style: primaryTextStyle(size: 14),
-                      ),
-                    ),
-                    Icon(Icons.chevron_right_rounded, color: textSecondaryColor),
-                  ],
-                ),
-              ),
-            ),
+            SizedBox(height: 8),
+            _dateTile('Return', returnDateTime, _pickReturnDateTime),
           ],
         ],
       ],
@@ -807,6 +905,13 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                       color: primaryColor,
                       onTap: () async {
                         var tripDetail = {};
+                        String? bookingPickupTime;
+                        if (rideType == rideTypeOutstation || rideLater) {
+                          final pickup = _validPickup();
+                          setState(() {});
+                          bookingPickupTime = pickup.toString();
+                          tripDetail['schedule_datetime'] = pickup.toUtc().toString().replaceAll('Z', '');
+                        }
                         if (rideType == rideTypeRental) {
                           if (selectedRentalHours == null) return toast('Please choose a rental package');
                           tripDetail['trip_type'] = tripTypeValueRental;
@@ -814,6 +919,7 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                         } else if (rideType == rideTypeOutstation) {
                           if (outstationRoundTrip) {
                             if (returnDateTime == null) return toast('Please choose your return date and time');
+                            if (!returnDateTime!.isAfter(_validPickup().add(Duration(hours: 1)))) return toast('Return time should be at least an hour after pickup');
                             tripDetail['trip_type'] = tripTypeValueOutstationRound;
                             tripDetail['return_datetime'] = returnDateTime!.toUtc().toString().replaceAll('Z', '');
                           } else {
@@ -833,7 +939,7 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                             return TripTypeLocationComponent(
                               trip_type: tripTypeRegular,
                               tripDetail: tripDetail,
-                              pickupTimeValue: pickupTimeValue,
+                              pickupTimeValue: bookingPickupTime ?? pickupTimeValue,
                               // lat: lat,
                               // long: long,
                               addressTitle: addressTitle,

@@ -98,37 +98,40 @@ class _RoadScenePainter extends CustomPainter {
   bool shouldRepaint(covariant _RoadScenePainter oldDelegate) => oldDelegate.drive != drive || oldDelegate.lane != lane;
 }
 
-/// Draws a side-view S Taxi cab facing right. The artwork is authored on a 200 x 81 grid.
+/// Draws a side-view modern S Taxi sedan facing right. The artwork is authored on a 200 x 81 grid.
 void paintTaxi(Canvas canvas, Size size, {double wheelAngle = 0}) {
   canvas.save();
   canvas.scale(size.width / 200);
 
-  final beam = Path()
-    ..moveTo(194, 46)
-    ..lineTo(262, 34)
-    ..lineTo(262, 66)
-    ..close();
+  // headlight beam and ground shadow
   canvas.drawPath(
-    beam,
-    Paint()..shader = const LinearGradient(colors: [Color(0xB3FFF3B0), Color(0x00FFF3B0)]).createShader(const Rect.fromLTWH(194, 34, 68, 32)),
+    Path()
+      ..moveTo(194, 47)
+      ..lineTo(262, 36)
+      ..lineTo(262, 64)
+      ..close(),
+    Paint()..shader = const LinearGradient(colors: [Color(0x99FFF6CC), Color(0x00FFF6CC)]).createShader(const Rect.fromLTWH(194, 36, 68, 28)),
   );
-  canvas.drawOval(const Rect.fromLTWH(10, 72, 180, 9), Paint()..color = Colors.black.withValues(alpha: 0.35));
+  canvas.drawOval(const Rect.fromLTWH(8, 72, 186, 8), Paint()..color = Colors.black.withValues(alpha: 0.35));
 
+  // low three-box sedan body: short trunk, long cabin, sloping windshield, long hood
   final body = Path()
-    ..moveTo(8, 56)
-    ..quadraticBezierTo(6, 44, 18, 42)
-    ..lineTo(50, 38)
-    ..lineTo(74, 16)
-    ..quadraticBezierTo(80, 11, 90, 11)
-    ..lineTo(132, 11)
-    ..quadraticBezierTo(142, 11, 148, 18)
-    ..lineTo(166, 38)
+    ..moveTo(10, 64)
+    ..quadraticBezierTo(4, 62, 4, 54)
+    ..lineTo(5, 48)
+    ..quadraticBezierTo(6, 43, 14, 42)
+    ..lineTo(40, 40)
+    ..quadraticBezierTo(50, 39.5, 56, 36)
+    ..lineTo(72, 22)
+    ..quadraticBezierTo(78, 17, 88, 16.5)
+    ..lineTo(118, 16)
+    ..quadraticBezierTo(128, 16, 136, 22)
+    ..lineTo(154, 36)
+    ..quadraticBezierTo(158, 38.5, 166, 39.5)
     ..lineTo(186, 42)
-    ..quadraticBezierTo(196, 44, 196, 56)
-    ..lineTo(196, 62)
-    ..quadraticBezierTo(196, 68, 190, 68)
-    ..lineTo(14, 68)
-    ..quadraticBezierTo(8, 68, 8, 62)
+    ..quadraticBezierTo(196, 43.5, 197, 51)
+    ..lineTo(197, 58)
+    ..quadraticBezierTo(197, 64, 190, 64.5)
     ..close();
   canvas.drawPath(
     body,
@@ -136,66 +139,115 @@ void paintTaxi(Canvas canvas, Size size, {double wheelAngle = 0}) {
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFFFFE03A), Color(0xFFF2B600)],
-      ).createShader(const Rect.fromLTWH(0, 11, 200, 57)),
+        colors: [Color(0xFFFFE45C), Color(0xFFFFC61A), Color(0xFFE9A800)],
+        stops: [0.0, 0.55, 1.0],
+      ).createShader(const Rect.fromLTWH(0, 16, 200, 50)),
   );
-  canvas.drawPath(body, Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.5
-    ..color = const Color(0xFF6B4A00));
 
-  final glass = Paint()..color = const Color(0xFF1E2A38);
+  // soft highlight along the shoulder line
   canvas.drawPath(
     Path()
-      ..moveTo(80, 38)
-      ..lineTo(94, 20)
-      ..quadraticBezierTo(97, 16, 102, 16)
-      ..lineTo(116, 16)
-      ..lineTo(116, 38)
+      ..moveTo(16, 44)
+      ..lineTo(190, 45)
+      ..lineTo(190, 47)
+      ..lineTo(16, 46.5)
+      ..close(),
+    Paint()..color = Colors.white.withValues(alpha: 0.35),
+  );
+
+  // lower rocker panel
+  canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(34, 58, 136, 5), const Radius.circular(2)), Paint()..color = const Color(0xFF3A3F46));
+
+  // tinted glasshouse with a black B-pillar
+  final glass = Paint()
+    ..shader = const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF3B5B7A), Color(0xFF14202E)]).createShader(const Rect.fromLTWH(58, 18, 96, 20));
+  canvas.drawPath(
+    Path()
+      ..moveTo(62, 36)
+      ..lineTo(75, 24)
+      ..quadraticBezierTo(80, 20, 88, 20)
+      ..lineTo(103, 20)
+      ..lineTo(103, 36)
       ..close(),
     glass,
   );
   canvas.drawPath(
     Path()
-      ..moveTo(122, 16)
-      ..lineTo(132, 16)
-      ..quadraticBezierTo(138, 16, 142, 20)
-      ..lineTo(157, 38)
-      ..lineTo(122, 38)
+      ..moveTo(107, 20)
+      ..lineTo(118, 20)
+      ..quadraticBezierTo(126, 20, 132, 25)
+      ..lineTo(146, 36)
+      ..lineTo(107, 36)
       ..close(),
     glass,
   );
-
-  final dark = Paint()..color = const Color(0xFF1D1D1D);
-  for (var c = 0; c < 34; c++) {
-    canvas.drawRect(Rect.fromLTWH(18 + c * 5.0, c.isEven ? 44 : 49, 5, 5), dark);
-  }
-  canvas.drawLine(const Offset(119, 40), const Offset(119, 64), Paint()
-    ..color = const Color(0xFFC78F00)
+  canvas.drawRect(const Rect.fromLTWH(103, 19, 4, 18), Paint()..color = const Color(0xFF15181C));
+  // chrome window line
+  canvas.drawLine(const Offset(60, 37.5), const Offset(148, 37.5), Paint()
+    ..color = const Color(0xFFE6E9ED)
     ..strokeWidth = 1.2);
 
-  canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(96, 0, 32, 11), const Radius.circular(2)), dark);
-  final sign = TextPainter(
-    text: const TextSpan(text: 'TAXI', style: TextStyle(color: brandYellow, fontSize: 7.5, fontWeight: FontWeight.w900, letterSpacing: 1)),
+  // door shut lines and handles
+  final seam = Paint()
+    ..color = const Color(0xFFB88400)
+    ..strokeWidth = 0.9;
+  canvas.drawLine(const Offset(105, 38), const Offset(105, 58), seam);
+  canvas.drawLine(const Offset(150, 39), const Offset(147, 58), seam);
+  canvas.drawLine(const Offset(62, 38), const Offset(66, 58), seam);
+  final handle = Paint()..color = const Color(0xFF8A6300);
+  canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(90, 41.5, 8, 2), const Radius.circular(1)), handle);
+  canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(134, 41.5, 8, 2), const Radius.circular(1)), handle);
+
+  // S Taxi brand stripe
+  canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(70, 49, 76, 6.5), const Radius.circular(1.5)), Paint()..color = brandBlue);
+  final stripeText = TextPainter(
+    text: const TextSpan(text: 'S TAXI', style: TextStyle(color: Colors.white, fontSize: 5.2, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
     textDirection: TextDirection.ltr,
   )..layout();
-  sign.paint(canvas, Offset(112 - sign.width / 2, 5.5 - sign.height / 2));
+  stripeText.paint(canvas, Offset(108 - stripeText.width / 2, 52.2 - stripeText.height / 2));
 
-  canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(188, 45, 8, 6), const Radius.circular(2)), Paint()..color = const Color(0xFFFFF6C2));
-  canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(8, 45, 5, 7), const Radius.circular(2)), Paint()..color = const Color(0xFFE8413C));
+  // side mirror
+  canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(143, 32, 7, 5), const Radius.circular(2)), Paint()..color = const Color(0xFF1B1F24));
 
-  final spoke = Paint()
-    ..color = const Color(0xFF4A525B)
-    ..strokeWidth = 1.6;
-  for (final cx in [52.0, 154.0]) {
-    canvas.drawCircle(Offset(cx, 66), 13, Paint()..color = const Color(0xFF111111));
-    canvas.drawCircle(Offset(cx, 66), 6.5, Paint()..color = const Color(0xFF9AA4AD));
+  // roof taxi sign
+  canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(90, 8, 30, 8), const Radius.circular(2.5)), Paint()..color = const Color(0xFF15181C));
+  final sign = TextPainter(
+    text: const TextSpan(text: 'TAXI', style: TextStyle(color: brandYellow, fontSize: 6, fontWeight: FontWeight.w900, letterSpacing: 1)),
+    textDirection: TextDirection.ltr,
+  )..layout();
+  sign.paint(canvas, Offset(105 - sign.width / 2, 12 - sign.height / 2));
+
+  // sleek LED headlight, grille and tail light
+  canvas.drawPath(
+    Path()
+      ..moveTo(180, 44)
+      ..lineTo(195, 46.5)
+      ..lineTo(196, 50)
+      ..lineTo(182, 48.5)
+      ..close(),
+    Paint()..color = const Color(0xFFF4FBFF),
+  );
+  canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(186, 53, 11, 5), const Radius.circular(1.5)), Paint()..color = const Color(0xFF22262B));
+  canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(4, 45, 9, 4), const Radius.circular(1.5)), Paint()..color = const Color(0xFFE53935));
+
+  // wheels: dark arches, tyres and 5-spoke alloys
+  for (final cx in [50.0, 158.0]) {
+    canvas.drawCircle(Offset(cx, 63), 15.5, Paint()..color = const Color(0xFF1A1C20));
+    canvas.drawCircle(Offset(cx, 65), 13, Paint()..color = const Color(0xFF0E0F11));
+    canvas.drawCircle(Offset(cx, 65), 8.5, Paint()..color = const Color(0xFFC9D1D9));
     canvas.save();
-    canvas.translate(cx, 66);
+    canvas.translate(cx, 65);
     canvas.rotate(wheelAngle);
-    canvas.drawLine(const Offset(-6, 0), const Offset(6, 0), spoke);
-    canvas.drawLine(const Offset(0, -6), const Offset(0, 6), spoke);
+    final spoke = Paint()
+      ..color = const Color(0xFF7D8894)
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round;
+    for (var k = 0; k < 5; k++) {
+      final a = k * 2 * math.pi / 5;
+      canvas.drawLine(Offset.zero, Offset(math.cos(a) * 7.5, math.sin(a) * 7.5), spoke);
+    }
     canvas.restore();
+    canvas.drawCircle(Offset(cx, 65), 2.2, Paint()..color = const Color(0xFF5B646E));
   }
 
   canvas.restore();

@@ -526,7 +526,7 @@ Future<cancelReasonList> getCancelReasonList({required String type}) async {
 }
 
 /// Update Bank Info
-Future updateBankDetail({String? bankName, String? bankCode, String? accountName, String? accountNumber, String? routing, String? iban, String? swift}) async {
+Future updateBankDetail({String? bankName, String? bankCode, String? accountName, String? accountNumber, String? branch}) async {
   MultipartRequest multiPartRequest = await getMultiPartRequest('update-profile');
   multiPartRequest.fields['email'] = sharedPref.getString(USER_EMAIL).validate();
   multiPartRequest.fields['contact_number'] = sharedPref.getString(CONTACT_NUMBER).validate();
@@ -535,10 +535,8 @@ Future updateBankDetail({String? bankName, String? bankCode, String? accountName
   multiPartRequest.fields['user_bank_account[bank_code]'] = bankCode.validate();
   multiPartRequest.fields['user_bank_account[account_holder_name]'] = accountName.validate();
   multiPartRequest.fields['user_bank_account[account_number]'] = accountNumber.validate();
-  // This field missing in Bank Detail: Routing Number, Bank IBAN, Bank Swift
-  multiPartRequest.fields['user_bank_account[routing_number]'] = routing.validate();
-  multiPartRequest.fields['user_bank_account[bank_iban]'] = iban.validate();
-  multiPartRequest.fields['user_bank_account[bank_swift]'] = swift.validate();
+  // Indian accounts: bank_code holds the IFSC code and bank_address the branch
+  multiPartRequest.fields['user_bank_account[bank_address]'] = branch.validate();
 
   log('Request:${multiPartRequest.fields}');
 

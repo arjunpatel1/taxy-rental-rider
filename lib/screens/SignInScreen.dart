@@ -216,17 +216,19 @@ class SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
+      backgroundColor: Colors.white,
+      // SafeArea keeps scrolled content from sliding under the status bar
+      body: SafeArea(bottom: false, child: Stack(
         children: [
           Form(
             key: formKey,
             child: SingleChildScrollView(
               // extra bottom room so the pinned sign-up row never covers the social buttons
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 130),
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 32),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(height: context.statusBarHeight + 8),
+                  SizedBox(height: 8),
                   TweenAnimationBuilder<double>(
                     tween: Tween(begin: 0, end: 1),
                     duration: Duration(milliseconds: 900),
@@ -250,37 +252,23 @@ class SignInScreenState extends State<SignInScreen> {
                       children: [
                         Text(language.welcome, style: boldTextStyle(size: 24)),
                         SizedBox(height: 4),
-                        RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(text: '${language.signContinue} ', style: primaryTextStyle(size: 14)),
-                              TextSpan(text: '🚗', style: primaryTextStyle(size: 20)),
-                            ],
-                          ),
-                        ),
+                        Text('Sign in with your mobile number to continue', style: secondaryTextStyle(size: 14), textAlign: TextAlign.center),
                       ],
                     ),
                   ),
                   SizedBox(height: 28),
                   // one sign-in method at a time: the password form replaces the OTP card instead of
                   // appearing below the fold where it looked like the button did nothing
-                  if (!usePassword) ...[
-                    _mobileFirstCard(),
-                    SizedBox(height: 18),
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: dividerColor)),
-                        Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('or', style: secondaryTextStyle())),
-                        Expanded(child: Divider(color: dividerColor)),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                  ],
-                  TextButton.icon(
-                    onPressed: () => setState(() => usePassword = !usePassword),
-                    icon: Icon(usePassword ? Icons.smartphone_rounded : Icons.lock_outline_rounded, size: 18, color: brandBlue),
-                    label: Text(usePassword ? 'Use mobile number instead' : 'Sign in with email & password',
-                        style: boldTextStyle(size: 14, color: brandBlue)),
+                  // customers sign in only with mobile OTP; a new number is taken to sign-up after the OTP
+                  _mobileFirstCard(),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.verified_user_outlined, size: 16, color: textSecondaryColor),
+                      SizedBox(width: 6),
+                      Flexible(child: Text('New to S Taxi? Enter your number, your account is created after the OTP.', style: secondaryTextStyle(size: 12), textAlign: TextAlign.center)),
+                    ],
                   ),
                   if (usePassword) ...[
                     SizedBox(height: 12),
@@ -428,30 +416,7 @@ class SignInScreenState extends State<SignInScreen> {
             },
           ),
         ],
-      ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(language.donHaveAnAccount, style: primaryTextStyle()),
-                SizedBox(width: 8),
-                inkWellWidget(
-                  onTap: () {
-                    hideKeyboard(context);
-                    launchScreen(context, SignUpScreen());
-                  },
-                  child: Text(language.signUp, style: boldTextStyle(size: 18)),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 16),
-        ],
-      ),
+      )),
     );
   }
 

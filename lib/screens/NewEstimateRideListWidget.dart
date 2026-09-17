@@ -380,6 +380,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       "trip_type": widget.is_taxi_service != true || widget.tripDetail == null ? "" : widget.tripDetail["trip_type"],
       if (widget.is_taxi_service == true && widget.tripDetail?["rental_hours"] != null) "rental_hours": widget.tripDetail["rental_hours"],
       if (widget.is_taxi_service == true && widget.tripDetail?["return_datetime"] != null) "return_datetime": widget.tripDetail["return_datetime"],
+      if (widget.tripDetail?["schedule_datetime"] != null) "schedule_datetime": widget.tripDetail["schedule_datetime"],
       if (coupon) "coupon_code": promoCode.text.trim(),
     };
     var dataJustCheck = [];
@@ -453,6 +454,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       "trip_type": widget.is_taxi_service != true || tripDetail == null ? "" : tripDetail["trip_type"] ?? "",
       if (widget.is_taxi_service == true && tripDetail?["rental_hours"] != null) "rental_hours": tripDetail["rental_hours"],
       if (widget.is_taxi_service == true && tripDetail?["return_datetime"] != null) "return_datetime": tripDetail["return_datetime"],
+      if (tripDetail?["schedule_datetime"] != null) "schedule_datetime": tripDetail["schedule_datetime"],
       if (promoCode.text.trim().isNotEmpty) "coupon_code": promoCode.text.trim(),
       if (useCoinsEnabled && usedCoins > 0) "use_coins": usedCoins, // ADDED FOR COINS
     };
@@ -2180,6 +2182,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
             details: [
               MapEntry('Request', '#$rideRequestId'),
               MapEntry('Trip', bookedTripType == tripTypeValueOutstationRound ? 'Outstation round trip' : 'Outstation one way'),
+              if (!formattedTime.isEmptyOrNull) MapEntry('Pickup', DateFormat('dd MMM yyyy, hh:mm a').format(DateFormat('yyyy-MM-dd hh:mm a').parse(formattedTime!))),
             ],
             doneText: 'Okay',
           ),
@@ -2191,13 +2194,23 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
 
       if (schduleRideDateTime != null || formattedTime != null) {
         appStore.setLoading(false);
-        launchScreen(
+        final pickupAt = schduleRideDateTime ?? DateFormat('yyyy-MM-dd hh:mm a').parse(formattedTime!);
+        await TransactionResultScreen.show(
           context,
-          isNewTask: true,
-          DashBoardScreen(),
-          pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
+          TransactionResultScreen(
+            result: TransactionResult.success,
+            title: 'Ride later request received',
+            subtitle: 'Our team will assign a driver before your pickup time and you will be notified with the driver details.',
+            details: [
+              MapEntry('Request', '#$rideRequestId'),
+              MapEntry('Trip', bookedTripType == tripTypeValueRental ? 'Rental' : 'Local ride'),
+              MapEntry('Pickup', DateFormat('dd MMM yyyy, hh:mm a').format(pickupAt)),
+            ],
+            doneText: 'Okay',
+          ),
         );
-        toast(value.message.validate());
+        if (!mounted) return;
+        launchScreen(context, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
         return;
       }
       if (ride_type != null) {

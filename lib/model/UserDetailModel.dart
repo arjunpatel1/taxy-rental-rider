@@ -248,6 +248,7 @@ class UserDetail {
 }
 
 class UserBankAccount {
+  String? bankAddress;
   String? bankSwift;
   String? bankIban;
   String? routingNumber;
@@ -261,7 +262,8 @@ class UserBankAccount {
   int? userId;
 
   UserBankAccount(
-      {this.accountHolderName,
+      {this.bankAddress,
+      this.accountHolderName,
       this.accountNumber,
       this.bankCode,
       this.bankName,
@@ -275,6 +277,7 @@ class UserBankAccount {
 
   factory UserBankAccount.fromJson(Map<String, dynamic> json) {
     return UserBankAccount(
+      bankAddress: json['bank_address']?.toString(),
       bankSwift:
           json['bank_swift'] != null ? json['bank_swift'].toString() : null,
       bankIban: json['bank_iban'] != null ? json['bank_iban'].toString() : null,

@@ -409,6 +409,9 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
                       TextButton(onPressed: _pickOperator, child: Text('Change')),
                     ],
                   ),
+                  // amount + pay right under the operator, so the rider never has to scroll to pay
+                  Divider(height: 22),
+                  _payRow(),
                 ] else if (_digits.length == 10 && !detecting) ...[
                   Divider(height: 18),
                   InkWell(
@@ -508,7 +511,7 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: operator == null ? null : _payBar(),
+
     );
   }
 
@@ -610,11 +613,8 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
     );
   }
 
-  Widget _payBar() {
-    return SafeArea(
-      child: Container(
-        padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
-        decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12, offset: Offset(0, -4))]),
+  Widget _payRow() {
+    return Container(
         child: Row(
           children: [
             Expanded(
@@ -624,7 +624,7 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('$currencySymbol${_amount.toStringAsFixed(0)}', style: boldTextStyle(size: 20)),
-                        Text('Wallet: $currencySymbol${walletBalance.toStringAsFixed(2)}', style: secondaryTextStyle(size: 12)),
+                        Text('${operator?['name'] ?? ''} · Wallet $currencySymbol${walletBalance.toStringAsFixed(2)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: secondaryTextStyle(size: 12)),
                       ],
                     )
                   : TextField(
@@ -633,7 +633,8 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       onChanged: (_) => setState(() {}),
                       decoration: InputDecoration(
-                        hintText: 'Or enter amount',
+                        hintText: 'Enter amount',
+                        helperText: 'Wallet $currencySymbol${walletBalance.toStringAsFixed(2)}',
                         prefixText: '$currencySymbol ',
                         isDense: true,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -658,7 +659,6 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }

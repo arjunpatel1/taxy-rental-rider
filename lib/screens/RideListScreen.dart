@@ -41,9 +41,11 @@ class RideListScreenState extends State<RideListScreen> {
               unselectedLabelColor: brandBlue,
               indicatorSize: TabBarIndicatorSize.tab,
               splashBorderRadius: radius(defaultRadius + 2),
-              labelStyle: boldTextStyle(color: Colors.white, size: 14),
-              unselectedLabelStyle: primaryTextStyle(size: 14),
-              tabs: riderStatus.map((e) => Tab(child: Text(_tabLabel(e)))).toList(),
+              labelStyle: boldTextStyle(color: Colors.white, size: 13),
+              unselectedLabelStyle: primaryTextStyle(size: 13),
+              labelPadding: EdgeInsets.symmetric(horizontal: 4),
+              // single line on narrow phones
+              tabs: riderStatus.map((e) => Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text(_tabLabel(e), maxLines: 1, softWrap: false)))).toList(),
             ),
           ),
           Expanded(

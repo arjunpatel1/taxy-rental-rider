@@ -296,7 +296,9 @@ class HomeScreenState extends State<HomeScreen> {
               icon: Icons.account_balance_wallet_rounded,
               iconBg: brandBlue,
               label: 'Wallet',
-              value: isLoading ? Text('...', style: boldTextStyle(size: 20)) : printAmountWidget(amount: walletBalance.toStringAsFixed(digitAfterDecimal), size: 20, color: brandBlack),
+              value: isLoading
+                  ? Text('...', style: TextStyle(color: brandBlack, fontSize: 20, fontWeight: FontWeight.w800))
+                  : Text('$currencySymbol${walletBalance.toStringAsFixed(walletBalance % 1 == 0 ? 0 : 2)}', maxLines: 1, style: TextStyle(color: brandBlack, fontSize: 20, fontWeight: FontWeight.w800)),
               trailing: 'Add',
               onTap: () => _open(WalletTopupScreen(currentBalance: walletBalance)),
             ),
@@ -328,26 +330,31 @@ class HomeScreenState extends State<HomeScreen> {
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(10),
+                padding: EdgeInsets.all(9),
                 decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
-                child: Icon(icon, color: Colors.white, size: 22),
+                child: Icon(icon, color: Colors.white, size: 20),
               ),
-              SizedBox(width: 12),
+              SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label, style: TextStyle(color: textSecondaryColor, fontSize: 13, fontWeight: FontWeight.w600)),
+                    Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: textSecondaryColor, fontSize: 13, fontWeight: FontWeight.w600)),
                     SizedBox(height: 2),
                     FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: value),
                   ],
                 ),
               ),
               if (trailing != null)
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(color: brandBlue, borderRadius: BorderRadius.circular(20)),
-                  child: Text(trailing, style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
+                // compact round "+" so the label and amount keep the full width
+                Tooltip(
+                  message: trailing,
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(color: brandBlue, shape: BoxShape.circle),
+                    child: Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                  ),
                 ),
             ],
           ),

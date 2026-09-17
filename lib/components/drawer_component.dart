@@ -72,14 +72,6 @@ class _DrawerComponentState extends State<DrawerComponent> {
                       launchScreen(context, RideListScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
                     }),
                 DrawerWidget(
-                    paddingApply: true,
-                    title: language.estimate,
-                    iconData: ic_estimate,
-                    onTap: () {
-                      Navigator.pop(context);
-                      widget.onClose?.call("openBottom");
-                    }),
-                DrawerWidget(
                     title: language.wallet,
                     iconData: ic_my_wallet,
                     onTap: () {
