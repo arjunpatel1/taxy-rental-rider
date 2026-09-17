@@ -69,17 +69,17 @@ const RIDER = 'rider';
 
 const PER_PAGE = 15;
 const passwordLengthGlobal = 8;
-const defaultRadius = 10.0;
+const defaultRadius = 14.0;
 const defaultSmallRadius = 6.0;
 
-const textPrimarySizeGlobal = 16.00;
-const textBoldSizeGlobal = 16.00;
-const textSecondarySizeGlobal = 14.00;
+const textPrimarySizeGlobal = 15.00;
+const textBoldSizeGlobal = 15.00;
+const textSecondarySizeGlobal = 13.00;
 
 double tabletBreakpointGlobal = 600.0;
 double desktopBreakpointGlobal = 720.0;
 double statisticsItemWidth = 230.0;
-double defaultAppButtonElevation = 4.0;
+double defaultAppButtonElevation = 0.0;
 
 bool enableAppButtonScaleAnimationGlobal = true;
 int? appButtonScaleAnimationDurationGlobal;

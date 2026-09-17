@@ -9,7 +9,7 @@ TextStyle boldTextStyle(
   return TextStyle(
       fontSize: size != null ? size.toDouble() : textBoldSizeGlobal,
       color: color ?? textPrimaryColorGlobal,
-      fontWeight: weight ?? FontWeight.bold,
+      fontWeight: weight ?? FontWeight.w600,
       decoration: textDecoration ?? TextDecoration.none,
       letterSpacing: letterSpacing ?? 0);
 }

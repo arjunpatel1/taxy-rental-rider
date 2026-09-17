@@ -262,16 +262,20 @@ class SignInScreenState extends State<SignInScreen> {
                     ),
                   ),
                   SizedBox(height: 28),
-                  _mobileFirstCard(),
-                  SizedBox(height: 18),
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: dividerColor)),
-                      Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('or', style: secondaryTextStyle())),
-                      Expanded(child: Divider(color: dividerColor)),
-                    ],
-                  ),
-                  SizedBox(height: 8),
+                  // one sign-in method at a time: the password form replaces the OTP card instead of
+                  // appearing below the fold where it looked like the button did nothing
+                  if (!usePassword) ...[
+                    _mobileFirstCard(),
+                    SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: dividerColor)),
+                        Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('or', style: secondaryTextStyle())),
+                        Expanded(child: Divider(color: dividerColor)),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                  ],
                   TextButton.icon(
                     onPressed: () => setState(() => usePassword = !usePassword),
                     icon: Icon(usePassword ? Icons.smartphone_rounded : Icons.lock_outline_rounded, size: 18, color: brandBlue),
@@ -279,7 +283,7 @@ class SignInScreenState extends State<SignInScreen> {
                         style: boldTextStyle(size: 14, color: brandBlue)),
                   ),
                   if (usePassword) ...[
-                    SizedBox(height: 32),
+                    SizedBox(height: 12),
                     AppTextField(
                       controller: emailController,
                       nextFocus: passFocus,
@@ -409,7 +413,7 @@ class SignInScreenState extends State<SignInScreen> {
                     ),
                   ],
                   SizedBox(height: 16),
-                  socialWidget(),
+                  if (usePassword) socialWidget(),
                   SizedBox(height: 16),
                 ],
               ),

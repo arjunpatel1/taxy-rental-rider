@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'utils/BrandTheme.dart';
 
 import 'manage_imports.dart';
 
@@ -6,71 +7,14 @@ class AppTheme {
   //
   AppTheme._();
 
-  static final ThemeData lightTheme = ThemeData(
-    // every spinner uses the brand blue unless a screen overrides it
-    progressIndicatorTheme: ProgressIndicatorThemeData(color: primaryColor),
-    cardTheme: CardThemeData(color: Colors.white, surfaceTintColor: Colors.transparent, elevation: 0),
-    // text / outlined buttons follow the brand instead of Material's default purple
-    textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(foregroundColor: primaryColor)),
-    outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(foregroundColor: primaryColor)),
-    // focused fields, checkboxes and radios follow the brand instead of Material's default purple
-    inputDecorationTheme: InputDecorationTheme(
-      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: primaryColor, width: 1.4)),
-      focusColor: primaryColor,
-      labelStyle: TextStyle(color: textSecondaryColorGlobal),
-      floatingLabelStyle: TextStyle(color: primaryColor),
-    ),
-    checkboxTheme: CheckboxThemeData(fillColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? primaryColor : null)),
-    radioTheme: RadioThemeData(fillColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? primaryColor : null)),
-    textSelectionTheme: TextSelectionThemeData(
-        cursorColor: primaryColor,
-        selectionHandleColor: primaryColor,
-        selectionColor: primaryColor.withValues(alpha: 0.3)),
-    primarySwatch: createMaterialColor(primaryColor),
-    primaryColor: primaryColor,
-    scaffoldBackgroundColor: Colors.white,
-    fontFamily: GoogleFonts.play().fontFamily,
-    bottomNavigationBarTheme:
-        BottomNavigationBarThemeData(backgroundColor: Colors.white),
-    iconTheme: IconThemeData(color: scaffoldSecondaryDark),
-    textTheme: TextTheme(titleLarge: TextStyle()),
-    unselectedWidgetColor: Colors.black,
-    dividerColor: viewLineColor,
-    cardColor: Colors.white,
-    listTileTheme: ListTileThemeData(iconColor: Colors.white),
-    dialogTheme: DialogThemeData(shape: dialogShape()),
-    appBarTheme: AppBarTheme(
-      color: primaryColor,
-      // white header text / icons on the brand blue bar
-      foregroundColor: Colors.white,
-      titleTextStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
-      iconTheme: IconThemeData(color: Colors.white),
-      actionsIconTheme: IconThemeData(color: Colors.white),
-      systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarIconBrightness: Brightness.dark,
-          statusBarColor: Colors.transparent,
-          statusBarBrightness: Brightness.dark),
-      // systemOverlayStyle: SystemUiOverlayStyle(
-      //   statusBarColor: Colors.transparent,
-      //   statusBarIconBrightness: Brightness.light,
-      //   statusBarBrightness: Brightness.light,
-      // ),
-    ),
-  ).copyWith(
-    pageTransitionsTheme: PageTransitionsTheme(
-      builders: <TargetPlatform, PageTransitionsBuilder>{
-        TargetPlatform.android: OpenUpwardsPageTransitionsBuilder(),
-        TargetPlatform.linux: OpenUpwardsPageTransitionsBuilder(),
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-      },
-    ),
-  );
+  // the light theme lives in utils/BrandTheme.dart so both apps share one design system
+  static final ThemeData lightTheme = BrandTheme.light();
 
   static final ThemeData darkTheme = ThemeData(
     primarySwatch: createMaterialColor(primaryColor),
     primaryColor: primaryColor,
     scaffoldBackgroundColor: scaffoldColorDark,
-    fontFamily: GoogleFonts.nunito().fontFamily,
+    fontFamily: 'Poppins',
     bottomNavigationBarTheme:
         BottomNavigationBarThemeData(backgroundColor: scaffoldSecondaryDark),
     iconTheme: IconThemeData(color: Colors.white),

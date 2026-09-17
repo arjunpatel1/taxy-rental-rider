@@ -209,6 +209,9 @@ Widget totalCount({String? title, num? amount, bool? isTotal = false, double? sp
 }
 
 Widget printAmountWidget({required String amount, double? size, Color? color, FontWeight? weight, TextDecoration? textDecoration, double? decorationThickness, Color? decorationColor}) {
+  // long floats like 18.668000000000003 come straight from arithmetic; show them as money
+  final parsedAmount = num.tryParse(amount.trim());
+  if (parsedAmount != null) amount = parsedAmount.toStringAsFixed(2);
   return Row(
     mainAxisSize: MainAxisSize.min,
     // mainAxisAlignment: MainAxisAlignment.start,
@@ -223,7 +226,7 @@ Widget printAmountWidget({required String amount, double? size, Color? color, Fo
                   fontSize: size ?? textPrimarySizeGlobal,
                   color: color ?? textPrimaryColorGlobal,
                   fontWeight: weight ?? FontWeight.bold,
-                  fontFamily: GoogleFonts.roboto().fontFamily,
+                  fontFamily: 'Poppins',
                   decorationThickness: decorationThickness,
                   decorationColor: decorationColor,
                   decoration: textDecoration ?? TextDecoration.none),
@@ -236,7 +239,7 @@ Widget printAmountWidget({required String amount, double? size, Color? color, Fo
                 fontSize: size ?? textPrimarySizeGlobal,
                 color: color ?? textPrimaryColorGlobal,
                 fontWeight: weight ?? FontWeight.bold,
-                fontFamily: GoogleFonts.roboto().fontFamily,
+                fontFamily: 'Poppins',
                 decoration: textDecoration ?? TextDecoration.none,
                 decorationThickness: decorationThickness,
                 decorationColor: decorationColor,
@@ -250,7 +253,7 @@ Widget printAmountWidget({required String amount, double? size, Color? color, Fo
                 fontSize: size ?? textPrimarySizeGlobal,
                 color: color ?? textPrimaryColorGlobal,
                 fontWeight: weight ?? FontWeight.bold,
-                fontFamily: GoogleFonts.roboto().fontFamily,
+                fontFamily: 'Poppins',
                 decorationThickness: decorationThickness,
                 decorationColor: decorationColor,
                 decoration: textDecoration ?? TextDecoration.none,
@@ -264,7 +267,7 @@ Widget printAmountWidget({required String amount, double? size, Color? color, Fo
                   fontSize: size ?? textPrimarySizeGlobal,
                   color: color ?? textPrimaryColorGlobal,
                   fontWeight: weight ?? FontWeight.bold,
-                  fontFamily: GoogleFonts.roboto().fontFamily,
+                  fontFamily: 'Poppins',
                   decorationThickness: decorationThickness,
                   decorationColor: decorationColor,
                   decoration: textDecoration ?? TextDecoration.none),
@@ -288,7 +291,7 @@ Widget printAmountWidgetForEstimate({required String amount, required String sig
                   fontSize: size ?? textPrimarySizeGlobal,
                   color: color ?? textPrimaryColorGlobal,
                   fontWeight: weight ?? FontWeight.bold,
-                  fontFamily: GoogleFonts.roboto().fontFamily,
+                  fontFamily: 'Poppins',
                   decorationThickness: decorationThickness,
                   decorationColor: decorationColor,
                   decoration: textDecoration ?? TextDecoration.none),
@@ -301,7 +304,7 @@ Widget printAmountWidgetForEstimate({required String amount, required String sig
                 fontSize: size ?? textPrimarySizeGlobal,
                 color: color ?? textPrimaryColorGlobal,
                 fontWeight: weight ?? FontWeight.bold,
-                fontFamily: GoogleFonts.roboto().fontFamily,
+                fontFamily: 'Poppins',
                 decoration: textDecoration ?? TextDecoration.none,
                 decorationThickness: decorationThickness,
                 decorationColor: decorationColor,
@@ -315,7 +318,7 @@ Widget printAmountWidgetForEstimate({required String amount, required String sig
                 fontSize: size ?? textPrimarySizeGlobal,
                 color: color ?? textPrimaryColorGlobal,
                 fontWeight: weight ?? FontWeight.bold,
-                fontFamily: GoogleFonts.roboto().fontFamily,
+                fontFamily: 'Poppins',
                 decorationThickness: decorationThickness,
                 decorationColor: decorationColor,
                 decoration: textDecoration ?? TextDecoration.none,
@@ -329,7 +332,7 @@ Widget printAmountWidgetForEstimate({required String amount, required String sig
                   fontSize: size ?? textPrimarySizeGlobal,
                   color: color ?? textPrimaryColorGlobal,
                   fontWeight: weight ?? FontWeight.bold,
-                  fontFamily: GoogleFonts.roboto().fontFamily,
+                  fontFamily: 'Poppins',
                   decorationThickness: decorationThickness,
                   decorationColor: decorationColor,
                   decoration: textDecoration ?? TextDecoration.none),
@@ -548,11 +551,7 @@ Widget chatCallWidget(IconData icon, {String? uid}) {
   if (uid != null) {
     return Stack(
       children: [
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(border: Border.all(color: dividerColor), color: appStore.isDarkMode ? scaffoldColorDark : scaffoldColorLight, borderRadius: BorderRadius.circular(defaultRadius)),
-          child: Icon(icon, size: 18, color: primaryColor),
-        ),
+        _roundActionIcon(icon),
         StreamBuilder<int>(
             stream: chatMessageService.getUnReadCount(receiverId: "${uid}", senderId: "${sharedPref.getString(UID)}"),
             builder: (context, snapshot) {
@@ -564,11 +563,7 @@ Widget chatCallWidget(IconData icon, {String? uid}) {
       ],
     );
   } else {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(border: Border.all(color: dividerColor), color: appStore.isDarkMode ? scaffoldColorDark : scaffoldColorLight, borderRadius: BorderRadius.circular(defaultRadius)),
-      child: Icon(icon, size: 18, color: primaryColor),
-    );
+    return _roundActionIcon(icon);
   }
 }
 
@@ -865,5 +860,17 @@ Widget popupDialog(String title, String message, BuildContext context) {
         ],
       ),
     ),
+  );
+}
+
+
+/// Round call / chat / SOS button used on the trip panels.
+Widget _roundActionIcon(IconData icon) {
+  final isSos = icon == Icons.sos;
+  return Container(
+    width: 42,
+    height: 42,
+    decoration: BoxDecoration(color: isSos ? Color(0xFFFDECEA) : Color(0xFFEAF1FC), shape: BoxShape.circle),
+    child: Icon(icon, size: 20, color: isSos ? Color(0xFFD93025) : primaryColor),
   );
 }

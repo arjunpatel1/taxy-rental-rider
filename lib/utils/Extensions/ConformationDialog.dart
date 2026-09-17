@@ -293,128 +293,116 @@ Future<bool?> showConfirmDialogCustom(
 
   return await showGeneralDialog(
     context: context,
-    barrierColor: barrierColor ?? Colors.black54,
-    pageBuilder: (context, animation, secondaryAnimation) {
-      return Container();
-    },
+    barrierColor: barrierColor ?? Color(0x8C0B1220),
     barrierDismissible: barrierDismissible,
     barrierLabel: '',
-    transitionDuration: transitionDuration ?? Duration(milliseconds: 400),
+    transitionDuration: transitionDuration ?? Duration(milliseconds: 220),
+    pageBuilder: (context, animation, secondaryAnimation) => SizedBox.shrink(),
     transitionBuilder: (_, animation, secondaryAnimation, child) {
-      return dialogAnimatedWrapperWidget(
-        animation: animation,
-        dialogAnimation: dialogAnimation,
-        curve: curve,
-        child: AlertDialog(
-          shape: shape ?? dialogShape(),
-          titlePadding: EdgeInsets.zero,
-          backgroundColor: Theme.of(context).cardColor,
-          elevation: 4,
-          title: buildTitleWidget(
-            _,
-            dialogType,
-            primaryColor,
-            customCenterWidget,
-            height ?? customDialogHeight,
-            width ?? customDialogWidth,
-            centerImage,
-            shape,
-          ),
-          content: Container(
-            width: width ?? customDialogWidth,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title ?? getTitle(dialogType),
-                  style: boldTextStyle(size: 16),
-                  textAlign: TextAlign.center,
-                ),
-                Visibility(
-                    visible: subTitle.validate().isNotEmpty,
-                    child: SizedBox(height: 8)),
-                Visibility(
-                  visible: subTitle.validate().isNotEmpty,
-                  child: Text(
-                    subTitle.validate(),
-                    style: secondaryTextStyle(size: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () {
-                          if (cancelable) Navigator.pop(_, false);
+      final isDanger = dialogType == DialogType.DELETE;
+      final accent = isDanger ? Color(0xFFD93025) : (primaryColor ?? getDialogPrimaryColor(_, dialogType, null));
+      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+      IconData icon;
+      switch (dialogType) {
+        case DialogType.DELETE:
+          icon = Icons.close_rounded;
+          break;
+        case DialogType.ACCEPT:
+          icon = Icons.check_rounded;
+          break;
+        case DialogType.UPDATE:
+          icon = Icons.edit_rounded;
+          break;
+        case DialogType.ADD:
+          icon = Icons.add_rounded;
+          break;
+        case DialogType.RETRY:
+          icon = Icons.refresh_rounded;
+          break;
+        case DialogType.CONFIRMATION:
+          icon = Icons.help_outline_rounded;
+          break;
+      }
 
-                          onCancel?.call(_);
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor:
-                              Theme.of(context).scaffoldBackgroundColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(defaultRadius),
-                            side: BorderSide(color: viewLineColor),
-                          ),
+      return FadeTransition(
+        opacity: curved,
+        child: ScaleTransition(
+          scale: Tween(begin: 0.92, end: 1.0).animate(curved),
+          child: Dialog(
+            backgroundColor: Colors.white,
+            surfaceTintColor: Colors.transparent,
+            insetPadding: EdgeInsets.symmetric(horizontal: 28),
+            shape: shape ?? RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 380),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(22, 26, 22, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    customCenterWidget ??
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(color: accent.withValues(alpha: 0.10), shape: BoxShape.circle),
+                          child: Icon(icon, color: accent, size: 30),
                         ),
-                        child: FittedBox(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.close,
-                                color: textPrimaryColorGlobal,
-                                size: 20,
-                              ),
-                              SizedBox(width: 6),
-                              Text(
-                                negativeText ?? language.cancel,
-                                style: boldTextStyle(
-                                    color: negativeTextColor ??
-                                        textPrimaryColorGlobal),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                    SizedBox(height: 16),
+                    Text(
+                      title ?? getTitle(dialogType),
+                      style: boldTextStyle(size: 17),
+                      textAlign: TextAlign.center,
                     ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () {
-                          onAccept.call(_);
-                          if (cancelable) Navigator.pop(context, true);
-                        },
-                        style: TextButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(defaultRadius),
-                              side: BorderSide(color: viewLineColor),
-                            ),
-                            backgroundColor: getDialogPrimaryColor(
-                                _, dialogType, primaryColor)),
-                        child: FittedBox(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              getIcon(dialogType),
-                              SizedBox(width: 6),
-                              Text(
-                                positiveText ?? getPositiveText(dialogType),
-                                style: boldTextStyle(color: Colors.white),
+                    if ((subTitle ?? '').isNotEmpty) ...[
+                      SizedBox(height: 8),
+                      Text(subTitle!, style: secondaryTextStyle(size: 14), textAlign: TextAlign.center),
+                    ],
+                    SizedBox(height: 22),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: negativeTextColor ?? textPrimaryColorGlobal,
+                                side: BorderSide(color: Color(0xFFE2E6ED), width: 1.2),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                               ),
-                            ],
+                              onPressed: () {
+                                if (cancelable) Navigator.pop(_, false);
+                                onCancel?.call(_);
+                              },
+                              child: FittedBox(child: Text(negativeText ?? language.cancel, style: boldTextStyle(size: 15, color: negativeTextColor ?? textPrimaryColorGlobal))),
+                            ),
                           ),
                         ),
-                      ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: accent,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                              onPressed: () {
+                                // close this popup first: the action may open its own dialog (e.g. the closing
+                                // odometer on End Ride) and popping afterwards would close that dialog instead
+                                if (cancelable) Navigator.pop(context, true);
+                                onAccept.call(context);
+                              },
+                              child: FittedBox(child: Text(positiveText ?? getPositiveText(dialogType), style: boldTextStyle(size: 15, color: positiveTextColor ?? Colors.white))),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

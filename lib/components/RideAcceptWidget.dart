@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import '../utils/BrandTheme.dart';
 
 class RideAcceptWidget extends StatefulWidget {
   final Driver? driverData;
@@ -76,288 +77,285 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
     });
   }
 
+  String get _statusTitle {
+    switch (widget.rideRequest!.status) {
+      case ACCEPTED:
+      case BID_ACCEPTED:
+        return 'Driver is on the way';
+      case ARRIVING:
+        return 'Driver is arriving';
+      case ARRIVED:
+        return 'Driver has arrived';
+      case IN_PROGRESS:
+        return 'On the trip';
+      default:
+        return statusName(status: widget.rideRequest!.status.validate());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final ride = widget.rideRequest!;
+    final driver = widget.driverData!;
+    final showOtp = ride.status != IN_PROGRESS && ride.status != COMPLETED;
+    final showEta = (ride.status == ACCEPTED || ride.status == BID_ACCEPTED || ride.status == ARRIVING) && duration != 0;
+    final arrived = ride.status == ARRIVED;
+
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(18, 10, 18, 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: Container(
-              alignment: Alignment.center,
-              height: 5,
-              width: 70,
-              decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(defaultRadius)),
-            ),
-          ),
-          SizedBox(height: 12),
+          Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: BrandTokens.line, borderRadius: BorderRadius.circular(4)))),
+          SizedBox(height: 14),
+
+          // status + ETA
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Align(
-                alignment: Alignment.topLeft,
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                  decoration: BoxDecoration(color: primaryColor, borderRadius: radius()),
-                  child: InkWell(
-                    onTap: () {},
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        ImageIcon(
-                          AssetImage(statusTypeIcon(type: widget.rideRequest!.status.validate())),
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                        SizedBox(
-                          width: 4,
-                        ),
-                        Text(
-                          statusName(status: widget.rideRequest!.status.validate()),
-                          style: boldTextStyle(color: Colors.white),
-                        ),
-                      ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_statusTitle, style: boldTextStyle(size: 18)),
+                    SizedBox(height: 2),
+                    Text(
+                      arrived
+                          ? 'Meet your driver at the pickup point'
+                          : ride.status == IN_PROGRESS
+                              ? 'Sit back and relax, share your trip for safety'
+                              : 'Share the OTP only after you get in the cab',
+                      style: secondaryTextStyle(size: 12),
                     ),
+                  ],
+                ),
+              ),
+              if (showEta)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(color: BrandTokens.blueSoft, borderRadius: BorderRadius.circular(14)),
+                  child: Column(
+                    children: [
+                      Text(duration < 1 ? 'Now' : '${duration.toStringAsFixed(0)} min', style: boldTextStyle(size: 16, color: BrandTokens.blue)),
+                      Text(language.ETA, style: secondaryTextStyle(size: 10)),
+                    ],
                   ),
                 ),
-              ),
-              if (widget.rideRequest!.status == ACCEPTED || widget.rideRequest!.status == BID_ACCEPTED || widget.rideRequest!.status == ARRIVING)
-                if (duration != 0)
-                  Row(
-                    children: [
-                      Text("${language.ETA} :", style: boldTextStyle()),
-                      5.width,
-                      Text(
-                        (duration ?? 0) < 1 ? language.arrivingNow : "${duration.toString()} min",
-                        style: boldTextStyle(
-                          color: (duration ?? 0) < 1 ? Color(0xFF2E7D32) : Color(0xFF1E88E5),
-                        ),
-                      ),
-                    ],
-                  )
             ],
           ),
-          SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          SizedBox(height: 14),
+
+          // driver + car card
+          Container(
+            padding: EdgeInsets.all(14),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: BrandTokens.line)),
+            child: Column(
+              children: [
+                Row(
                   children: [
-                    Text(widget.driverData!.driverService!.name.validate(), style: boldTextStyle()),
-                    SizedBox(height: 2),
-                    Row(
+                    Stack(
+                      clipBehavior: Clip.none,
                       children: [
-                        Text(language.lblCarNumberPlate, style: secondaryTextStyle()),
-                        Text('(${widget.driverData!.userDetail!.carPlateNumber.validate()})', style: secondaryTextStyle()),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(28),
+                          child: commonCachedNetworkImage(driver.profileImage.validate(), fit: BoxFit.cover, height: 52, width: 52),
+                        ),
                       ],
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${driver.firstName.validate()} ${driver.lastName.validate()}'.trim(), maxLines: 1, overflow: TextOverflow.ellipsis, style: boldTextStyle(size: 16)),
+                          SizedBox(height: 2),
+                          Text(
+                            [driver.userDetail?.carColor.validate(), driver.userDetail?.carModel.validate(), driver.driverService?.name.validate()].where((v) => (v ?? '').isNotEmpty).join(' · '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: secondaryTextStyle(size: 12),
+                          ),
+                          SizedBox(height: 6),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(color: Color(0xFFFFF6CC), borderRadius: BorderRadius.circular(6), border: Border.all(color: Color(0xFFE8D36B))),
+                            child: Text(driver.userDetail?.carPlateNumber.validate().toUpperCase() ?? '', style: boldTextStyle(size: 13, letterSpacing: 1)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (showOtp)
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(color: BrandTokens.blue, borderRadius: BorderRadius.circular(14)),
+                        child: Column(
+                          children: [
+                            Text('OTP', style: secondaryTextStyle(size: 10, color: Colors.white70)),
+                            Text(ride.otp ?? '----', style: boldTextStyle(size: 20, color: Colors.white, letterSpacing: 2)),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                SizedBox(height: 12),
+                Divider(height: 1),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _action(
+                      icon: Icons.call_rounded,
+                      label: 'Call',
+                      onTap: () => launchUrl(Uri.parse('tel:${driver.contactNumber}'), mode: LaunchMode.externalApplication),
+                    ),
+                    if (userData != null)
+                      _action(
+                        icon: Icons.chat_bubble_outline_rounded,
+                        label: 'Chat',
+                        badge: chatCallWidget(Icons.chat_bubble_outline, chat: true),
+                        onTap: () async {
+                          if (userData == null || userData!.uid == null) {
+                            init();
+                            return;
+                          }
+                          launchScreen(context, ChatScreen(userData: userData, ride_id: ride.id!), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+                        },
+                      ),
+                    _action(
+                      icon: Icons.sos_rounded,
+                      label: 'SOS',
+                      danger: true,
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(contentPadding: EdgeInsets.all(0), content: AlertScreen(rideId: ride.id, regionId: ride.regionId)),
+                        );
+                      },
                     ),
                   ],
                 ),
-              ),
-              Visibility(
-                visible: widget.rideRequest!.status != IN_PROGRESS && widget.rideRequest!.status != COMPLETED,
-                child: Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(border: Border.all(color: dividerColor), borderRadius: radius(defaultRadius)),
-                  child: Text('${language.otp} ${widget.rideRequest!.otp ?? ''}', style: boldTextStyle()),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-          SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(defaultRadius),
-                child: commonCachedNetworkImage(widget.driverData!.profileImage.validate(), fit: BoxFit.cover, height: 40, width: 40),
+          SizedBox(height: 14),
+
+          // route
+          _routePoint(BrandTokens.success, 'PICKUP', ride.startAddress ?? ''),
+          Padding(padding: EdgeInsets.only(left: 5), child: Container(width: 2, height: 16, color: BrandTokens.line)),
+          _routePoint(BrandTokens.danger, 'DROP', ride.endAddress ?? ''),
+          if (ride.multiDropLocation != null && ride.multiDropLocation!.isNotEmpty)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => showOnlyDropLocationsDialog(context, ride.multiDropLocation!),
+                icon: Icon(Icons.add_location_alt_outlined, size: 18),
+                label: Text(language.viewMore),
               ),
-              SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('${widget.driverData!.firstName.validate()} ${widget.driverData!.lastName.validate()}', style: boldTextStyle()),
-                    SizedBox(height: 2),
-                    Text('${widget.driverData!.email.validate()}', style: secondaryTextStyle()),
-                  ],
+            ),
+          SizedBox(height: 14),
+
+          if (ride.status != IN_PROGRESS && ride.status != COMPLETED)
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: BrandTokens.danger,
+                  side: BorderSide(color: BrandTokens.danger.withValues(alpha: 0.35), width: 1.2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-              ),
-              inkWellWidget(
-                onTap: () {
-                  showDialog(
+                onPressed: () {
+                  showModalBottomSheet(
                     context: context,
-                    builder: (_) {
-                      return AlertDialog(
-                        contentPadding: EdgeInsets.all(0),
-                        content: AlertScreen(rideId: widget.rideRequest!.id, regionId: widget.rideRequest!.regionId),
+                    isDismissible: false,
+                    isScrollControlled: true,
+                    builder: (context) {
+                      return CancelOrderDialog(
+                        onCancel: (reason) async {
+                          Navigator.pop(context);
+                          appStore.setLoading(true);
+                          sharedPref.remove(REMAINING_TIME);
+                          sharedPref.remove(IS_TIME);
+                          await cancelRequest(reason);
+                          appStore.setLoading(false);
+                        },
                       );
                     },
                   );
                 },
-                child: chatCallWidget(Icons.sos),
+                child: Text('Cancel ride', style: boldTextStyle(size: 15, color: BrandTokens.danger)),
               ),
-              SizedBox(width: 8),
-              Visibility(
-                visible: userData != null,
-                child: inkWellWidget(
-                  onTap: () async {
-                    if (userData == null || (userData != null && userData!.uid == null)) {
-                      init();
-                      return;
-                    }
-                    launchScreen(context, ChatScreen(userData: userData, ride_id: widget.rideRequest!.id!), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
-                  },
-                  child: chatCallWidget(Icons.chat_bubble_outline, chat: true),
-                ),
-              ),
-              SizedBox(width: 8),
-              inkWellWidget(
-                onTap: () {
-                  launchUrl(Uri.parse('tel:${widget.driverData!.contactNumber}'), mode: LaunchMode.externalApplication);
-                },
-                child: chatCallWidget(Icons.call),
-              ),
-            ],
-          ),
-          SizedBox(height: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.near_me, color: Colors.green, size: 18),
-                  SizedBox(width: 8),
-                  Expanded(child: Text(widget.rideRequest!.startAddress ?? ''.validate(), style: primaryTextStyle(size: 14), maxLines: 2)),
-                ],
-              ),
-              Row(
-                children: [
-                  SizedBox(width: 8),
-                  SizedBox(
-                    height: 24,
-                    child: DottedLine(
-                      direction: Axis.vertical,
-                      lineLength: double.infinity,
-                      lineThickness: 1,
-                      dashLength: 2,
-                      dashColor: primaryColor,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Icon(Icons.location_on, color: Colors.red, size: 18),
-                  SizedBox(width: 8),
-                  Expanded(child: Text(widget.rideRequest!.endAddress ?? '', style: primaryTextStyle(size: 14), maxLines: 2)),
-                ],
-              ),
-              if (widget.rideRequest!.multiDropLocation != null && widget.rideRequest!.multiDropLocation!.isNotEmpty)
-                Row(
-                  children: [
-                    SizedBox(width: 8),
-                    SizedBox(
-                      height: 24,
-                      child: DottedLine(
-                        direction: Axis.vertical,
-                        lineLength: double.infinity,
-                        lineThickness: 1,
-                        dashLength: 2,
-                        dashColor: primaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              if (widget.rideRequest!.multiDropLocation != null && widget.rideRequest!.multiDropLocation!.isNotEmpty)
-                AppButtonWidget(
-                  textColor: primaryColor,
-                  color: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  height: 30,
-                  shapeBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(defaultRadius), side: BorderSide(color: primaryColor)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.add,
-                        color: primaryColor,
-                        size: 12,
-                      ),
-                      Text(
-                        language.viewMore,
-                        style: primaryTextStyle(size: 14),
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    showOnlyDropLocationsDialog(context, widget.rideRequest!.multiDropLocation!);
-                  },
-                )
-            ],
-          ),
-          SizedBox(height: 16),
-          if (widget.rideRequest!.status != IN_PROGRESS && widget.rideRequest!.status != COMPLETED)
-            AppButtonWidget(
-                width: MediaQuery.of(context).size.width,
-                text: language.cancel,
-                textColor: primaryColor,
-                color: Colors.white,
-                shapeBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(defaultRadius), side: BorderSide(color: primaryColor)),
-                onTap: () {
-                  showModalBottomSheet(
-                      context: context,
-                      isDismissible: false,
-                      isScrollControlled: true,
-                      builder: (context) {
-                        return CancelOrderDialog(
-                          onCancel: (reason) async {
-                            Navigator.pop(context);
-                            appStore.setLoading(true);
-                            sharedPref.remove(REMAINING_TIME);
-                            sharedPref.remove(IS_TIME);
-                            await cancelRequest(reason);
-                            appStore.setLoading(false);
-                          },
-                        );
-                      });
-                }),
+            ),
         ],
       ),
     );
   }
 
-  Widget chatCallWidget(IconData icon, {bool chat = false}) {
-    if (sharedPref.getString(UID) != null && chat == true) {
-      return Stack(
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(border: Border.all(color: dividerColor), color: appStore.isDarkMode ? scaffoldColorDark : scaffoldColorLight, borderRadius: BorderRadius.circular(defaultRadius)),
-            child: Icon(icon, size: 18, color: primaryColor),
+  Widget _routePoint(Color color, String label, String address) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: EdgeInsets.only(top: 4),
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color, width: 3)),
+        ),
+        SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: secondaryTextStyle(size: 11)),
+              Text(address, maxLines: 2, overflow: TextOverflow.ellipsis, style: primaryTextStyle(size: 14)),
+            ],
           ),
-          StreamBuilder<int>(
-              stream: chatMessageService.getUnReadCount(senderId: "${sharedPref.getString(UID)}", receiverId: widget.driverData!.uid.toString()),
-              builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data != null && snapshot.data! > 0) {
-                  return Positioned(top: -2, right: 0, child: Lottie.asset(messageDetect, width: 18, height: 18, fit: BoxFit.cover));
-                }
-                return SizedBox();
-              })
-        ],
-      );
-    } else {
-      return Container(
-        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(border: Border.all(color: dividerColor), color: appStore.isDarkMode ? scaffoldColorDark : scaffoldColorLight, borderRadius: BorderRadius.circular(defaultRadius)),
-        child: Icon(icon, size: 18, color: primaryColor),
-      );
-    }
+        ),
+      ],
+    );
+  }
+
+  Widget _action({required IconData icon, required String label, required VoidCallback onTap, bool danger = false, Widget? badge}) {
+    final color = danger ? BrandTokens.danger : BrandTokens.blue;
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        child: Column(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(color: color.withValues(alpha: 0.10), shape: BoxShape.circle),
+                  child: Icon(icon, color: color, size: 21),
+                ),
+                if (badge != null) Positioned(top: -2, right: -2, child: SizedBox(width: 16, height: 16, child: badge)),
+              ],
+            ),
+            SizedBox(height: 4),
+            Text(label, style: secondaryTextStyle(size: 12, color: danger ? BrandTokens.danger : BrandTokens.ink)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Unread-chat dot (the round buttons above draw the icon itself).
+  Widget chatCallWidget(IconData icon, {bool chat = false}) {
+    if (sharedPref.getString(UID) == null || !chat) return SizedBox();
+    return StreamBuilder<int>(
+      stream: chatMessageService.getUnReadCount(senderId: "${sharedPref.getString(UID)}", receiverId: widget.driverData!.uid.toString()),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && (snapshot.data ?? 0) > 0) {
+          return Container(decoration: BoxDecoration(color: BrandTokens.danger, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)));
+        }
+        return SizedBox();
+      },
+    );
   }
 }
 

@@ -2509,7 +2509,7 @@
         "screenId": "30",
         "keyword_id": 307,
         "keyword_name": "mostReliableMightyDriverApp",
-        "keyword_value": "Most Reliable Mighty Driver App"
+        "keyword_value": "S Taxi Driver needs your location"
       },
       {
         "screenId": "30",
@@ -2527,7 +2527,7 @@
         "screenId": "30",
         "keyword_id": 139,
         "keyword_name": "mostReliableMightyRiderApp",
-        "keyword_value": "Most Reliable Mighty Rider App"
+        "keyword_value": "S Taxi needs your location"
       },
       {
         "screenId": "30",
@@ -2869,13 +2869,13 @@
         "screenId": "34",
         "keyword_id": 289,
         "keyword_name": "areYouSureYouWantToArriving",
-        "keyword_value": "Are you sure you want to arriving?"
+        "keyword_value": "Start heading to the pickup point?"
       },
       {
         "screenId": "34",
         "keyword_id": 290,
         "keyword_name": "areYouSureYouWantToArrived",
-        "keyword_value": "Are you sure you want to arrived?"
+        "keyword_value": "Have you reached the pickup point?"
       },
       {
         "screenId": "34",

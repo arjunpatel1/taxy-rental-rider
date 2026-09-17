@@ -184,13 +184,19 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
           });
         }
       });
-    }).catchError((error) {
-      Future.delayed(
-        Duration(seconds: 1),
-        () {
+    }).catchError((error) async {
+      // a GPS timeout is not a permission problem; only ask again when access is really missing
+      final permission = await Geolocator.checkPermission();
+      final serviceOn = await Geolocator.isLocationServiceEnabled();
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever || !serviceOn) {
+        if (locationScreenKey.currentContext == null) {
           launchScreen(navigatorKey.currentState!.overlay!.context, LocationPermissionScreen());
-        },
-      );
+        }
+      } else {
+        Future.delayed(Duration(seconds: 5), () {
+          if (mounted) startLocationTracking();
+        });
+      }
     });
   }
 

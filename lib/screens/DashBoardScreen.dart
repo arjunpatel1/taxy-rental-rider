@@ -353,7 +353,7 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
 
       setState(() {});
     } else {
-      launchScreen(navigatorKey.currentState!.overlay!.context, LocationPermissionScreen());
+      if (locationScreenKey.currentContext == null) launchScreen(navigatorKey.currentState!.overlay!.context, LocationPermissionScreen());
     }
   }
 
@@ -445,7 +445,7 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
     serviceStatusStream = Geolocator.getServiceStatusStream().listen(
       (ServiceStatus status) {
         if (status == ServiceStatus.disabled) {
-          launchScreen(navigatorKey.currentState!.overlay!.context, LocationPermissionScreen());
+          if (locationScreenKey.currentContext == null) launchScreen(navigatorKey.currentState!.overlay!.context, LocationPermissionScreen());
         } else if (status == ServiceStatus.enabled) {
           getCurrentUserLocation();
           if (locationScreenKey.currentContext != null) {
