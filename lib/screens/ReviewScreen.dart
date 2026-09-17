@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import '../utils/BrandTheme.dart';
 
 class ReviewScreen extends StatefulWidget {
   final Driver? driverData;
@@ -113,8 +114,8 @@ class ReviewScreenState extends State<ReviewScreen> {
         backgroundColor: brandBlue,
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
-        title: Text(language.driverReview,
-            style: boldTextStyle(color: brandBlack)),
+        title: Text('Rate your trip',
+            style: boldTextStyle(color: Colors.white, size: 18)),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -141,54 +142,87 @@ class ReviewScreenState extends State<ReviewScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Text('${language.howWasYourRide}',
-                        style: boldTextStyle()),
+                  SizedBox(height: 8),
+                  Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(3),
+                          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: BrandTokens.blue.withValues(alpha: 0.25), width: 3)),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(44),
+                            child: commonCachedNetworkImage(widget.driverData!.profileImage.validate(), height: 84, width: 84, fit: BoxFit.cover),
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text('How was your trip with', style: secondaryTextStyle(size: 14)),
+                        Text(
+                          '${widget.driverData!.firstName.validate().capitalizeFirstLetter()} ${widget.driverData!.lastName.validate().capitalizeFirstLetter()}?'.trim(),
+                          style: boldTextStyle(size: 20),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          [widget.driverData!.userDetail?.carModel.validate(), widget.driverData!.userDetail?.carPlateNumber.validate().toUpperCase()].where((v) => (v ?? '').isNotEmpty).join(' · '),
+                          style: secondaryTextStyle(size: 12),
+                        ),
+                        SizedBox(height: 18),
+                        RatingBar.builder(
+                          direction: Axis.horizontal,
+                          glow: false,
+                          allowHalfRating: false,
+                          itemCount: 5,
+                          itemSize: 44,
+                          unratedColor: BrandTokens.line,
+                          itemPadding: EdgeInsets.symmetric(horizontal: 4),
+                          itemBuilder: (context, _) => Icon(Icons.star_rounded, color: Color(0xFFFFB300)),
+                          onRatingUpdate: (rating) {
+                            setState(() => rattingData = rating);
+                          },
+                        ),
+                        SizedBox(height: 8),
+                        AnimatedSwitcher(
+                          duration: Duration(milliseconds: 180),
+                          child: Text(
+                            ['Tap a star to rate', 'Terrible', 'Bad', 'Okay', 'Good', 'Excellent!'][rattingData.toInt().clamp(0, 5)],
+                            key: ValueKey(rattingData),
+                            style: boldTextStyle(size: 15, color: rattingData >= 4 ? BrandTokens.success : (rattingData == 0 ? BrandTokens.inkSoft : BrandTokens.warning)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(35),
-                        child: commonCachedNetworkImage(
-                            widget.driverData!.profileImage.validate(),
-                            height: 60,
-                            width: 60,
-                            fit: BoxFit.cover),
-                      ),
-                      SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // SizedBox(height: 8),
-                          Text(
-                              '${widget.driverData!.firstName.validate().capitalizeFirstLetter()} ${widget.driverData!.lastName.validate().capitalizeFirstLetter()}',
-                              style: boldTextStyle()),
-                          // SizedBox(height: 4),
-                          Text('${widget.driverData!.email.validate()}',
-                              style: primaryTextStyle()),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  RatingBar.builder(
-                    direction: Axis.horizontal,
-                    glow: false,
-                    allowHalfRating: false,
-                    wrapAlignment: WrapAlignment.spaceBetween,
-                    itemCount: 5,
-                    itemPadding: EdgeInsets.symmetric(horizontal: 8),
-                    itemBuilder: (context, _) =>
-                        Icon(Icons.star, color: Colors.amber),
-                    onRatingUpdate: (rating) {
-                      rattingData = rating;
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  Text(language.addReviews, style: boldTextStyle()),
-                  SizedBox(height: 16),
+                  SizedBox(height: 20),
+                  if (rattingData > 0) ...[
+                    Text(rattingData >= 4 ? 'What went well?' : 'What could be better?', style: boldTextStyle(size: 15)),
+                    SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: (rattingData >= 4
+                              ? ['Safe driving', 'Clean car', 'On time', 'Polite driver', 'Smooth ride']
+                              : ['Late pickup', 'Rash driving', 'Car not clean', 'Rude behaviour', 'Wrong route'])
+                          .map((tag) {
+                        final picked = reviewController.text.contains(tag);
+                        return ChoiceChip(
+                          label: Text(tag),
+                          selected: picked,
+                          showCheckmark: false,
+                          selectedColor: BrandTokens.blue,
+                          labelStyle: primaryTextStyle(size: 13, color: picked ? Colors.white : BrandTokens.ink),
+                          onSelected: (_) {
+                            final parts = reviewController.text.split(', ').where((t) => t.trim().isNotEmpty).toList();
+                            picked ? parts.remove(tag) : parts.add(tag);
+                            reviewController.text = parts.join(', ');
+                            setState(() {});
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                  Text(language.addReviews, style: boldTextStyle(size: 15)),
+                  SizedBox(height: 10),
                   AppTextField(
                     controller: reviewController,
                     decoration: inputDecoration(context,

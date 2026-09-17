@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import '../utils/BrandTheme.dart';
 
 // ignore: must_be_immutable
 class Newestimateridelistwidget extends StatefulWidget {
@@ -1496,6 +1497,74 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     );
   }
 
+  /// Vehicle option in the booking sheet.
+  Widget _vehicleCard(dynamic e) {
+    final selected = selectedIndex == serviceList.indexOf(e);
+    final discounted = e.totalAmount! != e.totalAmountAfterDiscount;
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 180),
+      width: 150,
+      padding: EdgeInsets.fromLTRB(12, 10, 12, 12),
+      margin: EdgeInsets.only(top: 12, left: 6, right: 6),
+      decoration: BoxDecoration(
+        color: selected ? BrandTokens.blueSoft : Colors.white,
+        border: Border.all(color: selected ? BrandTokens.blue : BrandTokens.line, width: selected ? 2 : 1.2),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: commonCachedNetworkImage(e.serviceImage.validate(), height: 46, width: 90, fit: BoxFit.contain, alignment: Alignment.centerLeft)),
+              InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (_) => CarDetailWidget(service: e, tripType: widget.trip_type),
+                  );
+                },
+                child: Padding(padding: EdgeInsets.all(2), child: Icon(Icons.info_outline_rounded, size: 18, color: BrandTokens.inkSoft)),
+              ),
+            ],
+          ),
+          SizedBox(height: 6),
+          Text(e.name.validate(), maxLines: 1, overflow: TextOverflow.ellipsis, style: boldTextStyle(size: 15)),
+          SizedBox(height: 2),
+          Row(children: [
+            Icon(Icons.person_rounded, size: 14, color: BrandTokens.inkSoft),
+            SizedBox(width: 2),
+            Text('${e.capacity} seats', style: secondaryTextStyle(size: 12)),
+          ]),
+          if (e.tripFareSummary != null) ...[
+            SizedBox(height: 2),
+            Text(e.tripFareSummary!, maxLines: 2, overflow: TextOverflow.ellipsis, style: secondaryTextStyle(size: 11)),
+          ],
+          SizedBox(height: 8),
+          if (discounted)
+            printAmountWidget(
+              amount: e.totalAmount!.toStringAsFixed(digitAfterDecimal),
+              size: 12,
+              weight: FontWeight.normal,
+              color: BrandTokens.inkSoft,
+              textDecoration: TextDecoration.lineThrough,
+              decorationColor: BrandTokens.danger,
+            ),
+          printAmountWidget(
+            amount: (discounted ? e.totalAmountAfterDiscount! : e.totalAmount!).toStringAsFixed(digitAfterDecimal),
+            size: 18,
+            weight: FontWeight.w700,
+            color: selected ? BrandTokens.blue : BrandTokens.ink,
+          ),
+          if (promoCode.text.isNotEmpty && e.discountAmount == 0) SizedBox(height: 14),
+        ],
+      ),
+    );
+  }
+
   Widget serviceSelectWidget() {
     print("totalCoins ${totalCoins}");
     if (!widget.pickupTimeValue.isEmptyOrNull) {
@@ -1561,77 +1630,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                   }
                   setState(() {});
                 },
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                  margin: EdgeInsets.only(top: 16, left: 8, right: 8),
-                  decoration: BoxDecoration(
-                    color: selectedIndex == serviceList.indexOf(e) ? primaryColor : Colors.white,
-                    border: Border.all(color: dividerColor),
-                    borderRadius: BorderRadius.circular(defaultRadius),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      commonCachedNetworkImage(e.serviceImage.validate(), height: 50, width: 100, fit: BoxFit.contain, alignment: Alignment.center),
-                      // SizedBox(height: 6),
-                      Text(e.name.validate(), style: boldTextStyle(color: selectedIndex == serviceList.indexOf(e) ? Colors.white : textPrimaryColorGlobal)),
-                      if (e.tripFareSummary != null)
-                        Text(e.tripFareSummary!, style: secondaryTextStyle(size: 11, color: selectedIndex == serviceList.indexOf(e) ? Colors.white : textSecondaryColorGlobal)),
-                      // SizedBox(height: 6),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(language.capacity, style: secondaryTextStyle(size: 12, color: selectedIndex == serviceList.indexOf(e) ? Colors.white : textPrimaryColorGlobal)),
-                          SizedBox(width: 4),
-                          Text(e.capacity.toString() + " + 1", style: secondaryTextStyle(color: selectedIndex == serviceList.indexOf(e) ? Colors.white : textPrimaryColorGlobal)),
-                        ],
-                      ),
-                      SizedBox(height: 6),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              printAmountWidget(
-                                amount: '${e.totalAmount!.toStringAsFixed(digitAfterDecimal)}',
-                                weight: e.totalAmount! != e.totalAmountAfterDiscount ? FontWeight.normal : FontWeight.bold,
-                                decorationThickness: 2.5,
-                                decorationColor: Colors.red,
-                                textDecoration: e.totalAmount! != e.totalAmountAfterDiscount ? TextDecoration.lineThrough : TextDecoration.none,
-                                color: selectedIndex == serviceList.indexOf(e) ? Colors.white : textPrimaryColorGlobal,
-                              ),
-                              if (e.totalAmount! != e.totalAmountAfterDiscount)
-                                printAmountWidget(
-                                  amount: '${e.totalAmountAfterDiscount!.toStringAsFixed(digitAfterDecimal)}',
-                                  color: selectedIndex == serviceList.indexOf(e) ? Colors.white : textPrimaryColorGlobal,
-                                ),
-                            ],
-                          ),
-                          SizedBox(width: 8),
-                          inkWellWidget(
-                            onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topRight: Radius.circular(2 * defaultRadius), topLeft: Radius.circular(2 * defaultRadius))),
-                                builder: (_) {
-                                  return CarDetailWidget(service: e, tripType: widget.trip_type);
-                                },
-                              );
-                            },
-                            child: Icon(Icons.info_outline_rounded, size: 16, color: selectedIndex == serviceList.indexOf(e) ? Colors.white : textPrimaryColorGlobal),
-                          ),
-                        ],
-                      ),
-                      if (promoCode.text.isNotEmpty && e.discountAmount == 0) SizedBox(height: 20)
-                    ],
-                  ),
-                ),
+                child: _vehicleCard(e),
               );
             }).toList(),
           ),

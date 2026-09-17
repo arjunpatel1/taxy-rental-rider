@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import '../components/FareBreakdownCard.dart';
 
 class RideDetailScreen extends StatefulWidget {
   final int orderId;
@@ -211,7 +212,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
             ],
           ),
           SizedBox(height: 16),
-          Text('${language.lblDistance} ${riderModel!.distance!.toStringAsFixed(2)} ${riderModel!.distanceUnit.toString()}', style: boldTextStyle(size: 14)),
+          Text('${language.lblDistance} ${((FareBreakdownCard.isFinal(riderModel!.tripFareData) ? riderModel!.tripFareData!['km'] : null) ?? riderModel!.distance ?? 0).toStringAsFixed(2)} ${riderModel!.distanceUnit.toString()}', style: boldTextStyle(size: 14)),
           SizedBox(height: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -609,10 +610,12 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                 //     : riderModel!.extraChargesAmount != null
                 //         ? totalCount(title: language.total, amount: riderModel!.subtotal! + riderModel!.extraChargesAmount!, isTotal: true)
                 //         : totalCount(title: language.total, amount: riderModel!.subtotal, isTotal: true),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [Text(language.totalFare, style: boldTextStyle(size: 24)), printAmountWidget(amount: '${riderModel!.totalAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold, size: 24)],
-                ),
+                FareBreakdownCard.isFinal(riderModel!.tripFareData)
+                    ? FareBreakdownCard(bill: riderModel!.tripFareData!, total: riderModel!.totalAmount ?? 0, distanceUnit: riderModel!.distanceUnit ?? 'km')
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [Text(language.totalFare, style: boldTextStyle(size: 24)), printAmountWidget(amount: '${riderModel!.totalAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold, size: 24)],
+                      ),
               ],
             )
           : Column(
@@ -676,10 +679,12 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                 //   ),
                 // Divider(thickness: 1),
                 // payment != null && payment!.driverTips != 0 ? totalCount(title: language.total, amount: riderModel!.totalAmount! + payment!.driverTips!, isTotal: true) : totalCount(title: language.total, amount: riderModel!.totalAmount, isTotal: true),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [Text(language.totalFare, style: boldTextStyle(size: 24)), printAmountWidget(amount: '${riderModel!.totalAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold, size: 24)],
-                ),
+                FareBreakdownCard.isFinal(riderModel!.tripFareData)
+                    ? FareBreakdownCard(bill: riderModel!.tripFareData!, total: riderModel!.totalAmount ?? 0, distanceUnit: riderModel!.distanceUnit ?? 'km')
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [Text(language.totalFare, style: boldTextStyle(size: 24)), printAmountWidget(amount: '${riderModel!.totalAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold, size: 24)],
+                      ),
               ],
             ),
     );

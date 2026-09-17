@@ -214,6 +214,34 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String _bannerTitle(String status) {
+    switch (status) {
+      case COMPLETED:
+        return 'Trip completed';
+      case NEW_RIDE_REQUESTED:
+        return 'Finding your driver';
+      case ARRIVED:
+        return 'Your driver has arrived';
+      case IN_PROGRESS:
+        return 'You are on the trip';
+      default:
+        return 'Your driver is on the way';
+    }
+  }
+
+  String _bannerSubtitle(String status) {
+    switch (status) {
+      case COMPLETED:
+        return 'Pay and rate your driver';
+      case NEW_RIDE_REQUESTED:
+        return 'Looking for nearby cabs';
+      case IN_PROGRESS:
+        return 'Tap to track your ride live';
+      default:
+        return 'Tap to see driver and OTP';
+    }
+  }
+
   Widget _activeRideBanner() {
     final ride = currentRequest?.onRideRequest ?? currentRequest?.rideRequest;
     final status = (ride?.status ?? '').replaceAll('_', ' ');
@@ -241,14 +269,14 @@ class HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(awaitingOutstation ? 'Outstation request received' : 'Your ride is in progress',
+                      Text(awaitingOutstation ? 'Outstation request received' : _bannerTitle(ride?.status ?? ''),
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
-                      Text(awaitingOutstation ? 'Our team is assigning a driver' : status.capitalizeFirstLetter(),
+                      Text(awaitingOutstation ? 'Our team is assigning a driver' : _bannerSubtitle(ride?.status ?? ''),
                           style: TextStyle(color: Colors.white70, fontSize: 13)),
                     ],
                   ),
                 ),
-                Text(awaitingOutstation ? 'View' : 'Track', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                Text(awaitingOutstation ? 'View' : (status == COMPLETED ? 'Open' : 'Track'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
                 Icon(Icons.chevron_right_rounded, color: Colors.white),
               ],
             ),

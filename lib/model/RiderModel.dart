@@ -35,6 +35,7 @@ class RiderModel {
   String? reason;
   String? status;
   String? tripType;
+  Map<String, dynamic>? tripFareData;
   num? baseFare;
   num? distancePrice;
   num? discountAmount;
@@ -162,6 +163,7 @@ class RiderModel {
     adminCommission = num.tryParse(json['admin_commission'].toString()) ?? 0;
     totalAmount = num.tryParse(json['total_amount'].toString()) ?? 0;
     tripType = json['trip_type'];
+    tripFareData = json['trip_fare_data'] is Map ? Map<String, dynamic>.from(json['trip_fare_data']) : null;
     subtotal = num.tryParse(json['subtotal'].toString()) ?? 0;
     extraChargesAmount = num.tryParse(json['extra_charges_amount'].toString()) ?? 0;
     extraChargesPaymentMethod = json['extra_charges_payment_method'];

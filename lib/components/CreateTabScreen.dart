@@ -113,6 +113,12 @@ class CreateTabScreenState extends State<CreateTabScreen> with AutomaticKeepAliv
     );
   }
 
+  /// The API sends UTC times without a zone marker; mark them so they show in local time.
+  String _asUtc(String value) {
+    if (value.isEmpty || value.endsWith('Z') || value.contains('+')) return value;
+    return value.replaceFirst(' ', 'T') + 'Z';
+  }
+
   String _emptyText() {
     if (widget.status == 'active') return 'No active or upcoming rides';
     if (widget.status == CANCELED) return 'No cancelled rides';
@@ -209,7 +215,7 @@ class CreateTabScreenState extends State<CreateTabScreen> with AutomaticKeepAliv
                   children: [
                     Icon(Ionicons.calendar_outline, color: textSecondaryColorGlobal, size: 15),
                     SizedBox(width: 6),
-                    Expanded(child: Text(printDate(data.datetime.validate(value: data.createdAt.validate())), style: secondaryTextStyle(size: 12), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                    Expanded(child: Text(printDate(_asUtc(data.datetime.validate(value: data.createdAt.validate()))), style: secondaryTextStyle(size: 12), maxLines: 1, overflow: TextOverflow.ellipsis)),
                     if (amount > 0) printAmountWidget(amount: amount.toStringAsFixed(digitAfterDecimal), size: 15, color: textPrimaryColorGlobal, weight: FontWeight.bold),
                     if (data.status == COMPLETED) Icon(Icons.chevron_right, color: textSecondaryColorGlobal, size: 20),
                   ],
