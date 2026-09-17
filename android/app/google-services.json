@@ -7,9 +7,66 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:460161922104:android:d58b2f76a7dfccd319e2cd",
+        "android_client_info": {
+          "package_name": "com.mighty.takibookingdriver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUHheHMC-_qeEAcN2CtPkX9qubr5LIsjI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:460161922104:android:dd565f6db49d372a19e2cd",
         "android_client_info": {
           "package_name": "com.mighty.taxirider"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUHheHMC-_qeEAcN2CtPkX9qubr5LIsjI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:460161922104:android:26461b1ff611b30519e2cd",
+        "android_client_info": {
+          "package_name": "com.staxi.customer.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUHheHMC-_qeEAcN2CtPkX9qubr5LIsjI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:460161922104:android:ed4050e0aafe4ee519e2cd",
+        "android_client_info": {
+          "package_name": "com.staxi.driver.app"
         }
       },
       "oauth_client": [],

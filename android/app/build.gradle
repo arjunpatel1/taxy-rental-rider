@@ -57,11 +57,11 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.mighty.taxirider"
+        applicationId "com.staxi.customer.app"
         minSdkVersion 26
         targetSdkVersion 35
-        versionCode 37
-        versionName '8.1.0'
+        versionCode 1
+        versionName '1.0.0'
         multiDexEnabled true
     }
 
