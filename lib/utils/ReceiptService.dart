@@ -8,6 +8,9 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 
+import '../main.dart' show appStore, sharedPref;
+import 'Constants.dart' show FIRST_NAME, LAST_NAME, USER_NAME, CONTACT_NUMBER;
+
 /// What goes on a receipt. Built from recharge, bill payment or wallet top-up data.
 class ReceiptData {
   final String title; // e.g. "Mobile Recharge"
@@ -89,7 +92,18 @@ class ReceiptService {
     return 'STaxi_Receipt_${safeRef.isEmpty ? DateFormat('yyyyMMdd_HHmmss').format(data.date) : safeRef}.pdf';
   }
 
+  static String _customerName() {
+    final full = '${sharedPref.getString(FIRST_NAME) ?? ''} ${sharedPref.getString(LAST_NAME) ?? ''}'.trim();
+    return full.isNotEmpty ? full : (sharedPref.getString(USER_NAME) ?? '');
+  }
+
   static Future<Uint8List> buildPdf(ReceiptData data) async {
+    final customer = _customerName();
+    final mobile = sharedPref.getString(CONTACT_NUMBER) ?? '';
+    final supportPhone = appStore.settingModel.contactNumber ?? '';
+    final supportEmail = appStore.settingModel.siteEmail ?? '';
+    final receiptNo = 'RCPT-${DateFormat('yyMMdd').format(data.date)}-${data.reference.length > 6 ? data.reference.substring(data.reference.length - 6) : data.reference}';
+
     final regular = pw.Font.ttf(await rootBundle.load('images/receipt_fonts/NotoSans-Regular.ttf'));
     final bold = pw.Font.ttf(await rootBundle.load('images/receipt_fonts/NotoSans-Bold.ttf'));
     final logo = pw.MemoryImage((await rootBundle.load('images/app_images/ic_app_logo.png')).buffer.asUint8List());
@@ -104,8 +118,9 @@ class ReceiptService {
     final doc = pw.Document(title: '${data.title} receipt', author: 'S Taxi', theme: pw.ThemeData.withFont(base: regular, bold: bold));
 
     doc.addPage(pw.Page(
-      pageFormat: PdfPageFormat.a5,
-      margin: pw.EdgeInsets.all(28),
+      // A5 width, a little taller so long bill details and the footer always fit on one page
+      pageFormat: PdfPageFormat(PdfPageFormat.a5.width, PdfPageFormat.a5.height * 1.2),
+      margin: pw.EdgeInsets.all(24),
       build: (_) => pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         children: [
@@ -131,7 +146,25 @@ class ReceiptService {
               pw.Text(DateFormat('dd MMM yyyy').format(data.date), style: pw.TextStyle(color: PdfColors.white, fontSize: 10)),
             ]),
           ),
-          pw.SizedBox(height: 22),
+          pw.SizedBox(height: 14),
+
+          // receipt number + billed to
+          pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+            pw.Expanded(
+              child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                pw.Text('BILLED TO', style: pw.TextStyle(color: _grey, fontSize: 8, letterSpacing: 1)),
+                pw.SizedBox(height: 2),
+                pw.Text(customer.isEmpty ? 'S Taxi customer' : customer, style: pw.TextStyle(color: _text, fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                if (mobile.isNotEmpty) pw.Text(mobile, style: pw.TextStyle(color: _grey, fontSize: 9)),
+              ]),
+            ),
+            pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
+              pw.Text('RECEIPT NO.', style: pw.TextStyle(color: _grey, fontSize: 8, letterSpacing: 1)),
+              pw.SizedBox(height: 2),
+              pw.Text(receiptNo, style: pw.TextStyle(color: _text, fontSize: 10, fontWeight: pw.FontWeight.bold)),
+            ]),
+          ]),
+          pw.SizedBox(height: 16),
 
           // amount + status
           pw.Center(child: pw.Text(data.title, style: pw.TextStyle(color: _grey, fontSize: 11))),
@@ -158,7 +191,7 @@ class ReceiptService {
                 ...data.rows,
               ])
                 pw.Padding(
-                  padding: pw.EdgeInsets.symmetric(vertical: 6),
+                  padding: pw.EdgeInsets.symmetric(vertical: 5),
                   child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
                     pw.SizedBox(width: 110, child: pw.Text(row.key, style: pw.TextStyle(color: _grey, fontSize: 10))),
                     pw.Expanded(child: pw.Text(row.value, textAlign: pw.TextAlign.right, style: pw.TextStyle(color: _text, fontSize: 10, fontWeight: pw.FontWeight.bold))),
@@ -170,7 +203,7 @@ class ReceiptService {
           pw.SizedBox(height: 10),
           pw.Divider(color: PdfColors.grey300),
           pw.Row(children: [
-            pw.Expanded(child: pw.Text('Total paid', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold))),
+            pw.Expanded(child: pw.Text(data.status == 'failed' ? 'Amount refunded' : (data.status == 'pending' ? 'Amount debited' : 'Total paid'), style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold))),
             pw.Text(money(data.amount), style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: _brand)),
           ]),
           if (data.note != null) ...[
@@ -178,6 +211,14 @@ class ReceiptService {
             pw.Text(data.note!, style: pw.TextStyle(color: _grey, fontSize: 9)),
           ],
           pw.Spacer(),
+          if (supportPhone.isNotEmpty || supportEmail.isNotEmpty)
+            pw.Center(
+              child: pw.Text(
+                'Need help? ${[supportPhone, supportEmail].where((v) => v.isNotEmpty).join('  ·  ')}',
+                style: pw.TextStyle(color: _text, fontSize: 9),
+              ),
+            ),
+          pw.SizedBox(height: 4),
           pw.Center(child: pw.Text('This is a computer generated receipt and does not need a signature.', style: pw.TextStyle(color: _grey, fontSize: 8))),
           pw.SizedBox(height: 2),
           pw.Center(child: pw.Text('Thank you for using S Taxi', style: pw.TextStyle(color: _brand, fontSize: 9, fontWeight: pw.FontWeight.bold))),
