@@ -142,7 +142,19 @@ void afterBuildCreated(Function()? onCreated) {
 T? makeNullable<T>(T? value) => value;
 
 String printDate(String date) {
-  return DateFormat('dd MMM yyyy').format(DateTime.parse(date).toLocal()) + " at " + DateFormat('hh:mm a').format(DateTime.parse(date).toLocal());
+  final parsed = _parseServerDate(date);
+  if (parsed == null) return date;
+  return DateFormat('dd MMM yyyy').format(parsed) + " at " + DateFormat('hh:mm a').format(parsed);
+}
+
+/// The API sends UTC times as "2026-09-17 07:41:08" with no zone marker, so plain parsing
+/// treated them as local and showed the wrong time. Mark them as UTC, then convert.
+DateTime? _parseServerDate(String date) {
+  final value = date.trim();
+  if (value.isEmpty) return null;
+  final hasZone = value.endsWith('Z') || RegExp(r'[+-]\d{2}:?\d{2}$').hasMatch(value);
+  final normalised = hasZone ? value : value.replaceFirst(' ', 'T') + 'Z';
+  return DateTime.tryParse(normalised)?.toLocal() ?? DateTime.tryParse(value)?.toLocal();
 }
 
 Widget emptyWidget() {

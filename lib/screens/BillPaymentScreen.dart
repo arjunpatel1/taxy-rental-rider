@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import '../utils/BrandTheme.dart';
 
 /// Bill payment: every non-mobile service that has operators (electricity, DTH, water, ...).
 class BillPaymentScreen extends StatefulWidget {
@@ -10,6 +11,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
   final searchController = TextEditingController();
   List<Map<String, dynamic>> services = [];
   bool loading = true;
+  bool failed = false;
 
   @override
   void initState() {
@@ -24,10 +26,15 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
   }
 
   Future<void> _load() async {
+    setState(() {
+      loading = true;
+      failed = false;
+    });
     try {
       final list = await getRechargeServices();
       if (mounted) setState(() => services = list.where((s) => s['is_recharge'] != true).toList());
     } catch (e) {
+      if (mounted) setState(() => failed = true);
       toast(e.toString());
     }
     if (mounted) setState(() => loading = false);
@@ -58,84 +65,115 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final query = searchController.text.trim().toLowerCase();
-    final visible = query.isEmpty
-        ? services
-        : services.where((s) => s['service_type'].toString().toLowerCase().contains(query)).toList();
+    final visible = query.isEmpty ? services : services.where((s) => s['service_type'].toString().toLowerCase().contains(query)).toList();
+    final showSearch = services.length > 6;
 
     return Scaffold(
-      backgroundColor: Color(0xFFF4F6F9),
+      backgroundColor: BrandTokens.page,
       appBar: AppBar(title: Text('Bill payment')),
       body: loading
           ? Center(child: CircularProgressIndicator(color: brandBlue))
-          : services.isEmpty
-              ? Center(child: Text('No bill payment services available yet.', style: secondaryTextStyle()))
-              : Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16, 14, 16, 8),
-                      child: TextField(
-                        controller: searchController,
-                        onChanged: (_) => setState(() {}),
-                        decoration: InputDecoration(
-                          hintText: 'Search a service',
-                          prefixIcon: Icon(Icons.search_rounded),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                          contentPadding: EdgeInsets.symmetric(vertical: 4),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: visible.isEmpty
-                          ? Center(child: Text('No service matches "${searchController.text.trim()}"', style: secondaryTextStyle()))
-                          : GridView.count(
-                              padding: EdgeInsets.fromLTRB(16, 8, 16, 20),
-                              crossAxisCount: 4,
-                              mainAxisSpacing: 10,
-                              crossAxisSpacing: 10,
-                              childAspectRatio: 0.78,
-                              children: visible.map((service) {
-                                final name = service['service_type'].toString();
-                                final count = (service['operator_count'] as num?)?.toInt() ?? 0;
-                                final (icon, colour) = _styleFor(name);
+          : failed
+              ? _message(Icons.cloud_off_rounded, 'Could not load services', 'Please check your internet and try again.', onRetry: _load)
+              : services.isEmpty
+                  ? _message(Icons.receipt_long_rounded, 'No bill services yet', 'Bill payment services will appear here once they are enabled.', onRetry: _load)
+                  : RefreshIndicator(
+                      color: brandBlue,
+                      onRefresh: _load,
+                      child: ListView(
+                        padding: EdgeInsets.fromLTRB(16, 14, 16, 24),
+                        children: [
+                          if (showSearch) ...[
+                            TextField(
+                              controller: searchController,
+                              onChanged: (_) => setState(() {}),
+                              decoration: InputDecoration(
+                                hintText: 'Search a service',
+                                prefixIcon: Icon(Icons.search_rounded),
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                              ),
+                            ),
+                            SizedBox(height: 14),
+                          ],
+                          Text('Pay your bills', style: boldTextStyle(size: 16)),
+                          SizedBox(height: 2),
+                          Text('Paid straight from your S Taxi wallet', style: secondaryTextStyle(size: 12)),
+                          SizedBox(height: 12),
+                          if (visible.isEmpty)
+                            Padding(
+                              padding: EdgeInsets.only(top: 40),
+                              child: Text('No service matches "${searchController.text.trim()}"', textAlign: TextAlign.center, style: secondaryTextStyle()),
+                            ),
+                          ...visible.map((service) {
+                            final name = service['service_type'].toString();
+                            final count = (service['operator_count'] as num?)?.toInt() ?? 0;
+                            final (icon, colour) = _styleFor(name);
 
-                                return Material(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(14),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: InkWell(
-                                    splashColor: colour.withValues(alpha: 0.12),
-                                    highlightColor: colour.withValues(alpha: 0.06),
-                                    onTap: () => launchScreen(context, RechargeScreen(title: name, serviceTypes: [name]),
-                                        pageRouteAnimation: PageRouteAnimation.Slide),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                            return Container(
+                              margin: EdgeInsets.only(bottom: 10),
+                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: BrandTokens.line)),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(16),
+                                  splashColor: colour.withValues(alpha: 0.12),
+                                  onTap: () => launchScreen(context, RechargeScreen(title: name, serviceTypes: [name]), pageRouteAnimation: PageRouteAnimation.Slide),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(14),
+                                    child: Row(
                                       children: [
                                         Container(
-                                          height: 42,
-                                          width: 42,
-                                          decoration: BoxDecoration(color: colour.withValues(alpha: 0.12), shape: BoxShape.circle),
-                                          child: Icon(icon, color: colour, size: 21),
+                                          height: 46,
+                                          width: 46,
+                                          decoration: BoxDecoration(color: colour.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(14)),
+                                          child: Icon(icon, color: colour, size: 24),
                                         ),
-                                        SizedBox(height: 6),
-                                        Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 6),
-                                          child: Text(name,
-                                              textAlign: TextAlign.center,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: boldTextStyle(size: 11)),
+                                        SizedBox(width: 14),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(name, style: boldTextStyle(size: 15)),
+                                              SizedBox(height: 2),
+                                              Text(count == 1 ? '1 biller' : '$count billers', style: secondaryTextStyle(size: 12)),
+                                            ],
+                                          ),
                                         ),
+                                        Icon(Icons.chevron_right_rounded, color: BrandTokens.inkSoft),
                                       ],
                                     ),
                                   ),
-                                );
-                              }).toList(),
-                            ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
+    );
+  }
+
+  Widget _message(IconData icon, String title, String subtitle, {VoidCallback? onRetry}) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 56, color: Colors.grey.shade400),
+            SizedBox(height: 14),
+            Text(title, style: boldTextStyle(size: 16)),
+            SizedBox(height: 6),
+            Text(subtitle, textAlign: TextAlign.center, style: secondaryTextStyle(size: 13)),
+            if (onRetry != null) ...[
+              SizedBox(height: 18),
+              OutlinedButton.icon(onPressed: onRetry, icon: Icon(Icons.refresh_rounded, size: 18), label: Text('Try again')),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
