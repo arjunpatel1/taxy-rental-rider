@@ -1,5 +1,6 @@
 import '../manage_imports.dart';
 import '../utils/BrandTheme.dart';
+import '../utils/BookingFare.dart';
 
 // ignore: must_be_immutable
 class Newestimateridelistwidget extends StatefulWidget {
@@ -89,10 +90,11 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
   Timer? timer;
   DateTime? schduleRideDateTime;
   var key = GlobalKey<ScaffoldState>();
-  late BitmapDescriptor sourceIcon;
-  late BitmapDescriptor destinationIcon;
-  late BitmapDescriptor driverIcon;
+  BitmapDescriptor sourceIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor destinationIcon = BitmapDescriptor.defaultMarker;
+  BitmapDescriptor driverIcon = BitmapDescriptor.defaultMarker;
   bool currentScreen = true;
+  String? serviceLoadError;
 
   String? formattedTime;
   String? parsedDate;
@@ -117,7 +119,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     init();
     getNewService();
     if (appStore.isLoggedIn) {
-      startLocationTracking();
+      startLocationTracking().catchError((Object error) { log('Location tracking unavailable: $error'); });
     }
   }
 
@@ -142,9 +144,14 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
   }
 
   void init() async {
+    try {
     sourceIcon = await getResizedMarker(SourceIcon);
     driverIcon = await getResizedMarker(DriverIcon);
     destinationIcon = await getResizedMarker(DestinationIcon);
+    } catch (error) {
+      log('Map marker loading failed: $error');
+    }
+    if (!mounted) return;
 
     //destinationIcon = await BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5), DestinationIcon);
 
@@ -163,7 +170,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
         if (locationEnable) {
           final LocationSettings locationSettings = LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 100, timeLimit: Duration(seconds: 30));
           positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen((event) async {
-            if (rideRequestData!.status == IN_PROGRESS) {
+            if (rideRequestData?.status == IN_PROGRESS) {
               if (myLocation != null) {
                 bool b = isDistanceMoreThan100Meters(startLat: myLocation!.latitude, startLng: myLocation!.longitude, endLat: event.latitude, endLng: event.longitude);
                 if (b) {
@@ -278,7 +285,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
             launchScreen(context, ReviewScreen(rideRequest: rideRequestData!, driverData: driverData), pageRouteAnimation: PageRouteAnimation.SlideBottomTop, isNewTask: true);
           }
         }
-        if (rideRequestData!.status == IN_PROGRESS) {
+        if (rideRequestData?.status == IN_PROGRESS) {
           locationPermission();
         }
       } else if (appStore.isRiderForAnother == "1" && value.payment != null && value.payment!.paymentStatus == SUCCESS) {
@@ -365,6 +372,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
   }
 
   Future<void> getNewService({bool coupon = false}) async {
+    serviceLoadError = null;
     appStore.setLoading(true);
     // final tripDetail = widget.tripDetail;
     Map req = {
@@ -399,31 +407,33 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     }
 
     await estimatePriceList(req).then((value) {
+      if (!mounted) return;
       appStore.setLoading(false);
       serviceList.clear();
-      value.data!.sort((a, b) => a.totalAmount!.compareTo(b.totalAmount!));
-      serviceList.addAll(value.data!);
+      final available = (value.data ?? <ServicesListData>[]).where((service) => service.totalAmount != null).toList();
+      available.sort((a, b) => a.totalAmount!.compareTo(b.totalAmount!));
+      serviceList.addAll(available);
       if (value.totalCoins != null) {
         totalCoins = value.totalCoins!;
       }
       if (serviceList.isNotEmpty) {
-        locationDistance = serviceList[0].dropoffDistanceInKm!.toDouble();
+        locationDistance = (serviceList[0].dropoffDistanceInKm ?? 0).toDouble();
         if (serviceList[0].distanceUnit == DISTANCE_TYPE_KM) {
-          locationDistance = serviceList[0].dropoffDistanceInKm!.toDouble();
+          locationDistance = (serviceList[0].dropoffDistanceInKm ?? 0).toDouble();
           distanceUnit = DISTANCE_TYPE_KM;
         } else {
-          locationDistance = serviceList[0].dropoffDistanceInKm!.toDouble() * 0.621371;
+          locationDistance = (serviceList[0].dropoffDistanceInKm ?? 0).toDouble() * 0.621371;
           distanceUnit = DISTANCE_TYPE_MILE;
         }
-        durationOfDrop = serviceList[0].duration!.toDouble();
+        durationOfDrop = (serviceList[0].duration ?? 0).toDouble();
       }
 
       if (serviceList.isNotEmpty) servicesListData = serviceList[0];
-      if (serviceList.isNotEmpty) paymentMethodType = serviceList[0].paymentMethod!;
+      if (serviceList.isNotEmpty) paymentMethodType = (serviceList[0].paymentMethod ?? CASH_WALLET);
       if (serviceList.isNotEmpty) cashList = paymentMethodType == CASH_WALLET ? cashList = [CASH, WALLET] : cashList = [paymentMethodType];
       if (serviceList.isNotEmpty) {
-        if (serviceList[0].discountAmount != 0) {
-          mSelectServiceAmount = serviceList[0].subtotal!.toStringAsFixed(fixedDecimal);
+        if ((serviceList[0].discountAmount ?? 0) > 0) {
+          mSelectServiceAmount = (serviceList[0].subtotal ?? serviceList[0].totalAmount ?? 0).toStringAsFixed(fixedDecimal);
         } else {
           mSelectServiceAmount = serviceList[0].totalAmount!.toStringAsFixed(fixedDecimal);
         }
@@ -434,6 +444,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       setState(() {});
     }).catchError((error) {
       appStore.setLoading(false);
+      if (!mounted) return;
+      setState(() => serviceLoadError = 'Unable to load ride fares. Please try again.');
       toast(error.toString(), print: true);
     });
   }
@@ -474,31 +486,33 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     }
 
     await estimatePriceList(req).then((value) {
+      if (!mounted) return;
       appStore.setLoading(false);
       serviceList.clear();
-      value.data!.sort((a, b) => a.totalAmount!.compareTo(b.totalAmount!));
-      serviceList.addAll(value.data!);
+      final available = (value.data ?? <ServicesListData>[]).where((service) => service.totalAmount != null).toList();
+      available.sort((a, b) => a.totalAmount!.compareTo(b.totalAmount!));
+      serviceList.addAll(available);
       if (value.totalCoins != null) {
         totalCoins = value.totalCoins!;
       }
       if (serviceList.isNotEmpty) {
-        locationDistance = serviceList[0].dropoffDistanceInKm!.toDouble();
+        locationDistance = (serviceList[0].dropoffDistanceInKm ?? 0).toDouble();
         if (serviceList[0].distanceUnit == DISTANCE_TYPE_KM) {
-          locationDistance = serviceList[0].dropoffDistanceInKm!.toDouble();
+          locationDistance = (serviceList[0].dropoffDistanceInKm ?? 0).toDouble();
           distanceUnit = DISTANCE_TYPE_KM;
         } else {
-          locationDistance = serviceList[0].dropoffDistanceInKm!.toDouble() * 0.621371;
+          locationDistance = (serviceList[0].dropoffDistanceInKm ?? 0).toDouble() * 0.621371;
           distanceUnit = DISTANCE_TYPE_MILE;
         }
-        durationOfDrop = serviceList[0].duration!.toDouble();
+        durationOfDrop = (serviceList[0].duration ?? 0).toDouble();
       }
 
       if (serviceList.isNotEmpty) servicesListData = serviceList[0];
-      if (serviceList.isNotEmpty) paymentMethodType = serviceList[0].paymentMethod!;
+      if (serviceList.isNotEmpty) paymentMethodType = (serviceList[0].paymentMethod ?? CASH_WALLET);
       if (serviceList.isNotEmpty) cashList = paymentMethodType == CASH_WALLET ? cashList = [CASH, WALLET] : cashList = [paymentMethodType];
       if (serviceList.isNotEmpty) {
-        if (serviceList[0].discountAmount != 0) {
-          mSelectServiceAmount = serviceList[0].subtotal!.toStringAsFixed(fixedDecimal);
+        if ((serviceList[0].discountAmount ?? 0) > 0) {
+          mSelectServiceAmount = (serviceList[0].subtotal ?? serviceList[0].totalAmount ?? 0).toStringAsFixed(fixedDecimal);
         } else {
           mSelectServiceAmount = serviceList[0].totalAmount!.toStringAsFixed(fixedDecimal);
         }
@@ -919,7 +933,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
   onMapCreated(GoogleMapController controller) async {
     try {
       googleMapController = controller;
-      _controller.complete(controller);
+      if (!_controller.isCompleted) _controller.complete(controller);
       await Future.delayed(Duration(milliseconds: 50));
       await googleMapController!.animateCamera(CameraUpdate.newLatLngBounds(
           LatLngBounds(
@@ -1359,7 +1373,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
               mainAxisSize: MainAxisSize.min,
               children: [
                 emptyWidget(),
-                Text(language.servicesNotFound, style: boldTextStyle()),
+                Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text(serviceLoadError ?? language.servicesNotFound, textAlign: TextAlign.center, style: boldTextStyle())),
+                TextButton(onPressed: () => getNewService(), child: Text('Retry')),
                 SizedBox(height: 8),
               ],
             ),
@@ -1500,9 +1515,10 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
   }
 
   /// Vehicle option in the booking sheet.
-  Widget _vehicleCard(dynamic e) {
+  Widget _vehicleCard(ServicesListData e) {
     final selected = selectedIndex == serviceList.indexOf(e);
-    final discounted = e.totalAmount! != e.totalAmountAfterDiscount;
+    final fare = BookingFare(total: e.totalAmount ?? 0, discountedTotal: e.totalAmountAfterDiscount);
+    final discounted = fare.hasDiscount;
     return AnimatedContainer(
       duration: Duration(milliseconds: 180),
       width: 150,
@@ -1556,7 +1572,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
               decorationColor: BrandTokens.danger,
             ),
           printAmountWidget(
-            amount: (discounted ? e.totalAmountAfterDiscount! : e.totalAmount!).toStringAsFixed(digitAfterDecimal),
+            amount: fare.amount.toStringAsFixed(digitAfterDecimal),
             size: 18,
             weight: FontWeight.w700,
             color: selected ? BrandTokens.blue : BrandTokens.ink,
@@ -1570,9 +1586,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
   Widget serviceSelectWidget() {
     print("totalCoins ${totalCoins}");
     if (!widget.pickupTimeValue.isEmptyOrNull) {
-      DateTime parsedDate = DateTime.parse(widget.pickupTimeValue ?? "");
-
-      formattedTime = DateFormat('yyyy-MM-dd hh:mm a').format(parsedDate);
+      final pickup = DateTime.tryParse(widget.pickupTimeValue ?? '');
+      if (pickup != null) formattedTime = DateFormat('yyyy-MM-dd hh:mm a').format(pickup);
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1608,7 +1623,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                   if (cashList.length > 1) {
                     oldPaymentType = paymentMethodType;
                   }
-                  if (e.discountAmount != 0) {
+                  if ((e.discountAmount ?? 0) > 0) {
                     mSelectServiceAmount = e.subtotal!.toStringAsFixed(fixedDecimal);
                   } else {
                     mSelectServiceAmount = e.totalAmount!.toStringAsFixed(fixedDecimal);
@@ -1622,7 +1637,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                     locationDistance = e.dropoffDistanceInKm!.toDouble() * 0.621371;
                     distanceUnit = DISTANCE_TYPE_MILE;
                   }
-                  durationOfDrop = serviceList[0].duration!.toDouble();
+                  durationOfDrop = (serviceList[0].duration ?? 0).toDouble();
                   paymentMethodType = e.paymentMethod!;
 
                   // cashList =

@@ -402,6 +402,11 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                   AppButtonWidget(
                     width: MediaQuery.of(context).size.width,
                     onTap: () async {
+                      hideKeyboard(context);
+                      if (multipleDropPoints.isNotEmpty && List.generate(multipleDropPoints.length, (i) => i).any((i) => multiDropLatLng[i] == null)) {
+                        toast("Please select each drop location from the suggestions");
+                        return;
+                      }
                       if (multipleDropPoints.isNotEmpty) {
                         var abc = {};
                         polylineDestination = multiDropLatLng[multipleDropPoints.length - 1];

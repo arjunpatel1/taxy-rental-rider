@@ -1,7 +1,4 @@
-import 'dart:io';
-
-import 'package:image_picker/image_picker.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../network/UpiPaymentResult.dart';
 
 import '../manage_imports.dart';
 
@@ -16,7 +13,8 @@ class WalletTopupScreen extends StatefulWidget {
   State<WalletTopupScreen> createState() => _WalletTopupScreenState();
 }
 
-class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindingObserver {
+class _WalletTopupScreenState extends State<WalletTopupScreen>
+    with WidgetsBindingObserver {
   final amountController = TextEditingController();
   final utrController = TextEditingController();
   final quickAmounts = [100, 200, 500, 1000, 2000];
@@ -43,9 +41,13 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Back from the UPI app: ask what happened, then let the server verify it.
-    if (state == AppLifecycleState.resumed && waitingForUpiApp && pendingTopup != null) {
+    if (state == AppLifecycleState.resumed &&
+        waitingForUpiApp &&
+        pendingTopup != null) {
       waitingForUpiApp = false;
-      Future.delayed(Duration(milliseconds: 400), _askPaymentResult);
+      Future.delayed(Duration(milliseconds: 400), () {
+        if (mounted) _askPaymentResult();
+      });
     }
   }
 
@@ -73,7 +75,22 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
       pendingTopup = data;
       final uri = Uri.parse(data['upi_uri'].toString());
 
-      if (await canLaunchUrl(uri)) {
+      if (Platform.isAndroid) {
+        try {
+          final response = await const MethodChannel('staxi/upi_payment')
+              .invokeMapMethod<String, dynamic>('pay', {'uri': uri.toString()});
+          if (!mounted) return;
+          final payment = UpiPaymentResult.fromNative(response ?? {});
+          utrController.text = payment.utr ?? '';
+          await _finishTopup(payment.appStatus, closeDialog: false);
+        } on PlatformException catch (error) {
+          if (error.code == 'NO_UPI_APP') {
+            _showManualPay(data);
+          } else {
+            rethrow;
+          }
+        }
+      } else if (await canLaunchUrl(uri)) {
         waitingForUpiApp = true;
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
@@ -96,12 +113,15 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SelectableText('${data['upi_id']}', style: boldTextStyle(size: 16, color: brandBlue)),
+            SelectableText('${data['upi_id']}',
+                style: boldTextStyle(size: 16, color: brandBlue)),
             SizedBox(height: 6),
             Text('${data['payee_name']}', style: secondaryTextStyle()),
             SizedBox(height: 10),
-            Text('Amount: $currencySymbol${data['amount']}', style: primaryTextStyle()),
-            Text('Reference: ${data['reference']}', style: secondaryTextStyle(size: 12)),
+            Text('Amount: $currencySymbol${data['amount']}',
+                style: primaryTextStyle()),
+            Text('Reference: ${data['reference']}',
+                style: secondaryTextStyle(size: 12)),
           ],
         ),
         actions: [
@@ -125,12 +145,15 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
-        title: Text('Did the payment go through?', style: boldTextStyle(size: 17)),
+        title:
+            Text('Did the payment go through?', style: boldTextStyle(size: 17)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Amount $currencySymbol${pendingTopup!['amount']} to ${pendingTopup!['upi_id']}', style: secondaryTextStyle(size: 13)),
+            Text(
+                'Amount $currencySymbol${pendingTopup!['amount']} to ${pendingTopup!['upi_id']}',
+                style: secondaryTextStyle(size: 13)),
             SizedBox(height: 12),
             TextField(
               controller: utrController,
@@ -144,9 +167,11 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
           ],
         ),
         actions: [
-          TextButton(onPressed: () => _finishTopup('failure'), child: Text('Not paid')),
+          TextButton(
+              onPressed: () => _finishTopup('failure'),
+              child: Text('Not paid')),
           ElevatedButton(
-            onPressed: () => _finishTopup('success'),
+            onPressed: () => _finishTopup('submitted'),
             style: ElevatedButton.styleFrom(backgroundColor: brandBlue),
             child: Text('Yes, I paid', style: TextStyle(color: Colors.white)),
           ),
@@ -155,38 +180,52 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
     );
   }
 
-  Future<void> _finishTopup(String appStatus) async {
-    Navigator.pop(context);
+  Future<void> _finishTopup(String appStatus, {bool closeDialog = true}) async {
+    if (busy && closeDialog) return;
+    if (closeDialog) Navigator.pop(context);
     final reference = pendingTopup?['reference']?.toString();
     if (reference == null) return;
 
     setState(() => busy = true);
     try {
       final paidAmount = num.tryParse('${pendingTopup?['amount']}') ?? _amount;
-      final result = await confirmWalletTopup(reference: reference, appStatus: appStatus, utr: utrController.text.trim());
+      final result = await confirmWalletTopup(
+          reference: reference,
+          appStatus: appStatus,
+          utr: utrController.text.trim());
       amountController.clear();
       pendingTopup = null;
       _loadHistory();
       if (!mounted) return;
-      if (appStatus == 'success') {
-        final data = result['data'] is Map ? Map<String, dynamic>.from(result['data']) : <String, dynamic>{};
-        final state = TransactionResultScreen.fromStatus(data['status']?.toString() ?? 'awaiting_verification');
-        TransactionResultScreen.show(
+      final data = result['data'] is Map
+          ? Map<String, dynamic>.from(result['data'])
+          : <String, dynamic>{};
+      final state = TransactionResultScreen.fromStatus(
+          data['status']?.toString() ?? 'awaiting_verification');
+      final title = state == TransactionResult.success
+          ? 'Money added to wallet'
+          : state == TransactionResult.failed
+              ? 'Payment failed'
+              : 'Payment awaiting verification';
+      final subtitle = state == TransactionResult.failed
+          ? 'No money was added to your wallet. You can try again.'
+          : state == TransactionResult.pending
+              ? 'No money has been added yet. Your wallet will be credited only after payment verification.'
+              : null;
+      await TransactionResultScreen.show(
           context,
           TransactionResultScreen(
             result: state,
-            title: state == TransactionResult.success ? 'Money added to wallet' : 'Payment submitted',
-            subtitle: state == TransactionResult.success ? null : 'We are verifying your UPI payment. The amount will be added to your wallet shortly.',
-            amount: '$currencySymbol${paidAmount.toStringAsFixed(paidAmount % 1 == 0 ? 0 : 2)}',
+            title: title,
+            subtitle: subtitle,
+            amount:
+                '$currencySymbol${paidAmount.toStringAsFixed(paidAmount % 1 == 0 ? 0 : 2)}',
             details: [
               MapEntry('Reference', reference),
-              if (utrController.text.trim().isNotEmpty) MapEntry('UTR', utrController.text.trim()),
+              if (utrController.text.trim().isNotEmpty)
+                MapEntry('UTR', utrController.text.trim())
             ],
-          ),
-        );
-      } else {
-        toast(result['message']?.toString() ?? 'Payment cancelled');
-      }
+          ));
     } catch (e) {
       toast(e.toString());
     }
@@ -195,7 +234,8 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
 
   /// Paid by bank transfer / cash / another phone: send the details for verification.
   Future<void> _manualRequest() async {
-    final manualAmount = TextEditingController(text: _amount > 0 ? _amount.toStringAsFixed(0) : '');
+    final manualAmount = TextEditingController(
+        text: _amount > 0 ? _amount.toStringAsFixed(0) : '');
     final manualUtr = TextEditingController();
     final manualNote = TextEditingController();
     File? screenshot;
@@ -204,10 +244,12 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (sheetContext) => StatefulBuilder(
         builder: (sheetContext, setSheetState) => Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(sheetContext).viewInsets.bottom + 16),
+          padding: EdgeInsets.fromLTRB(
+              16, 16, 16, MediaQuery.of(sheetContext).viewInsets.bottom + 16),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -215,41 +257,59 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
               children: [
                 Text('Add money manually', style: boldTextStyle(size: 18)),
                 SizedBox(height: 4),
-                Text('Paid by bank transfer, cash or from another phone? Send us the details and we will add it after checking.', style: secondaryTextStyle(size: 12)),
+                Text(
+                    'Paid by bank transfer, cash or from another phone? Send us the details and we will add it after checking.',
+                    style: secondaryTextStyle(size: 12)),
                 SizedBox(height: 14),
                 TextField(
                   controller: manualAmount,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Amount paid', prefixText: '$currencySymbol '),
+                  decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Amount paid',
+                      prefixText: '$currencySymbol '),
                 ),
                 SizedBox(height: 12),
                 TextField(
                   controller: manualUtr,
-                  decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'UPI reference / UTR (optional)'),
+                  decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'UPI reference / UTR (optional)'),
                 ),
                 SizedBox(height: 12),
                 TextField(
                   controller: manualNote,
-                  decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Note (optional)', hintText: 'Paid to GPay number, cash to driver...'),
+                  decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Note (optional)',
+                      hintText: 'Paid to GPay number, cash to driver...'),
                 ),
                 SizedBox(height: 12),
                 InkWell(
                   onTap: () async {
-                    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 60, maxWidth: 1600);
-                    if (picked != null) setSheetState(() => screenshot = File(picked.path));
+                    final picked = await ImagePicker().pickImage(
+                        source: ImageSource.gallery,
+                        imageQuality: 60,
+                        maxWidth: 1600);
+                    if (picked != null)
+                      setSheetState(() => screenshot = File(picked.path));
                   },
                   child: Container(
                     height: 130,
                     width: double.infinity,
                     clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade400),
+                        borderRadius: BorderRadius.circular(12)),
                     child: screenshot == null
                         ? Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_photo_alternate_rounded, size: 32, color: brandBlue),
+                              Icon(Icons.add_photo_alternate_rounded,
+                                  size: 32, color: brandBlue),
                               SizedBox(height: 6),
-                              Text('Attach payment screenshot (optional)', style: secondaryTextStyle(size: 12)),
+                              Text('Attach payment screenshot (optional)',
+                                  style: secondaryTextStyle(size: 12)),
                             ],
                           )
                         : Image.file(screenshot!, fit: BoxFit.cover),
@@ -283,14 +343,20 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
                           TransactionResultScreen(
                             result: TransactionResult.pending,
                             title: 'Request sent',
-                            subtitle: 'Our team will check your payment and add the money to your wallet.',
-                            amount: '$currencySymbol${amount.toStringAsFixed(amount % 1 == 0 ? 0 : 2)}',
-                            details: [if (manualUtr.text.trim().isNotEmpty) MapEntry('UTR', manualUtr.text.trim())],
+                            subtitle:
+                                'Our team will check your payment and add the money to your wallet.',
+                            amount:
+                                '$currencySymbol${amount.toStringAsFixed(amount % 1 == 0 ? 0 : 2)}',
+                            details: [
+                              if (manualUtr.text.trim().isNotEmpty)
+                                MapEntry('UTR', manualUtr.text.trim())
+                            ],
                           ),
                         );
                       },
                       onError: (error) {
-                        toast(error?.toString() ?? 'Could not send the request');
+                        toast(
+                            error?.toString() ?? 'Could not send the request');
                         if (mounted) setState(() => busy = false);
                       },
                     );
@@ -352,13 +418,20 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
             ),
             child: Row(
               children: [
-                Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 30),
+                Icon(Icons.account_balance_wallet_rounded,
+                    color: Colors.white, size: 30),
                 SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Wallet balance', style: TextStyle(color: Colors.white70, fontSize: 13)),
-                    Text('$currencySymbol${widget.currentBalance.toStringAsFixed(2)}', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800)),
+                    Text('Wallet balance',
+                        style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    Text(
+                        '$currencySymbol${widget.currentBalance.toStringAsFixed(2)}',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800)),
                   ],
                 ),
               ],
@@ -367,7 +440,8 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
           SizedBox(height: 18),
           Container(
             padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(18)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -378,7 +452,10 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
                   keyboardType: TextInputType.number,
                   onChanged: (_) => setState(() {}),
                   style: boldTextStyle(size: 22),
-                  decoration: InputDecoration(border: OutlineInputBorder(), prefixText: '$currencySymbol ', hintText: '0'),
+                  decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      prefixText: '$currencySymbol ',
+                      hintText: '0'),
                 ),
                 SizedBox(height: 12),
                 Wrap(
@@ -386,7 +463,8 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
                   runSpacing: 8,
                   children: quickAmounts.map((amount) {
                     return ActionChip(
-                      label: Text('$currencySymbol$amount', style: boldTextStyle(size: 13)),
+                      label: Text('$currencySymbol$amount',
+                          style: boldTextStyle(size: 13)),
                       backgroundColor: Color(0xFFF0F3F8),
                       onPressed: () {
                         amountController.text = amount.toString();
@@ -407,15 +485,18 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
                 Center(
                   child: TextButton.icon(
                     onPressed: busy ? null : _manualRequest,
-                    icon: Icon(Icons.receipt_long_rounded, size: 18, color: brandBlue),
-                    label: Text('Paid another way? Add manually', style: boldTextStyle(size: 13, color: brandBlue)),
+                    icon: Icon(Icons.receipt_long_rounded,
+                        size: 18, color: brandBlue),
+                    label: Text('Paid another way? Add manually',
+                        style: boldTextStyle(size: 13, color: brandBlue)),
                   ),
                 ),
                 SizedBox(height: 4),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.verified_user_rounded, size: 16, color: Color(0xFF1E9E57)),
+                    Icon(Icons.verified_user_rounded,
+                        size: 16, color: Color(0xFF1E9E57)),
                     SizedBox(width: 6),
                     Expanded(
                       child: Text(
@@ -434,8 +515,10 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
           if (topups.isEmpty)
             Container(
               padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-              child: Center(child: Text('No top-ups yet.', style: secondaryTextStyle())),
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              child: Center(
+                  child: Text('No top-ups yet.', style: secondaryTextStyle())),
             )
           else
             ...topups.map((topup) {
@@ -443,19 +526,30 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
               return Container(
                 margin: EdgeInsets.only(bottom: 10),
                 padding: EdgeInsets.all(14),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14)),
                 child: Row(
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('$currencySymbol${(num.tryParse('${topup['amount']}') ?? 0).toStringAsFixed(2)}', style: boldTextStyle(size: 16)),
+                          Text(
+                              '$currencySymbol${(num.tryParse('${topup['amount']}') ?? 0).toStringAsFixed(2)}',
+                              style: boldTextStyle(size: 16)),
                           SizedBox(height: 2),
-                          Text('${topup['reference']}', style: secondaryTextStyle(size: 11)),
-                          if ((topup['method'] ?? '') == 'manual') Text('Manual request', style: secondaryTextStyle(size: 11)),
-                          if ((topup['method'] ?? '') == 'admin') Text('Added by S Taxi', style: secondaryTextStyle(size: 11)),
-                          if ((topup['utr'] ?? '').toString().isNotEmpty) Text('UTR: ${topup['utr']}', style: secondaryTextStyle(size: 11)),
+                          Text('${topup['reference']}',
+                              style: secondaryTextStyle(size: 11)),
+                          if ((topup['method'] ?? '') == 'manual')
+                            Text('Manual request',
+                                style: secondaryTextStyle(size: 11)),
+                          if ((topup['method'] ?? '') == 'admin')
+                            Text('Added by S Taxi',
+                                style: secondaryTextStyle(size: 11)),
+                          if ((topup['utr'] ?? '').toString().isNotEmpty)
+                            Text('UTR: ${topup['utr']}',
+                                style: secondaryTextStyle(size: 11)),
                         ],
                       ),
                     ),
@@ -463,11 +557,20 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> with WidgetsBindi
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(color: _statusColor(status).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
-                          child: Text(_statusLabel(status), style: boldTextStyle(size: 11, color: _statusColor(status))),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                              color:
+                                  _statusColor(status).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Text(_statusLabel(status),
+                              style: boldTextStyle(
+                                  size: 11, color: _statusColor(status))),
                         ),
-                        if (status == 'success') ReceiptActions(data: WalletTopupReceipt.fromTopup(topup), compact: true),
+                        if (status == 'success')
+                          ReceiptActions(
+                              data: WalletTopupReceipt.fromTopup(topup),
+                              compact: true),
                       ],
                     ),
                   ],
