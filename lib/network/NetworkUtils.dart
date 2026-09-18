@@ -109,15 +109,54 @@ Future handleResponse(Response response, [bool? avoidTokenError]) async {
 
   if (response.statusCode == 200) {
     return jsonDecode(response.body);
-  } else {
-    try {
-      var body = jsonDecode(response.body);
-      throw parseHtmlString(body['message']);
-    } on Exception catch (e, s) {
-      log(e);
-      FirebaseCrashlytics.instance.recordError("handleResponse_ERROR->${response.statusCode}::" + e.toString(), s, fatal: true);
-      throw 'Something Went Wrong';
+  }
+
+  throw _readableError(response);
+}
+
+/// Turns an error response into a message a rider can act on, instead of "Something went wrong".
+String _readableError(Response response) {
+  String? serverMessage;
+  try {
+    final body = jsonDecode(response.body);
+    if (body is Map) {
+      if (body['message'] is String && body['message'].toString().trim().isNotEmpty) {
+        serverMessage = parseHtmlString(body['message']);
+      }
+      // validation errors: {"errors": {"field": ["msg"]}} or {"all_message": {...}}
+      final errors = body['errors'] ?? body['all_message'];
+      if ((serverMessage == null || serverMessage.isEmpty) && errors is Map && errors.isNotEmpty) {
+        final first = errors.values.first;
+        serverMessage = first is List && first.isNotEmpty ? first.first.toString() : first.toString();
+      }
     }
+  } catch (_) {
+    // body was not JSON (html error page, gateway error, ...)
+  }
+
+  if (serverMessage != null && serverMessage.trim().isNotEmpty) return serverMessage.trim();
+
+  switch (response.statusCode) {
+    case 400:
+    case 422:
+      return 'Please check the details and try again.';
+    case 403:
+      return 'You do not have permission for this action.';
+    case 404:
+      return 'This is not available anymore.';
+    case 408:
+      return 'The request took too long. Please try again.';
+    case 429:
+      return 'Too many attempts. Please wait a minute and try again.';
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      FirebaseCrashlytics.instance.recordError('server_error_${response.statusCode}: ${response.request?.url}', StackTrace.current);
+      return 'Our server is busy right now. Please try again in a moment.';
+    default:
+      FirebaseCrashlytics.instance.recordError('http_${response.statusCode}: ${response.request?.url}', StackTrace.current);
+      return 'Something went wrong. Please try again.';
   }
 }
 
