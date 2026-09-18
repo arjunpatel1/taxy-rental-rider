@@ -1638,7 +1638,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
           ),
         ),
         SizedBox(height: 8),
-        if (mSelectServiceAmount != null && paymentMethodType != CASH_WALLET && paymentMethodType == WALLET && double.parse(mSelectServiceAmount!) >= mTotalAmount.toDouble())
+        if (mSelectServiceAmount != null && paymentMethodType != CASH_WALLET && paymentMethodType == WALLET && double.parse(mSelectServiceAmount!) > mTotalAmount.toDouble())
           Padding(
             padding: EdgeInsets.zero,
             // padding: EdgeInsets.only(top: 4,left: 16,right: 16),
@@ -1649,7 +1649,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
               child: Row(
                 children: [
                   Expanded(child: Text(language.lblLessWalletAmount, style: boldTextStyle(size: 12, color: Colors.red, letterSpacing: 0.5, weight: FontWeight.w500))),
-                  if (mSelectServiceAmount != null && paymentMethodType != CASH_WALLET && paymentMethodType == WALLET && double.parse(mSelectServiceAmount!) >= mTotalAmount.toDouble())
+                  if (mSelectServiceAmount != null && paymentMethodType != CASH_WALLET && paymentMethodType == WALLET && double.parse(mSelectServiceAmount!) > mTotalAmount.toDouble())
                     inkWellWidget(
                       onTap: () {
                         oldPaymentType = paymentMethodType;
@@ -2006,7 +2006,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
           padding: EdgeInsets.only(left: 16, right: 16, bottom: 0),
           child: AppButtonWidget(
             onTap: () {
-              if (mSelectServiceAmount != null && paymentMethodType != CASH_WALLET && paymentMethodType == WALLET && double.parse(mSelectServiceAmount!) >= mTotalAmount.toDouble()) {
+              if (mSelectServiceAmount != null && paymentMethodType != CASH_WALLET && paymentMethodType == WALLET && double.parse(mSelectServiceAmount!) > mTotalAmount.toDouble()) {
                 return toast(language.noBalanceValidate);
               }
               saveBookingData();
@@ -2038,7 +2038,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
             padding: EdgeInsets.only(left: 16, right: 16, bottom: 12),
             child: AppButtonWidget(
               onTap: () {
-                if (mSelectServiceAmount != null && paymentMethodType != CASH_WALLET && paymentMethodType == WALLET && double.parse(mSelectServiceAmount!) >= mTotalAmount.toDouble()) {
+                if (mSelectServiceAmount != null && paymentMethodType != CASH_WALLET && paymentMethodType == WALLET && double.parse(mSelectServiceAmount!) > mTotalAmount.toDouble()) {
                   return toast(language.noBalanceValidate);
                 }
                 saveBookingData(ride_type: "with_bidding");
@@ -2057,9 +2057,12 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     );
   }
 
+  /// Guards this booking only. The shared appStore.isLoading flag was used before and any other
+  /// screen leaving it on made the Book now button do nothing.
+  bool bookingInProgress = false;
+
   Future<void> saveBookingData({String? ride_type}) async {
-    // a second tap while the request is being created would book the ride twice
-    if (appStore.isLoading) return;
+    if (bookingInProgress) return;
     if (schduleRideDateTime != null && schduleRideDateTime!.isBefore(DateTime.now())) {
       return toast("Enter Valid Schedule Time");
     }
@@ -2073,6 +2076,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     } else if (isRideForOther == false && phoneController.text.isEmpty) {
       return toast(language.phoneNumberIsRequired);
     }
+    if (servicesListData == null) return toast('Select a vehicle to book your ride');
     appStore.setLoading(true);
     widget.dt = DateTime.now().toUtc().toString().replaceAll("Z", "");
     if (!formattedTime.isEmptyOrNull) {
@@ -2158,6 +2162,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
             ? CASH
             : paymentMethodType;
     log('$req');
+    bookingInProgress = true;
     await saveRideRequest(req).then((value) async {
       rideRequestId = value.rideRequestId!;
       rideBookingModel.rideId = rideRequestId;
@@ -2245,6 +2250,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     }).catchError((error) {
       appStore.setLoading(false);
       toast(error.toString());
+    }).whenComplete(() {
+      bookingInProgress = false;
     });
   }
 
