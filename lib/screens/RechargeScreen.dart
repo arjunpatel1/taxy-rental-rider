@@ -19,6 +19,7 @@ class _RechargeScreenState extends State<RechargeScreen> {
   final numberController = TextEditingController();
   final amountController = TextEditingController();
   bool loadingOperators = false;
+  bool operatorsFailed = false;
   bool paying = false;
   bool busy = false;
   num walletBalance = 0;
@@ -59,9 +60,11 @@ class _RechargeScreenState extends State<RechargeScreen> {
     try {
       amountLocked = false;
       billDetails = [];
+      operatorsFailed = false;
       final list = await getRechargeOperators(serviceType: selectedService);
       if (mounted) setState(() => operators = list);
     } catch (e) {
+      if (mounted) setState(() => operatorsFailed = true);
       toast(e.toString());
     }
     if (mounted) setState(() => loadingOperators = false);
@@ -576,8 +579,19 @@ class _RechargeScreenState extends State<RechargeScreen> {
                   SizedBox(height: 8),
                   if (loadingOperators)
                     Padding(padding: EdgeInsets.all(8), child: SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2)))
+                  else if (operatorsFailed)
+                    Row(children: [
+                      Icon(Icons.cloud_off_rounded, size: 18, color: textSecondaryColor),
+                      SizedBox(width: 8),
+                      Expanded(child: Text('Could not load operators.', style: secondaryTextStyle(size: 13))),
+                      TextButton.icon(onPressed: _loadOperators, icon: Icon(Icons.refresh_rounded, size: 16), label: Text('Retry')),
+                    ])
                   else if (operators.isEmpty)
-                    Text('No operators available yet.', style: secondaryTextStyle())
+                    Row(children: [
+                      Icon(Icons.storefront_outlined, size: 18, color: textSecondaryColor),
+                      SizedBox(width: 8),
+                      Expanded(child: Text('No billers available for this service yet.', style: secondaryTextStyle(size: 13))),
+                    ])
                   else
                     Material(
                       color: Colors.transparent,

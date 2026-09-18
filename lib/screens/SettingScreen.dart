@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import '../utils/BrandTheme.dart';
 
 class SettingScreen extends StatefulWidget {
   @override
@@ -30,7 +31,7 @@ class SettingScreenState extends State<SettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF4F6F9),
+      backgroundColor: BrandTokens.page,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: brandBlue,
@@ -38,9 +39,12 @@ class SettingScreenState extends State<SettingScreen> {
         title: Text(language.settings, style: boldTextStyle(color: Colors.white)),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.only(bottom: 16, top: 16),
+        padding: EdgeInsets.fromLTRB(16, 16, 16, 24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _groupTitle('Account'),
+            _group([
             Visibility(
               visible: sharedPref.getString(LOGIN_TYPE) != 'mobile' &&
                   sharedPref.getString(LOGIN_TYPE) != LoginTypeGoogle &&
@@ -55,7 +59,10 @@ class SettingScreenState extends State<SettingScreen> {
             settingItemWidget(Ionicons.language_outline, language.language, () {
               launchScreen(context, LanguageScreen(),
                   pageRouteAnimation: PageRouteAnimation.Slide);
-            }),
+            }, isLast: true),
+            ]),
+            _groupTitle('Help & legal'),
+            _group([
             if (appStore.privacyPolicy != null)
               settingItemWidget(
                   Ionicons.ios_document_outline, language.privacyPolicy, () {
@@ -97,46 +104,61 @@ class SettingScreenState extends State<SettingScreen> {
                     context, AboutScreen(settingModel: appStore.settingModel),
                     pageRouteAnimation: PageRouteAnimation.Slide);
               },
+              isLast: true,
             ),
-            settingItemWidget(
-                Ionicons.ios_trash_outline,
-                color: Colors.red,
-                language.deleteAccount, () {
-              launchScreen(context, DeleteAccountScreen(),
-                  pageRouteAnimation: PageRouteAnimation.Slide);
-            }, isLast: true),
+            ]),
+            _groupTitle('Danger zone'),
+            _group([
+              settingItemWidget(
+                  Ionicons.ios_trash_outline,
+                  color: BrandTokens.danger,
+                  language.deleteAccount, () {
+                launchScreen(context, DeleteAccountScreen(),
+                    pageRouteAnimation: PageRouteAnimation.Slide);
+              }, isLast: true),
+            ]),
+            SizedBox(height: 18),
+            Center(child: Text('S Taxi · Your Smile is Our Destination', style: secondaryTextStyle(size: 12))),
           ],
         ),
       ),
     );
   }
 
+  Widget _groupTitle(String title) => Padding(
+        padding: EdgeInsets.fromLTRB(4, 6, 4, 8),
+        child: Text(title.toUpperCase(), style: secondaryTextStyle(size: 11, weight: FontWeight.w700, color: BrandTokens.inkSoft)),
+      );
+
+  /// White rounded card that holds a group of rows.
+  Widget _group(List<Widget> children) => Container(
+        margin: EdgeInsets.only(bottom: 14),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: BrandTokens.line)),
+        child: Column(children: children.where((w) => w is! SizedBox).toList()),
+      );
+
   Widget settingItemWidget(IconData icon, String title, Function() onTap,
       {bool isLast = false, Widget? suffixIcon, Color? color}) {
     return inkWellWidget(
       onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.only(left: 16, right: 16, bottom: 12, top: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: isLast ? Colors.transparent : BrandTokens.line)),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(6),
+              width: 38,
+              height: 38,
               decoration: BoxDecoration(
-                  border:
-                      Border.all(color: color != null ? color : dividerColor),
-                  borderRadius: radius(defaultRadius)),
-              child: Icon(icon,
-                  size: 20, color: color != null ? color : primaryColor),
+                  color: (color ?? BrandTokens.blue).withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, size: 19, color: color ?? BrandTokens.blue),
             ),
             SizedBox(width: 12),
-            Expanded(
-                child: Text(title,
-                    style:
-                        primaryTextStyle(color: color != null ? color : null))),
-            suffixIcon != null
-                ? suffixIcon
-                : Icon(Icons.navigate_next,
-                    color: color != null ? color : dividerColor),
+            Expanded(child: Text(title, style: primaryTextStyle(size: 14, color: color))),
+            suffixIcon ?? Icon(Icons.chevron_right_rounded, color: BrandTokens.inkSoft),
           ],
         ),
       ),
