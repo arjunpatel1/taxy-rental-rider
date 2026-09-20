@@ -276,11 +276,19 @@ class OnRideRequest {
     paymentId = json['payment_id'];
     paymentType = json['payment_type'];
     paymentStatus = json['payment_status'];
-    if (json['extra_charges'] != null) {
-      extraCharges = <ExtraChargeRequestModel>[];
-      json['extra_charges'].forEach((v) {
-        extraCharges!.add(new ExtraChargeRequestModel.fromJson(v));
-      });
+    // The API has sent this both as a list and as a JSON string; calling
+    // forEach on the string crashed the whole trip payload, so accept either.
+    final rawExtraCharges = json['extra_charges'];
+    if (rawExtraCharges != null) {
+      final decoded = rawExtraCharges is String
+          ? (rawExtraCharges.trim().isEmpty ? [] : jsonDecode(rawExtraCharges))
+          : rawExtraCharges;
+      if (decoded is List) {
+        extraCharges = decoded
+            .whereType<Map>()
+            .map((v) => ExtraChargeRequestModel.fromJson(Map<String, dynamic>.from(v)))
+            .toList();
+      }
     }
     couponDiscount = json['coupon_discount'];
     couponCode = json['coupon_code'];

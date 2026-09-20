@@ -76,9 +76,34 @@ class HomeScreenState extends State<HomeScreen> {
 
   void _open(Widget screen) => launchScreen(context, screen, pageRouteAnimation: PageRouteAnimation.Slide).then((_) => _load());
 
+  /// Home is the root screen, so back would otherwise close the app straight
+  /// away: every screen here is opened with isNewTask, which clears the stack.
+  DateTime? _lastBackPress;
+
+  Future<bool> _confirmExit() async {
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      Navigator.of(context).pop();
+      return false;
+    }
+
+    final now = DateTime.now();
+    if (_lastBackPress == null || now.difference(_lastBackPress!) > Duration(seconds: 2)) {
+      _lastBackPress = now;
+      toast('Press back again to exit');
+      return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (await _confirmExit()) SystemNavigator.pop();
+      },
+      child: Scaffold(
       key: _scaffoldKey,
       backgroundColor: Color(0xFFF4F6F9),
       drawer: DrawerComponent(onClose: (_) {}),
@@ -111,6 +136,7 @@ class HomeScreenState extends State<HomeScreen> {
         ),
       ),
       bottomNavigationBar: _bottomBar(),
+      ),
     );
   }
 

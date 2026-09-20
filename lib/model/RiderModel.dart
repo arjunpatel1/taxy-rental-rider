@@ -189,11 +189,18 @@ class RiderModel {
       });
     }
     estimated_price = json['estimated_price'];
-    if (json['extra_charges'] != null) {
-      extraCharges = <ExtraChargeRequestModel>[];
-      json['extra_charges'].forEach((v) {
-        extraCharges!.add(new ExtraChargeRequestModel.fromJson(v));
-      });
+    // Accept a list or a JSON string; the string form used to crash parsing.
+    final rawExtraCharges = json['extra_charges'];
+    if (rawExtraCharges != null) {
+      final decoded = rawExtraCharges is String
+          ? (rawExtraCharges.trim().isEmpty ? [] : jsonDecode(rawExtraCharges))
+          : rawExtraCharges;
+      if (decoded is List) {
+        extraCharges = decoded
+            .whereType<Map>()
+            .map((v) => ExtraChargeRequestModel.fromJson(Map<String, dynamic>.from(v)))
+            .toList();
+      }
     }
     endTime = json['end_time'];
     distance = json['distance'];
