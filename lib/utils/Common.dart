@@ -834,6 +834,8 @@ Future<void> getAppSettingsData() async {
         notificationToneKey: sound['notification_alert_tone']?.toString(),
         trip: sound['trip_alert_enabled'] == true,
         notification: sound['notification_alert_enabled'] == true,
+        tripUrl: sound['trip_alert_url']?.toString(),
+        notificationUrl: sound['notification_alert_url']?.toString(),
       );
     }
     sharedPref.setString("reference_type", value.reference_type ?? "fixed");
