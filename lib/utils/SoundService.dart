@@ -9,17 +9,19 @@ class SoundService {
   static final AudioPlayer _tripPlayer = AudioPlayer();
   static final AudioPlayer _notifyPlayer = AudioPlayer();
 
-  /// Tones shipped with the app; the admin setting stores one of these keys.
+  /// The four tones the admin can pick under Push Notification > App Alert Sounds.
+  /// Same names as the Android notification sounds, so a push and an in-app alert match.
   static const tones = <String, String>{
-    'chime': 'sounds/notification.wav',
-    'alert': 'sounds/trip_alert.wav',
-    'ring': 'sounds/rideringtone.mp3',
+    'default_app_sound': 'sounds/default_app_sound.wav',
+    'ride_get_sound': 'sounds/ride_get_sound.wav',
+    'alert': 'sounds/alert.wav',
+    'alert_new': 'sounds/alert_new.wav',
   };
 
   static bool tripEnabled = true;
   static bool notificationEnabled = true;
-  static String tripTone = 'ring';
-  static String notificationTone = 'chime';
+  static String tripTone = 'ride_get_sound';
+  static String notificationTone = 'default_app_sound';
 
   /// Called once the app settings are loaded from the server.
   static void applySettings({String? tripToneKey, String? notificationToneKey, bool? trip, bool? notification}) {
@@ -35,7 +37,7 @@ class SoundService {
     try {
       await _tripPlayer.setReleaseMode(loop ? ReleaseMode.loop : ReleaseMode.release);
       await _tripPlayer.stop();
-      await _tripPlayer.play(AssetSource(tones[tripTone] ?? tones['ring']!));
+      await _tripPlayer.play(AssetSource(tones[tripTone] ?? tones['ride_get_sound']!));
     } catch (e) {
       debugPrint('trip alert sound: $e');
     }
@@ -54,7 +56,7 @@ class SoundService {
     if (!notificationEnabled) return;
     try {
       await _notifyPlayer.stop();
-      await _notifyPlayer.play(AssetSource(tones[notificationTone] ?? tones['chime']!));
+      await _notifyPlayer.play(AssetSource(tones[notificationTone] ?? tones['default_app_sound']!));
     } catch (e) {
       debugPrint('notification sound: $e');
     }
