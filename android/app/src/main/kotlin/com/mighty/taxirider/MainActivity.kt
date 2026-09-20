@@ -1,9 +1,15 @@
 package com.mighty.taxirider
 
 import android.app.Activity
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.media.AudioAttributes
 import android.net.Uri
+import android.os.Bundle
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -12,8 +18,52 @@ class MainActivity : FlutterFragmentActivity() {
     private var pendingUpiResult: MethodChannel.Result? = null
     private val upiRequestCode = 7201
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val manager = getSystemService(NotificationManager::class.java)
+        val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build()
+        listOf("default_app_sound", "ride_get_sound", "alert", "alert_new").forEach { sound ->
+            val channel = NotificationChannel("staxi_$sound", "S Taxi ${sound.replace('_', ' ')}", NotificationManager.IMPORTANCE_HIGH)
+            channel.enableVibration(true)
+            channel.setSound(Uri.parse("android.resource://$packageName/raw/$sound"), attributes)
+            manager.createNotificationChannel(channel)
+        }
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "staxi/notifications")
+            .setMethodCallHandler { call, result ->
+                if (call.method != "show") {
+                    result.notImplemented()
+                    return@setMethodCallHandler
+                }
+                val requestedSound = call.argument<String>("sound") ?: "default_app_sound"
+                val sound = requestedSound.takeIf { it in setOf("default_app_sound", "ride_get_sound", "alert", "alert_new") }
+                    ?: "default_app_sound"
+                val title = call.argument<String>("title") ?: "S Taxi"
+                val body = call.argument<String>("body") ?: ""
+                val id = call.argument<String>("id") ?: System.currentTimeMillis().toString()
+                val openApp = PendingIntent.getActivity(
+                    this, 0, Intent(this, MainActivity::class.java),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                val notification = Notification.Builder(this, "staxi_$sound")
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle(title)
+                    .setContentText(body)
+                    .setContentIntent(openApp)
+                    .setAutoCancel(true)
+                    .setCategory(Notification.CATEGORY_MESSAGE)
+                    .setVisibility(Notification.VISIBILITY_PUBLIC)
+                    .build()
+                try {
+                    getSystemService(NotificationManager::class.java).notify(id.hashCode(), notification)
+                    result.success(null)
+                } catch (error: SecurityException) {
+                    result.error("NOTIFICATION_PERMISSION", error.message, null)
+                }
+            }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "staxi/upi_payment")
             .setMethodCallHandler { call, result ->
                 if (call.method != "pay") {
