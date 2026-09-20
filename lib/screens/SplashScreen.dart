@@ -40,71 +40,115 @@ class SplashScreenState extends State<SplashScreen> with TickerProviderStateMixi
     if (remaining > Duration.zero) await Future.delayed(remaining);
   }
 
-  void init() async {
-    List<ConnectivityResult> b = await Connectivity().checkConnectivity();
-    if (b.contains(ConnectivityResult.none)) {
-      return toast(language.yourInternetIsNotWorking);
-    }
-    await _waitForIntro();
-    // Asked here (after the intro) rather than in main(), which would block the first frame.
-    await Permission.notification.request();
-    if (sharedPref.getBool(IS_FIRST_TIME) ?? true) {
-      await Geolocator.requestPermission().then((value) async {
-        launchScreen(context, WalkThroughScreen(),
-            pageRouteAnimation: PageRouteAnimation.Slide, isNewTask: true);
-        Geolocator.getCurrentPosition().then((value) {
-          sharedPref.setDouble(LATITUDE, value.latitude);
-          sharedPref.setDouble(LONGITUDE, value.longitude);
-        });
-      }).catchError((e) {
-        launchScreen(context, WalkThroughScreen(),
-            pageRouteAnimation: PageRouteAnimation.Slide, isNewTask: true);
-      });
-    } else {
-      if (!appStore.isLoggedIn) {
-        launchScreen(context, SignInScreen(),
-            pageRouteAnimation: PageRouteAnimation.Slide, isNewTask: true);
-      } else {
-        if (sharedPref.getString(CONTACT_NUMBER).validate().isEmptyOrNull) {
-          launchScreen(context, EditProfileScreen(isGoogle: true),
-              isNewTask: true, pageRouteAnimation: PageRouteAnimation.Slide);
-        } else {
-          getUserDetail(userId: sharedPref.getInt(USER_ID)).then((value) {
-            appStore.setUserEmail(value.data!.email.validate());
-            appStore.setUserName(value.data!.username.validate());
-            appStore.setFirstName(value.data!.firstName.validate());
-            appStore.setUserProfile(value.data!.profileImage.validate());
-            appStore.setReferralCode(value.data!.referralCode.validate());
+  /// Guards against the splash being left on screen twice or, worse, not at all.
+  bool _navigated = false;
 
-            sharedPref.setString(USER_EMAIL, value.data!.email.validate());
-            sharedPref.setString(FIRST_NAME, value.data!.firstName.validate());
-            sharedPref.setString(LAST_NAME, value.data!.lastName.validate());
-            sharedPref.setString(
-                USER_PROFILE_PHOTO, value.data!.profileImage.validate());
+  void _goTo(Widget screen) {
+    if (_navigated || !mounted) return;
+    _navigated = true;
+    launchScreen(context, screen,
+        pageRouteAnimation: PageRouteAnimation.Slide, isNewTask: true);
+  }
 
-            appStore.setLoading(false);
-            setState(() {});
-          }).catchError((error) {
-            log(error.toString());
-            appStore.setLoading(false);
-          });
-          if (await checkPermission())
-            await Geolocator.requestPermission().then((value) async {
-              await Geolocator.getCurrentPosition().then((value) {
-                sharedPref.setDouble(LATITUDE, value.latitude);
-                sharedPref.setDouble(LONGITUDE, value.longitude);
-                launchScreen(context, HomeScreen(),
-                    pageRouteAnimation: PageRouteAnimation.Slide,
-                    isNewTask: true);
-              });
-            }).catchError((e) {
-              launchScreen(context, HomeScreen(),
-                  pageRouteAnimation: PageRouteAnimation.Slide,
-                  isNewTask: true);
-            });
-        }
+  /// Saves a location without ever holding up the launch.
+  ///
+  /// [Geolocator.getCurrentPosition] can wait forever for a GPS fix indoors, so
+  /// it is bounded and falls back to the last known position. Earlier this ran
+  /// unbounded on the launch path and left the app sitting on the splash.
+  Future<void> _cacheLocation() async {
+    Position? position;
+    try {
+      position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+        timeLimit: Duration(seconds: 8),
+      );
+    } catch (e) {
+      log('Live location unavailable at launch, using the last known one: $e');
+      try {
+        position = await Geolocator.getLastKnownPosition();
+      } catch (e) {
+        log('No last known location either: $e');
       }
     }
+    if (position != null) {
+      await sharedPref.setDouble(LATITUDE, position.latitude);
+      await sharedPref.setDouble(LONGITUDE, position.longitude);
+    }
+  }
+
+  void init() async {
+    await _waitForIntro();
+
+    // A missing connection used to stop the launch here, leaving the splash on
+    // screen with no way forward. The app opens either way and each screen
+    // reports its own network errors.
+    try {
+      final connectivity = await Connectivity().checkConnectivity();
+      if (connectivity.contains(ConnectivityResult.none)) {
+        toast(language.yourInternetIsNotWorking);
+      }
+    } catch (e) {
+      log('Connectivity check failed: $e');
+    }
+
+    // Asked here (after the intro) rather than in main(), which would block the first frame.
+    try {
+      await Permission.notification.request();
+    } catch (e) {
+      log('Notification permission request failed: $e');
+    }
+
+    if (sharedPref.getBool(IS_FIRST_TIME) ?? true) {
+      try {
+        await Geolocator.requestPermission();
+      } catch (e) {
+        log('Location permission request failed: $e');
+      }
+      _goTo(WalkThroughScreen());
+      _cacheLocation();
+      return;
+    }
+
+    if (!appStore.isLoggedIn) {
+      _goTo(SignInScreen());
+      return;
+    }
+
+    if (sharedPref.getString(CONTACT_NUMBER).validate().isEmptyOrNull) {
+      _goTo(EditProfileScreen(isGoogle: true));
+      return;
+    }
+
+    // Profile details refresh in the background; the home screen must not wait
+    // on this call, which used to keep the splash up whenever the API was slow.
+    getUserDetail(userId: sharedPref.getInt(USER_ID)).then((value) {
+      appStore.setUserEmail(value.data!.email.validate());
+      appStore.setUserName(value.data!.username.validate());
+      appStore.setFirstName(value.data!.firstName.validate());
+      appStore.setUserProfile(value.data!.profileImage.validate());
+      appStore.setReferralCode(value.data!.referralCode.validate());
+
+      sharedPref.setString(USER_EMAIL, value.data!.email.validate());
+      sharedPref.setString(FIRST_NAME, value.data!.firstName.validate());
+      sharedPref.setString(LAST_NAME, value.data!.lastName.validate());
+      sharedPref.setString(
+          USER_PROFILE_PHOTO, value.data!.profileImage.validate());
+
+      appStore.setLoading(false);
+      setState(() {});
+    }).catchError((error) {
+      log(error.toString());
+      appStore.setLoading(false);
+    });
+
+    try {
+      await Geolocator.requestPermission();
+    } catch (e) {
+      log('Location permission request failed: $e');
+    }
+    // Home opens whether or not location was granted - it asks again itself.
+    _goTo(HomeScreen());
+    _cacheLocation();
   }
 
   @override

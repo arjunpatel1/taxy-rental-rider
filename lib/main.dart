@@ -102,24 +102,36 @@ class _MyAppState extends State<MyApp> {
   @override
   void setState(fn) {
     if (mounted) super.setState(fn);
-    connectivitySubscription.cancel();
   }
+
+  /// True while the offline screen is on top, so a flapping connection cannot
+  /// stack several of them - that left the app looking frozen, because popping
+  /// once still showed another offline screen underneath.
+  bool _offlineScreenOpen = false;
 
   void init() async {
     connectivitySubscription = Connectivity().onConnectivityChanged.listen((e) {
+      final navigator = navigatorKey.currentState;
+      if (navigator == null) return;
+
       if (e.contains(ConnectivityResult.none)) {
         log('not connected');
-        launchScreen(
-            navigatorKey.currentState!.overlay!.context, NoInternetScreen());
+        if (_offlineScreenOpen) return;
+        _offlineScreenOpen = true;
+        navigator
+            .push(MaterialPageRoute(builder: (_) => NoInternetScreen()))
+            .whenComplete(() => _offlineScreenOpen = false);
       } else {
-        if (netScreenKey.currentContext != null) {
-          if (Navigator.canPop(navigatorKey.currentState!.overlay!.context)) {
-            Navigator.pop(navigatorKey.currentState!.overlay!.context);
-          }
-        }
         log('connected');
+        if (_offlineScreenOpen && navigator.canPop()) navigator.pop();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    connectivitySubscription.cancel();
+    super.dispose();
   }
 
   @override
