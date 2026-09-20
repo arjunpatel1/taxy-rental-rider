@@ -39,10 +39,12 @@ class Newestimateridelistwidget extends StatefulWidget {
   });
 
   @override
-  NewestimateridelistwidgetState createState() => NewestimateridelistwidgetState();
+  NewestimateridelistwidgetState createState() =>
+      NewestimateridelistwidgetState();
 }
 
-class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> with WidgetsBindingObserver {
+class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
+    with WidgetsBindingObserver {
   late Stream stream;
   String serviceMarker = '';
   double driverCarHeading = 0.0;
@@ -119,7 +121,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     init();
     getNewService();
     if (appStore.isLoggedIn) {
-      startLocationTracking().catchError((Object error) { log('Location tracking unavailable: $error'); });
+      startLocationTracking().catchError((Object error) {
+        log('Location tracking unavailable: $error');
+      });
     }
   }
 
@@ -145,9 +149,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
 
   void init() async {
     try {
-    sourceIcon = await getResizedMarker(SourceIcon);
-    driverIcon = await getResizedMarker(DriverIcon);
-    destinationIcon = await getResizedMarker(DestinationIcon);
+      sourceIcon = await getResizedMarker(SourceIcon);
+      driverIcon = await getResizedMarker(DriverIcon);
+      destinationIcon = await getResizedMarker(DestinationIcon);
     } catch (error) {
       log('Map marker loading failed: $error');
     }
@@ -165,20 +169,32 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
   /// Get Current Location
   Future<void> startLocationTracking() async {
     print("CheckLocation UpdateCall");
-    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).then((value) async {
+    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+        .then((value) async {
       await Geolocator.isLocationServiceEnabled().then((value) async {
         if (locationEnable) {
-          final LocationSettings locationSettings = LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 100, timeLimit: Duration(seconds: 30));
-          positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen((event) async {
+          final LocationSettings locationSettings = LocationSettings(
+              accuracy: LocationAccuracy.high,
+              distanceFilter: 100,
+              timeLimit: Duration(seconds: 30));
+          positionStream =
+              Geolocator.getPositionStream(locationSettings: locationSettings)
+                  .listen((event) async {
             if (rideRequestData?.status == IN_PROGRESS) {
               if (myLocation != null) {
-                bool b = isDistanceMoreThan100Meters(startLat: myLocation!.latitude, startLng: myLocation!.longitude, endLat: event.latitude, endLng: event.longitude);
+                bool b = isDistanceMoreThan100Meters(
+                    startLat: myLocation!.latitude,
+                    startLng: myLocation!.longitude,
+                    endLat: event.latitude,
+                    endLng: event.longitude);
                 if (b) {
                   final newLocation = LatLng(event.latitude, event.longitude);
                   print("100 m update");
                   setPolyLines(
                     sourceLocation: LatLng(event.latitude, event.longitude),
-                    destinationLocation: LatLng(widget.destinationLatLog.latitude, widget.destinationLatLog.longitude),
+                    destinationLocation: LatLng(
+                        widget.destinationLatLog.latitude,
+                        widget.destinationLatLog.longitude),
                     driverLocation: driverLatitudeLocation,
                   );
                   moveCameraToDriver(googleMapController!, newLocation);
@@ -196,9 +212,12 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       // a GPS timeout is not a permission problem; only ask again when access is really missing
       final permission = await Geolocator.checkPermission();
       final serviceOn = await Geolocator.isLocationServiceEnabled();
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever || !serviceOn) {
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever ||
+          !serviceOn) {
         if (locationScreenKey.currentContext == null) {
-          launchScreen(navigatorKey.currentState!.overlay!.context, LocationPermissionScreen());
+          launchScreen(navigatorKey.currentState!.overlay!.context,
+              LocationPermissionScreen());
         }
       } else {
         Future.delayed(Duration(seconds: 5), () {
@@ -208,7 +227,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     });
   }
 
-  Future<void> moveCameraToDriver(GoogleMapController mapController, LatLng riderLocation) async {
+  Future<void> moveCameraToDriver(
+      GoogleMapController mapController, LatLng riderLocation) async {
     try {
       // Apply a small downward shift (move map upward visually)
       final adjustedLocation = LatLng(
@@ -253,11 +273,17 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       }
       if (rideRequestData != null) {
         if (rideRequestData != null) {
-          if (driverData != null && rideRequestData!.status != COMPLETED && rideRequestData!.status != IN_PROGRESS) {
+          if (driverData != null &&
+              rideRequestData!.status != COMPLETED &&
+              rideRequestData!.status != IN_PROGRESS) {
             timer = Timer.periodic(Duration(seconds: 10), (Timer t) {
-              DateTime? d = DateTime.tryParse(sharedPref.getString("UPDATE_CALL").toString());
+              DateTime? d = DateTime.tryParse(
+                  sharedPref.getString("UPDATE_CALL").toString());
               if (d != null && DateTime.now().difference(d).inSeconds > 10) {
-                if (rideRequestData != null && (rideRequestData!.status == ACCEPTED || rideRequestData!.status == ARRIVING || rideRequestData!.status == ARRIVED)) {
+                if (rideRequestData != null &&
+                    (rideRequestData!.status == ACCEPTED ||
+                        rideRequestData!.status == ARRIVING ||
+                        rideRequestData!.status == ARRIVED)) {
                   getUserDetailLocation();
                 } else {
                   try {
@@ -275,32 +301,46 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
           }
         }
         setState(() {});
-        if (rideRequestData!.status == COMPLETED && rideRequestData != null && driverData != null) {
+        if (rideRequestData!.status == COMPLETED &&
+            rideRequestData != null &&
+            driverData != null) {
           if (timer != null) {
             timer!.cancel();
           }
           timer = null;
           if (currentScreen != false) {
             currentScreen = false;
-            launchScreen(context, ReviewScreen(rideRequest: rideRequestData!, driverData: driverData), pageRouteAnimation: PageRouteAnimation.SlideBottomTop, isNewTask: true);
+            launchScreen(
+                context,
+                ReviewScreen(
+                    rideRequest: rideRequestData!, driverData: driverData),
+                pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
+                isNewTask: true);
           }
         }
         if (rideRequestData?.status == IN_PROGRESS) {
           locationPermission();
         }
-      } else if (appStore.isRiderForAnother == "1" && value.payment != null && value.payment!.paymentStatus == SUCCESS) {
+      } else if (appStore.isRiderForAnother == "1" &&
+          value.payment != null &&
+          value.payment!.paymentStatus == SUCCESS) {
         if (currentScreen != false) {
           currentScreen = false;
           Future.delayed(
             Duration(seconds: 1),
             () {
-              launchScreen(context, RidePaymentDetailScreen(rideId: value.payment!.rideRequestId), pageRouteAnimation: PageRouteAnimation.SlideBottomTop, isNewTask: true);
+              launchScreen(context,
+                  RidePaymentDetailScreen(rideId: value.payment!.rideRequestId),
+                  pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
+                  isNewTask: true);
             },
           );
         }
       }
     }).catchError((error, stack) {
-      FirebaseCrashlytics.instance.recordError("review_navigate_issue::" + error.toString(), stack, fatal: true);
+      FirebaseCrashlytics.instance.recordError(
+          "review_navigate_issue::" + error.toString(), stack,
+          fatal: true);
       log("Error-- " + error.toString());
     });
   }
@@ -309,33 +349,46 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     markers.clear();
     // polylinePoints = PolylinePoints();
     setPolyLines(
-      sourceLocation: LatLng(widget.sourceLatLog.latitude, widget.sourceLatLog.longitude),
-      destinationLocation: LatLng(widget.destinationLatLog.latitude, widget.destinationLatLog.longitude),
+      sourceLocation:
+          LatLng(widget.sourceLatLog.latitude, widget.sourceLatLog.longitude),
+      destinationLocation: LatLng(widget.destinationLatLog.latitude,
+          widget.destinationLatLog.longitude),
       driverLocation: driverLatitudeLocation,
     );
     MarkerId id = MarkerId('Source');
     markers.add(
       Marker(
         markerId: id,
-        position: LatLng(widget.sourceLatLog.latitude, widget.sourceLatLog.longitude),
+        position:
+            LatLng(widget.sourceLatLog.latitude, widget.sourceLatLog.longitude),
         infoWindow: InfoWindow(title: widget.sourceTitle),
         icon: sourceIcon,
       ),
     );
     MarkerId id2 = MarkerId('DriverLocation');
     markers.remove(id2);
-    if (rideRequestData != null && rideRequestData!.multiDropLocation != null && rideRequestData!.multiDropLocation!.isNotEmpty && rideRequestData!.status != ACCEPTED && rideRequestData!.status != ARRIVING && rideRequestData!.status != ARRIVED) {
+    if (rideRequestData != null &&
+        rideRequestData!.multiDropLocation != null &&
+        rideRequestData!.multiDropLocation!.isNotEmpty &&
+        rideRequestData!.status != ACCEPTED &&
+        rideRequestData!.status != ARRIVING &&
+        rideRequestData!.status != ARRIVED) {
     } else {
       MarkerId id3 = MarkerId('Destination');
       markers.remove(id3);
-      if (rideRequestData != null && (rideRequestData!.status == ACCEPTED || rideRequestData!.status == ARRIVING || rideRequestData!.status == ARRIVED)) {
+      if (rideRequestData != null &&
+          (rideRequestData!.status == ACCEPTED ||
+              rideRequestData!.status == ARRIVING ||
+              rideRequestData!.status == ARRIVED)) {
         try {
-          var driverIcon1 = await getNetworkImageMarker(serviceMarker.validate());
+          var driverIcon1 =
+              await getNetworkImageMarker(serviceMarker.validate());
           markers.add(
             Marker(
               markerId: id2,
               rotation: driverCarHeading,
-              position: LatLng(driverLatitudeLocation!.latitude, driverLatitudeLocation!.longitude),
+              position: LatLng(driverLatitudeLocation!.latitude,
+                  driverLatitudeLocation!.longitude),
               icon: driverIcon1,
             ),
           );
@@ -345,7 +398,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
             Marker(
               markerId: id2,
               rotation: driverCarHeading,
-              position: LatLng(driverLatitudeLocation!.latitude, driverLatitudeLocation!.longitude),
+              position: LatLng(driverLatitudeLocation!.latitude,
+                  driverLatitudeLocation!.longitude),
               icon: driverIcon,
             ),
           );
@@ -361,7 +415,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
         markers.add(
           Marker(
             markerId: id3,
-            position: LatLng(widget.destinationLatLog.latitude, widget.destinationLatLog.longitude),
+            position: LatLng(widget.destinationLatLog.latitude,
+                widget.destinationLatLog.longitude),
             infoWindow: InfoWindow(title: widget.destinationTitle),
             icon: destinationIcon,
           ),
@@ -381,18 +436,40 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       "pick_lng": widget.sourceLatLog.longitude,
       "drop_lat": widget.destinationLatLog.latitude,
       "drop_lng": widget.destinationLatLog.longitude,
-      "pickup_zone_id": widget.is_taxi_service != true || widget.tripDetail == null ? "" : widget.tripDetail["pickup_zone_id"],
-      "drop_zone_id": widget.is_taxi_service != true || widget.tripDetail == null ? "" : widget.tripDetail["drop_zone_id"],
-      "pickup_airport_id": widget.is_taxi_service != true || widget.tripDetail == null ? "" : widget.tripDetail["pickup_airport_id"],
-      "drop_airport_id": widget.is_taxi_service != true || widget.tripDetail == null ? "" : widget.tripDetail["drop_airport_id"],
-      "trip_type": widget.is_taxi_service != true || widget.tripDetail == null ? "" : widget.tripDetail["trip_type"],
-      if (widget.is_taxi_service == true && widget.tripDetail?["rental_hours"] != null) "rental_hours": widget.tripDetail["rental_hours"],
-      if (widget.is_taxi_service == true && widget.tripDetail?["return_datetime"] != null) "return_datetime": widget.tripDetail["return_datetime"],
-      if (widget.tripDetail?["schedule_datetime"] != null) "schedule_datetime": widget.tripDetail["schedule_datetime"],
+      "pickup_zone_id":
+          widget.is_taxi_service != true || widget.tripDetail == null
+              ? ""
+              : widget.tripDetail["pickup_zone_id"],
+      "drop_zone_id":
+          widget.is_taxi_service != true || widget.tripDetail == null
+              ? ""
+              : widget.tripDetail["drop_zone_id"],
+      "pickup_airport_id":
+          widget.is_taxi_service != true || widget.tripDetail == null
+              ? ""
+              : widget.tripDetail["pickup_airport_id"],
+      "drop_airport_id":
+          widget.is_taxi_service != true || widget.tripDetail == null
+              ? ""
+              : widget.tripDetail["drop_airport_id"],
+      "trip_type": widget.is_taxi_service != true || widget.tripDetail == null
+          ? ""
+          : widget.tripDetail["trip_type"],
+      if (widget.is_taxi_service == true &&
+          widget.tripDetail?["rental_hours"] != null)
+        "rental_hours": widget.tripDetail["rental_hours"],
+      if (widget.is_taxi_service == true &&
+          widget.tripDetail?["return_datetime"] != null)
+        "return_datetime": widget.tripDetail["return_datetime"],
+      if (widget.tripDetail?["schedule_datetime"] != null)
+        "schedule_datetime": widget.tripDetail["schedule_datetime"],
       if (coupon) "coupon_code": promoCode.text.trim(),
     };
     var dataJustCheck = [];
-    dataJustCheck.add({"lat": widget.sourceLatLog.latitude, "lng": widget.sourceLatLog.longitude});
+    dataJustCheck.add({
+      "lat": widget.sourceLatLog.latitude,
+      "lng": widget.sourceLatLog.longitude
+    });
     if (widget.multiDropObj != null && widget.multiDropObj!.isNotEmpty) {
       widget.multiDropObj!.forEach(
         (key, value) {
@@ -410,7 +487,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       if (!mounted) return;
       appStore.setLoading(false);
       serviceList.clear();
-      final available = (value.data ?? <ServicesListData>[]).where((service) => service.totalAmount != null).toList();
+      final available = (value.data ?? <ServicesListData>[])
+          .where((service) => service.totalAmount != null)
+          .toList();
       available.sort((a, b) => a.totalAmount!.compareTo(b.totalAmount!));
       serviceList.addAll(available);
       if (value.totalCoins != null) {
@@ -419,23 +498,47 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       if (serviceList.isNotEmpty) {
         locationDistance = (serviceList[0].dropoffDistanceInKm ?? 0).toDouble();
         if (serviceList[0].distanceUnit == DISTANCE_TYPE_KM) {
-          locationDistance = (serviceList[0].dropoffDistanceInKm ?? 0).toDouble();
+          locationDistance =
+              (serviceList[0].dropoffDistanceInKm ?? 0).toDouble();
           distanceUnit = DISTANCE_TYPE_KM;
         } else {
-          locationDistance = (serviceList[0].dropoffDistanceInKm ?? 0).toDouble() * 0.621371;
+          locationDistance =
+              (serviceList[0].dropoffDistanceInKm ?? 0).toDouble() * 0.621371;
           distanceUnit = DISTANCE_TYPE_MILE;
         }
         durationOfDrop = (serviceList[0].duration ?? 0).toDouble();
       }
 
       if (serviceList.isNotEmpty) servicesListData = serviceList[0];
-      if (serviceList.isNotEmpty) paymentMethodType = (serviceList[0].paymentMethod ?? CASH_WALLET);
-      if (serviceList.isNotEmpty) cashList = paymentMethodType == CASH_WALLET ? cashList = [CASH, WALLET] : cashList = [paymentMethodType];
+      if (serviceList.isNotEmpty &&
+          sharedPref.getInt(USER_ID) != null &&
+          widget.id == null) {
+        recordTripEnquiry({
+          'trip_type': (widget.tripDetail?["trip_type"] ?? widget.trip_type)
+                  .toString()
+                  .isEmpty
+              ? 'regular'
+              : widget.tripDetail?["trip_type"] ?? widget.trip_type,
+          'pickup_address': widget.sourceTitle,
+          'drop_address': widget.destinationTitle,
+          'fare': serviceList[0].totalAmount,
+          'service_id': serviceList[0].id,
+        }).catchError((_) {});
+      }
+      if (serviceList.isNotEmpty)
+        paymentMethodType = (serviceList[0].paymentMethod ?? CASH_WALLET);
+      if (serviceList.isNotEmpty)
+        cashList = paymentMethodType == CASH_WALLET
+            ? cashList = [CASH, WALLET]
+            : cashList = [paymentMethodType];
       if (serviceList.isNotEmpty) {
         if ((serviceList[0].discountAmount ?? 0) > 0) {
-          mSelectServiceAmount = (serviceList[0].subtotal ?? serviceList[0].totalAmount ?? 0).toStringAsFixed(fixedDecimal);
+          mSelectServiceAmount =
+              (serviceList[0].subtotal ?? serviceList[0].totalAmount ?? 0)
+                  .toStringAsFixed(fixedDecimal);
         } else {
-          mSelectServiceAmount = serviceList[0].totalAmount!.toStringAsFixed(fixedDecimal);
+          mSelectServiceAmount =
+              serviceList[0].totalAmount!.toStringAsFixed(fixedDecimal);
         }
       }
       if (oldPaymentType != null) {
@@ -445,7 +548,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     }).catchError((error) {
       appStore.setLoading(false);
       if (!mounted) return;
-      setState(() => serviceLoadError = 'Unable to load ride fares. Please try again.');
+      setState(() =>
+          serviceLoadError = 'Unable to load ride fares. Please try again.');
       toast(error.toString(), print: true);
     });
   }
@@ -459,20 +563,39 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       "pick_lng": widget.sourceLatLog.longitude,
       "drop_lat": widget.destinationLatLog.latitude,
       "drop_lng": widget.destinationLatLog.longitude,
-      "pickup_zone_id": widget.is_taxi_service != true || tripDetail == null ? "" : tripDetail["pickup_zone_id"] ?? "",
-      "drop_zone_id": widget.is_taxi_service != true || tripDetail == null ? "" : tripDetail["drop_zone_id"] ?? "",
-      "pickup_airport_id": widget.is_taxi_service != true || tripDetail == null ? "" : tripDetail["pickup_airport_id"] ?? "",
-      "drop_airport_id": widget.is_taxi_service != true || tripDetail == null ? "" : tripDetail["drop_airport_id"] ?? "",
-      "trip_type": widget.is_taxi_service != true || tripDetail == null ? "" : tripDetail["trip_type"] ?? "",
-      if (widget.is_taxi_service == true && tripDetail?["rental_hours"] != null) "rental_hours": tripDetail["rental_hours"],
-      if (widget.is_taxi_service == true && tripDetail?["return_datetime"] != null) "return_datetime": tripDetail["return_datetime"],
-      if (tripDetail?["schedule_datetime"] != null) "schedule_datetime": tripDetail["schedule_datetime"],
-      if (promoCode.text.trim().isNotEmpty) "coupon_code": promoCode.text.trim(),
-      if (useCoinsEnabled && usedCoins > 0) "use_coins": usedCoins, // ADDED FOR COINS
+      "pickup_zone_id": widget.is_taxi_service != true || tripDetail == null
+          ? ""
+          : tripDetail["pickup_zone_id"] ?? "",
+      "drop_zone_id": widget.is_taxi_service != true || tripDetail == null
+          ? ""
+          : tripDetail["drop_zone_id"] ?? "",
+      "pickup_airport_id": widget.is_taxi_service != true || tripDetail == null
+          ? ""
+          : tripDetail["pickup_airport_id"] ?? "",
+      "drop_airport_id": widget.is_taxi_service != true || tripDetail == null
+          ? ""
+          : tripDetail["drop_airport_id"] ?? "",
+      "trip_type": widget.is_taxi_service != true || tripDetail == null
+          ? ""
+          : tripDetail["trip_type"] ?? "",
+      if (widget.is_taxi_service == true && tripDetail?["rental_hours"] != null)
+        "rental_hours": tripDetail["rental_hours"],
+      if (widget.is_taxi_service == true &&
+          tripDetail?["return_datetime"] != null)
+        "return_datetime": tripDetail["return_datetime"],
+      if (tripDetail?["schedule_datetime"] != null)
+        "schedule_datetime": tripDetail["schedule_datetime"],
+      if (promoCode.text.trim().isNotEmpty)
+        "coupon_code": promoCode.text.trim(),
+      if (useCoinsEnabled && usedCoins > 0)
+        "use_coins": usedCoins, // ADDED FOR COINS
     };
     if (widget.multiDropObj != null) {
       var dataJustCheck = [];
-      dataJustCheck.add({"lat": widget.sourceLatLog.latitude, "lng": widget.sourceLatLog.longitude});
+      dataJustCheck.add({
+        "lat": widget.sourceLatLog.latitude,
+        "lng": widget.sourceLatLog.longitude
+      });
       widget.multiDropObj!.forEach(
         (key, value) {
           LatLng s = value as LatLng;
@@ -489,7 +612,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       if (!mounted) return;
       appStore.setLoading(false);
       serviceList.clear();
-      final available = (value.data ?? <ServicesListData>[]).where((service) => service.totalAmount != null).toList();
+      final available = (value.data ?? <ServicesListData>[])
+          .where((service) => service.totalAmount != null)
+          .toList();
       available.sort((a, b) => a.totalAmount!.compareTo(b.totalAmount!));
       serviceList.addAll(available);
       if (value.totalCoins != null) {
@@ -498,23 +623,32 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       if (serviceList.isNotEmpty) {
         locationDistance = (serviceList[0].dropoffDistanceInKm ?? 0).toDouble();
         if (serviceList[0].distanceUnit == DISTANCE_TYPE_KM) {
-          locationDistance = (serviceList[0].dropoffDistanceInKm ?? 0).toDouble();
+          locationDistance =
+              (serviceList[0].dropoffDistanceInKm ?? 0).toDouble();
           distanceUnit = DISTANCE_TYPE_KM;
         } else {
-          locationDistance = (serviceList[0].dropoffDistanceInKm ?? 0).toDouble() * 0.621371;
+          locationDistance =
+              (serviceList[0].dropoffDistanceInKm ?? 0).toDouble() * 0.621371;
           distanceUnit = DISTANCE_TYPE_MILE;
         }
         durationOfDrop = (serviceList[0].duration ?? 0).toDouble();
       }
 
       if (serviceList.isNotEmpty) servicesListData = serviceList[0];
-      if (serviceList.isNotEmpty) paymentMethodType = (serviceList[0].paymentMethod ?? CASH_WALLET);
-      if (serviceList.isNotEmpty) cashList = paymentMethodType == CASH_WALLET ? cashList = [CASH, WALLET] : cashList = [paymentMethodType];
+      if (serviceList.isNotEmpty)
+        paymentMethodType = (serviceList[0].paymentMethod ?? CASH_WALLET);
+      if (serviceList.isNotEmpty)
+        cashList = paymentMethodType == CASH_WALLET
+            ? cashList = [CASH, WALLET]
+            : cashList = [paymentMethodType];
       if (serviceList.isNotEmpty) {
         if ((serviceList[0].discountAmount ?? 0) > 0) {
-          mSelectServiceAmount = (serviceList[0].subtotal ?? serviceList[0].totalAmount ?? 0).toStringAsFixed(fixedDecimal);
+          mSelectServiceAmount =
+              (serviceList[0].subtotal ?? serviceList[0].totalAmount ?? 0)
+                  .toStringAsFixed(fixedDecimal);
         } else {
-          mSelectServiceAmount = serviceList[0].totalAmount!.toStringAsFixed(fixedDecimal);
+          mSelectServiceAmount =
+              serviceList[0].totalAmount!.toStringAsFixed(fixedDecimal);
         }
       }
       if (oldPaymentType != null) {
@@ -600,7 +734,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
         );
 
         String origins = "${origin.latitude},${origin.longitude}";
-        String destinations = "${destination.latitude},${destination.longitude}";
+        String destinations =
+            "${destination.latitude},${destination.longitude}";
 
         List<LatLng> routeCoordinates = [];
 
@@ -625,7 +760,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
           Marker(
             markerId: MarkerId("multi_drop_$i"),
             position: destination,
-            infoWindow: InfoWindow(title: "${rideRequestData!.multiDropLocation![i].address}"),
+            infoWindow: InfoWindow(
+                title: "${rideRequestData!.multiDropLocation![i].address}"),
             icon: destinationIcon,
           ),
         );
@@ -660,10 +796,18 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     polyLines.clear();
     polylineCoordinates.clear();
 
-    if (rideRequestData != null && rideRequestData!.multiDropLocation != null && rideRequestData!.multiDropLocation!.isNotEmpty && rideRequestData!.status != ACCEPTED && rideRequestData!.status != ARRIVING && rideRequestData!.status != ARRIVED) {
+    if (rideRequestData != null &&
+        rideRequestData!.multiDropLocation != null &&
+        rideRequestData!.multiDropLocation!.isNotEmpty &&
+        rideRequestData!.status != ACCEPTED &&
+        rideRequestData!.status != ARRIVING &&
+        rideRequestData!.status != ARRIVED) {
       print("PolyLineCreatedCall410");
-      await setPolyLinesDriver(sourceLocation: sourceLocation, driverLocation: driverLocation);
-    } else if (widget.multiDropObj != null && widget.multiDropObj!.isNotEmpty && rideRequestData == null) {
+      await setPolyLinesDriver(
+          sourceLocation: sourceLocation, driverLocation: driverLocation);
+    } else if (widget.multiDropObj != null &&
+        widget.multiDropObj!.isNotEmpty &&
+        rideRequestData == null) {
       print("PolyLineCreatedCall414");
 
       try {
@@ -681,7 +825,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
           );
 
           String origins = "${origin.latitude},${origin.longitude}";
-          String destinations = "${destination.latitude},${destination.longitude}";
+          String destinations =
+              "${destination.latitude},${destination.longitude}";
 
           List<LatLng> routeCoordinates = [];
 
@@ -706,7 +851,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
             Marker(
               markerId: MarkerId("multi_drop_$i"),
               position: destination,
-              infoWindow: InfoWindow(title: "${widget.multiDropLocationNamesObj![i]}"),
+              infoWindow:
+                  InfoWindow(title: "${widget.multiDropLocationNamesObj![i]}"),
               icon: destinationIcon,
             ),
           );
@@ -737,7 +883,10 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
         if (rideRequestData != null && rideRequestData!.status == IN_PROGRESS) {
           originLatLng = sourceLocation;
           destinationLatLng = destinationLocation;
-        } else if (rideRequestData != null && (rideRequestData!.status == ACCEPTED || rideRequestData!.status == ARRIVING || rideRequestData!.status == ARRIVED)) {
+        } else if (rideRequestData != null &&
+            (rideRequestData!.status == ACCEPTED ||
+                rideRequestData!.status == ARRIVING ||
+                rideRequestData!.status == ARRIVED)) {
           originLatLng = sourceLocation;
           destinationLatLng = driverLocation!;
         } else {
@@ -746,7 +895,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
         }
 
         String origins = "${originLatLng.latitude},${originLatLng.longitude}";
-        String destinations = "${destinationLatLng.latitude},${destinationLatLng.longitude}";
+        String destinations =
+            "${destinationLatLng.latitude},${destinationLatLng.longitude}";
 
         final value = await getPolylineData(origins, destinations);
 
@@ -937,10 +1087,24 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       await Future.delayed(Duration(milliseconds: 50));
       await googleMapController!.animateCamera(CameraUpdate.newLatLngBounds(
           LatLngBounds(
-              southwest:
-                  LatLng(widget.sourceLatLog.latitude <= widget.destinationLatLog.latitude ? widget.sourceLatLog.latitude : widget.destinationLatLog.latitude, widget.sourceLatLog.longitude <= widget.destinationLatLog.longitude ? widget.sourceLatLog.longitude : widget.destinationLatLog.longitude),
-              northeast:
-                  LatLng(widget.sourceLatLog.latitude <= widget.destinationLatLog.latitude ? widget.destinationLatLog.latitude : widget.sourceLatLog.latitude, widget.sourceLatLog.longitude <= widget.destinationLatLog.longitude ? widget.destinationLatLog.longitude : widget.sourceLatLog.longitude)),
+              southwest: LatLng(
+                  widget.sourceLatLog.latitude <=
+                          widget.destinationLatLog.latitude
+                      ? widget.sourceLatLog.latitude
+                      : widget.destinationLatLog.latitude,
+                  widget.sourceLatLog.longitude <=
+                          widget.destinationLatLog.longitude
+                      ? widget.sourceLatLog.longitude
+                      : widget.destinationLatLog.longitude),
+              northeast: LatLng(
+                  widget.sourceLatLog.latitude <=
+                          widget.destinationLatLog.latitude
+                      ? widget.destinationLatLog.latitude
+                      : widget.sourceLatLog.latitude,
+                  widget.sourceLatLog.longitude <=
+                          widget.destinationLatLog.longitude
+                      ? widget.destinationLatLog.longitude
+                      : widget.sourceLatLog.longitude)),
           100));
       setState(() {});
     } catch (e) {
@@ -962,7 +1126,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     if (driverData == null) return;
     // currentHeading
     getUserDetail(userId: driverData!.id).then((value) {
-      driverLatitudeLocation = LatLng(double.parse(value.data!.latitude!), double.parse(value.data!.longitude!));
+      driverLatitudeLocation = LatLng(double.parse(value.data!.latitude!),
+          double.parse(value.data!.longitude!));
       driverCarHeading = value.data?.currentHeading?.toDouble() ?? 0.0;
       getServiceList();
     }).catchError((error) {
@@ -1006,7 +1171,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
             children: [
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text(language.lblRideInformation, style: boldTextStyle()),
+                child:
+                    Text(language.lblRideInformation, style: boldTextStyle()),
               ),
               Align(
                 alignment: Alignment.topRight,
@@ -1056,7 +1222,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                         padding: EdgeInsets.zero,
                         initialSelection: countryCode,
                         showCountryOnly: false,
-                        dialogSize: Size(MediaQuery.of(context).size.width - 60, MediaQuery.of(context).size.height * 0.6),
+                        dialogSize: Size(MediaQuery.of(context).size.width - 60,
+                            MediaQuery.of(context).size.height * 0.6),
                         showFlag: true,
                         showFlagDialog: true,
                         showOnlyCountryWhenClosed: false,
@@ -1068,8 +1235,11 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                         searchDecoration: InputDecoration(
                           focusColor: primaryColor,
                           iconColor: Theme.of(context).dividerColor,
-                          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).dividerColor)),
-                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: primaryColor)),
+                          enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).dividerColor)),
+                          focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: primaryColor)),
                         ),
                         searchStyle: primaryTextStyle(),
                         onInit: (c) {
@@ -1079,7 +1249,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                           countryCode = c.dialCode!;
                         },
                       ),
-                      VerticalDivider(color: Colors.grey.withValues(alpha: 0.5)),
+                      VerticalDivider(
+                          color: Colors.grey.withValues(alpha: 0.5)),
                     ],
                   ),
                 ),
@@ -1119,7 +1290,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
           decoration: BoxDecoration(
             border: Border.all(color: dividerColor),
             borderRadius: BorderRadius.circular(defaultRadius),
-            color: useCoinsEnabled ? primaryColor.withOpacity(0.05) : Colors.white,
+            color:
+                useCoinsEnabled ? primaryColor.withOpacity(0.05) : Colors.white,
           ),
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           child: Row(
@@ -1141,18 +1313,26 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      useCoinsEnabled && usedCoins > 0 ? '$usedCoins Coins Applied' : 'Use Coins',
+                      useCoinsEnabled && usedCoins > 0
+                          ? '$usedCoins Coins Applied'
+                          : 'Use Coins',
                       style: boldTextStyle(
                         size: 14,
-                        color: useCoinsEnabled ? primaryColor : textPrimaryColorGlobal,
+                        color: useCoinsEnabled
+                            ? primaryColor
+                            : textPrimaryColorGlobal,
                       ),
                     ),
                     SizedBox(height: 2),
                     Text(
-                      useCoinsEnabled && usedCoins > 0 ? 'Save ${coinDiscount.toString()}' : 'You have $totalCoins coins available',
+                      useCoinsEnabled && usedCoins > 0
+                          ? 'Save ${coinDiscount.toString()}'
+                          : 'You have $totalCoins coins available',
                       style: secondaryTextStyle(
                         size: 12,
-                        color: useCoinsEnabled ? primaryColor : textSecondaryColorGlobal,
+                        color: useCoinsEnabled
+                            ? primaryColor
+                            : textSecondaryColorGlobal,
                       ),
                     ),
                   ],
@@ -1221,7 +1401,10 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
               child: Container(
                 margin: EdgeInsets.only(left: 12, bottom: 16),
                 padding: EdgeInsets.all(0),
-                decoration: BoxDecoration(color: context.cardColor, shape: BoxShape.circle, border: Border.all(color: dividerColor)),
+                decoration: BoxDecoration(
+                    color: context.cardColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: dividerColor)),
                 child: Icon(Icons.close, color: context.iconColor, size: 20),
               ),
             ),
@@ -1229,16 +1412,21 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
           actions: [
             inkWellWidget(
               onTap: () async {
-                final geoPosition = await Geolocator.getCurrentPosition(timeLimit: Duration(seconds: 30), desiredAccuracy: LocationAccuracy.high);
+                final geoPosition = await Geolocator.getCurrentPosition(
+                    timeLimit: Duration(seconds: 30),
+                    desiredAccuracy: LocationAccuracy.high);
 
-                googleMapController!.animateCamera(CameraUpdate.newLatLng(LatLng(geoPosition.latitude, geoPosition.longitude)));
+                googleMapController!.animateCamera(CameraUpdate.newLatLng(
+                    LatLng(geoPosition.latitude, geoPosition.longitude)));
               },
               child: Container(
                 padding: EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.2), spreadRadius: 1),
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        spreadRadius: 1),
                   ],
                   borderRadius: BorderRadius.circular(defaultRadius),
                 ),
@@ -1254,16 +1442,19 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
         body: Stack(
           alignment: Alignment.bottomCenter,
           children: [
-            if (sharedPref.getDouble(LATITUDE) != null && sharedPref.getDouble(LONGITUDE) != null)
+            if (sharedPref.getDouble(LATITUDE) != null &&
+                sharedPref.getDouble(LONGITUDE) != null)
               SizedBox(
                 height: MediaQuery.of(context).size.height,
                 child: GoogleMap(
-                  padding: EdgeInsets.only(top: context.statusBarHeight + 4 + 24),
+                  padding:
+                      EdgeInsets.only(top: context.statusBarHeight + 4 + 24),
                   mapToolbarEnabled: false,
                   zoomControlsEnabled: false,
                   myLocationButtonEnabled: false,
                   // myLocationEnabled: /*rideRequestData != null && (rideRequestData!.status == IN_PROGRESS) ? true : false*/ false,
-                  myLocationEnabled: rideRequestData?.status == IN_PROGRESS ? true : false,
+                  myLocationEnabled:
+                      rideRequestData?.status == IN_PROGRESS ? true : false,
                   compassEnabled: true,
                   onMapCreated: onMapCreated,
                   initialCameraPosition: CameraPosition(
@@ -1276,14 +1467,23 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                 ),
               ),
             Container(
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.only(topLeft: Radius.circular(2 * defaultRadius), topRight: Radius.circular(2 * defaultRadius))),
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(2 * defaultRadius),
+                      topRight: Radius.circular(2 * defaultRadius))),
               child: !isBooking
                   ? bookRideWidget()
                   : StreamBuilder(
-                      stream: rideService.fetchRide(rideId: rideRequestId == 0 ? widget.id : rideRequestId),
+                      stream: rideService.fetchRide(
+                          rideId:
+                              rideRequestId == 0 ? widget.id : rideRequestId),
                       builder: (context, snap) {
                         if (snap.hasData) {
-                          List<FRideBookingModel> data = snap.data!.docs.map((e) => FRideBookingModel.fromJson(e.data() as Map<String, dynamic>)).toList();
+                          List<FRideBookingModel> data = snap.data!.docs
+                              .map((e) => FRideBookingModel.fromJson(
+                                  e.data() as Map<String, dynamic>))
+                              .toList();
                           if (data.isEmpty) {
                             Future.delayed(
                               Duration(seconds: 1),
@@ -1297,20 +1497,38 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                           if (data.length != 0) {
                             if (data[0].onRiderStreamApiCall == 0) {
                               getCurrentRequest();
-                              rideService.updateStatusOfRide(rideID: rideRequestId == 0 ? widget.id : rideRequestId, req: {'on_rider_stream_api_call': 1});
+                              rideService.updateStatusOfRide(
+                                  rideID: rideRequestId == 0
+                                      ? widget.id
+                                      : rideRequestId,
+                                  req: {'on_rider_stream_api_call': 1});
                             }
 
-                            if (rideRequestData != null && rideRequestData!.status == COMPLETED) {
+                            if (rideRequestData != null &&
+                                rideRequestData!.status == COMPLETED) {
                               if (currentScreen != false) {
                                 currentScreen = false;
                                 if (rideRequestData!.isRiderRated == 1) {
-                                  launchScreen(context, RideDetailScreen(orderId: rideRequestData!.id!), pageRouteAnimation: PageRouteAnimation.SlideBottomTop, isNewTask: true);
+                                  launchScreen(
+                                      context,
+                                      RideDetailScreen(
+                                          orderId: rideRequestData!.id!),
+                                      pageRouteAnimation:
+                                          PageRouteAnimation.SlideBottomTop,
+                                      isNewTask: true);
                                   // launchScreen(context, DashBoardScreen(), isNewTask: true);
                                 } else {
                                   Future.delayed(
                                     Duration(seconds: 1),
                                     () {
-                                      launchScreen(context, ReviewScreen(rideRequest: rideRequestData!, driverData: driverData), pageRouteAnimation: PageRouteAnimation.SlideBottomTop, isNewTask: true);
+                                      launchScreen(
+                                          context,
+                                          ReviewScreen(
+                                              rideRequest: rideRequestData!,
+                                              driverData: driverData),
+                                          pageRouteAnimation:
+                                              PageRouteAnimation.SlideBottomTop,
+                                          isNewTask: true);
                                     },
                                   );
                                 }
@@ -1321,15 +1539,21 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                             return rideRequestData != null
                                 ? rideRequestData!.status == NEW_RIDE_REQUESTED
                                     ? BookingWidget(
-                                        id: rideRequestId == 0 ? widget.id : rideRequestId,
+                                        id: rideRequestId == 0
+                                            ? widget.id
+                                            : rideRequestId,
                                         dt: widget.dt,
                                         timezone: widget.timezone,
                                       )
-                                    : RideAcceptWidget(rideRequest: rideRequestData, driverData: driverData)
+                                    : RideAcceptWidget(
+                                        rideRequest: rideRequestData,
+                                        driverData: driverData)
                                 // :SizedBox();
                                 : data[0].status == NEW_RIDE_REQUESTED
                                     ? BookingWidget(
-                                        id: rideRequestId == 0 ? widget.id : rideRequestId,
+                                        id: rideRequestId == 0
+                                            ? widget.id
+                                            : rideRequestId,
                                         dt: widget.dt,
                                         timezone: widget.timezone,
                                       )
@@ -1343,7 +1567,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                       }),
             ),
             Observer(builder: (context) {
-              return Visibility(visible: appStore.isLoading, child: loaderWidget());
+              return Visibility(
+                  visible: appStore.isLoading, child: loaderWidget());
             }),
           ],
         ),
@@ -1357,24 +1582,38 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
         Visibility(
           visible: serviceList.isNotEmpty,
           child: Container(
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.only(topLeft: Radius.circular(2 * defaultRadius), topRight: Radius.circular(2 * defaultRadius))),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(2 * defaultRadius),
+                    topRight: Radius.circular(2 * defaultRadius))),
             child: SingleChildScrollView(
               child:
                   // true?bidBookingOption():
-                  isRideSelection == false && appStore.isRiderForAnother == "1" ? riderSelectionWidget() : serviceSelectWidget(),
+                  isRideSelection == false && appStore.isRiderForAnother == "1"
+                      ? riderSelectionWidget()
+                      : serviceSelectWidget(),
             ),
           ),
         ),
         Visibility(
           visible: !appStore.isLoading && serviceList.isEmpty,
           child: Container(
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.only(topLeft: Radius.circular(2 * defaultRadius), topRight: Radius.circular(2 * defaultRadius))),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(2 * defaultRadius),
+                    topRight: Radius.circular(2 * defaultRadius))),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 emptyWidget(),
-                Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text(serviceLoadError ?? language.servicesNotFound, textAlign: TextAlign.center, style: boldTextStyle())),
-                TextButton(onPressed: () => getNewService(), child: Text('Retry')),
+                Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(serviceLoadError ?? language.servicesNotFound,
+                        textAlign: TextAlign.center, style: boldTextStyle())),
+                TextButton(
+                    onPressed: () => getNewService(), child: Text('Retry')),
                 SizedBox(height: 8),
               ],
             ),
@@ -1396,7 +1635,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
               margin: EdgeInsets.only(bottom: 16),
               height: 5,
               width: 70,
-              decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(defaultRadius)),
+              decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(defaultRadius)),
             ),
           ),
           Text(language.whoWillBeSeated, style: primaryTextStyle(size: 18)),
@@ -1413,7 +1654,10 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                           Container(
                             height: 70,
                             width: 70,
-                            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: textSecondaryColorGlobal, width: 1)),
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: textSecondaryColorGlobal, width: 1)),
                             padding: EdgeInsets.all(12),
                             child: Image.asset(ic_add_user, fit: BoxFit.fill),
                           ),
@@ -1421,7 +1665,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                             Container(
                               height: 70,
                               width: 70,
-                              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.black54),
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black54),
                               child: Icon(Icons.check, color: Colors.white),
                             ),
                         ],
@@ -1435,7 +1681,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                     showDialog(
                       context: context,
                       builder: (_) {
-                        return StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+                        return StatefulBuilder(builder:
+                            (BuildContext context, StateSetter setState) {
                           return AlertDialog(
                             contentPadding: EdgeInsets.all(0),
                             content: mSomeOnElse(),
@@ -1455,13 +1702,19 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(40),
-                            child: commonCachedNetworkImage(appStore.userProfile.validate(), height: 70, width: 70, fit: BoxFit.cover),
+                            child: commonCachedNetworkImage(
+                                appStore.userProfile.validate(),
+                                height: 70,
+                                width: 70,
+                                fit: BoxFit.cover),
                           ),
                           if (isRideForOther)
                             Container(
                               height: 70,
                               width: 70,
-                              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.black54),
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black54),
                               child: Icon(Icons.check, color: Colors.white),
                             ),
                         ],
@@ -1483,11 +1736,13 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
             color: primaryColor,
             onTap: () async {
               if (!isRideForOther) {
-                if (nameController.text.isEmptyOrNull || phoneController.text.isEmptyOrNull) {
+                if (nameController.text.isEmptyOrNull ||
+                    phoneController.text.isEmptyOrNull) {
                   showDialog(
                     context: context,
                     builder: (_) {
-                      return StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+                      return StatefulBuilder(builder:
+                          (BuildContext context, StateSetter setState) {
                         return AlertDialog(
                           contentPadding: EdgeInsets.all(0),
                           content: mSomeOnElse(),
@@ -1517,7 +1772,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
   /// Vehicle option in the booking sheet.
   Widget _vehicleCard(ServicesListData e) {
     final selected = selectedIndex == serviceList.indexOf(e);
-    final fare = BookingFare(total: e.totalAmount ?? 0, discountedTotal: e.totalAmountAfterDiscount);
+    final fare = BookingFare(
+        total: e.totalAmount ?? 0, discountedTotal: e.totalAmountAfterDiscount);
     final discounted = fare.hasDiscount;
     return AnimatedContainer(
       duration: Duration(milliseconds: 180),
@@ -1526,7 +1782,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       margin: EdgeInsets.only(top: 12, left: 6, right: 6),
       decoration: BoxDecoration(
         color: selected ? BrandTokens.blueSoft : Colors.white,
-        border: Border.all(color: selected ? BrandTokens.blue : BrandTokens.line, width: selected ? 2 : 1.2),
+        border: Border.all(
+            color: selected ? BrandTokens.blue : BrandTokens.line,
+            width: selected ? 2 : 1.2),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -1535,22 +1793,34 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: commonCachedNetworkImage(e.serviceImage.validate(), height: 46, width: 90, fit: BoxFit.contain, alignment: Alignment.centerLeft)),
+              Expanded(
+                  child: commonCachedNetworkImage(e.serviceImage.validate(),
+                      height: 46,
+                      width: 90,
+                      fit: BoxFit.contain,
+                      alignment: Alignment.centerLeft)),
               InkWell(
                 borderRadius: BorderRadius.circular(20),
                 onTap: () {
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
-                    builder: (_) => CarDetailWidget(service: e, tripType: widget.trip_type),
+                    builder: (_) =>
+                        CarDetailWidget(service: e, tripType: widget.trip_type),
                   );
                 },
-                child: Padding(padding: EdgeInsets.all(2), child: Icon(Icons.info_outline_rounded, size: 18, color: BrandTokens.inkSoft)),
+                child: Padding(
+                    padding: EdgeInsets.all(2),
+                    child: Icon(Icons.info_outline_rounded,
+                        size: 18, color: BrandTokens.inkSoft)),
               ),
             ],
           ),
           SizedBox(height: 6),
-          Text(e.name.validate(), maxLines: 1, overflow: TextOverflow.ellipsis, style: boldTextStyle(size: 15)),
+          Text(e.name.validate(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: boldTextStyle(size: 15)),
           SizedBox(height: 2),
           Row(children: [
             Icon(Icons.person_rounded, size: 14, color: BrandTokens.inkSoft),
@@ -1559,7 +1829,10 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
           ]),
           if (e.tripFareSummary != null) ...[
             SizedBox(height: 2),
-            Text(e.tripFareSummary!, maxLines: 2, overflow: TextOverflow.ellipsis, style: secondaryTextStyle(size: 11)),
+            Text(e.tripFareSummary!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: secondaryTextStyle(size: 11)),
           ],
           SizedBox(height: 8),
           if (discounted)
@@ -1577,7 +1850,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
             weight: FontWeight.w700,
             color: selected ? BrandTokens.blue : BrandTokens.ink,
           ),
-          if (promoCode.text.isNotEmpty && e.discountAmount == 0) SizedBox(height: 14),
+          if (promoCode.text.isNotEmpty && e.discountAmount == 0)
+            SizedBox(height: 14),
         ],
       ),
     );
@@ -1587,7 +1861,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     print("totalCoins ${totalCoins}");
     if (!widget.pickupTimeValue.isEmptyOrNull) {
       final pickup = DateTime.tryParse(widget.pickupTimeValue ?? '');
-      if (pickup != null) formattedTime = DateFormat('yyyy-MM-dd hh:mm a').format(pickup);
+      if (pickup != null)
+        formattedTime = DateFormat('yyyy-MM-dd hh:mm a').format(pickup);
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1598,7 +1873,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
             margin: EdgeInsets.only(bottom: 8, top: 16),
             height: 5,
             width: 70,
-            decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(defaultRadius)),
+            decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: BorderRadius.circular(defaultRadius)),
           ),
         ),
         SingleChildScrollView(
@@ -1613,9 +1890,13 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                       context: context,
                       isScrollControlled: true,
                       backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topRight: Radius.circular(2 * defaultRadius), topLeft: Radius.circular(2 * defaultRadius))),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.only(
+                              topRight: Radius.circular(2 * defaultRadius),
+                              topLeft: Radius.circular(2 * defaultRadius))),
                       builder: (_) {
-                        return CarDetailWidget(service: e, tripType: widget.trip_type);
+                        return CarDetailWidget(
+                            service: e, tripType: widget.trip_type);
                       },
                     );
                     return;
@@ -1624,9 +1905,11 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                     oldPaymentType = paymentMethodType;
                   }
                   if ((e.discountAmount ?? 0) > 0) {
-                    mSelectServiceAmount = e.subtotal!.toStringAsFixed(fixedDecimal);
+                    mSelectServiceAmount =
+                        e.subtotal!.toStringAsFixed(fixedDecimal);
                   } else {
-                    mSelectServiceAmount = e.totalAmount!.toStringAsFixed(fixedDecimal);
+                    mSelectServiceAmount =
+                        e.totalAmount!.toStringAsFixed(fixedDecimal);
                   }
                   selectedIndex = serviceList.indexOf(e);
                   servicesListData = e;
@@ -1634,15 +1917,19 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                     locationDistance = e.dropoffDistanceInKm!.toDouble();
                     distanceUnit = DISTANCE_TYPE_KM;
                   } else {
-                    locationDistance = e.dropoffDistanceInKm!.toDouble() * 0.621371;
+                    locationDistance =
+                        e.dropoffDistanceInKm!.toDouble() * 0.621371;
                     distanceUnit = DISTANCE_TYPE_MILE;
                   }
                   durationOfDrop = (serviceList[0].duration ?? 0).toDouble();
                   paymentMethodType = e.paymentMethod!;
 
                   // cashList =
-                  paymentMethodType == CASH_WALLET ? cashList = [CASH, WALLET] : cashList = [paymentMethodType];
-                  if (e.paymentMethod == CASH_WALLET && oldPaymentType != null) {
+                  paymentMethodType == CASH_WALLET
+                      ? cashList = [CASH, WALLET]
+                      : cashList = [paymentMethodType];
+                  if (e.paymentMethod == CASH_WALLET &&
+                      oldPaymentType != null) {
                     paymentMethodType = oldPaymentType!;
                   }
                   setState(() {});
@@ -1653,18 +1940,33 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
           ),
         ),
         SizedBox(height: 8),
-        if (mSelectServiceAmount != null && paymentMethodType != CASH_WALLET && paymentMethodType == WALLET && double.parse(mSelectServiceAmount!) > mTotalAmount.toDouble())
+        if (mSelectServiceAmount != null &&
+            paymentMethodType != CASH_WALLET &&
+            paymentMethodType == WALLET &&
+            double.parse(mSelectServiceAmount!) > mTotalAmount.toDouble())
           Padding(
             padding: EdgeInsets.zero,
             // padding: EdgeInsets.only(top: 4,left: 16,right: 16),
             child: Container(
-              decoration: BoxDecoration(border: Border.all(color: dividerColor), borderRadius: BorderRadius.circular(defaultRadius)),
+              decoration: BoxDecoration(
+                  border: Border.all(color: dividerColor),
+                  borderRadius: BorderRadius.circular(defaultRadius)),
               padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               margin: EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  Expanded(child: Text(language.lblLessWalletAmount, style: boldTextStyle(size: 12, color: Colors.red, letterSpacing: 0.5, weight: FontWeight.w500))),
-                  if (mSelectServiceAmount != null && paymentMethodType != CASH_WALLET && paymentMethodType == WALLET && double.parse(mSelectServiceAmount!) > mTotalAmount.toDouble())
+                  Expanded(
+                      child: Text(language.lblLessWalletAmount,
+                          style: boldTextStyle(
+                              size: 12,
+                              color: Colors.red,
+                              letterSpacing: 0.5,
+                              weight: FontWeight.w500))),
+                  if (mSelectServiceAmount != null &&
+                      paymentMethodType != CASH_WALLET &&
+                      paymentMethodType == WALLET &&
+                      double.parse(mSelectServiceAmount!) >
+                          mTotalAmount.toDouble())
                     inkWellWidget(
                       onTap: () {
                         oldPaymentType = paymentMethodType;
@@ -1673,9 +1975,15 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                         });
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(border: Border.all(color: dividerColor), color: primaryColor, borderRadius: radius()),
-                        child: Text(language.addMoney, style: primaryTextStyle(size: 14, color: Colors.white)),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                            border: Border.all(color: dividerColor),
+                            color: primaryColor,
+                            borderRadius: radius()),
+                        child: Text(language.addMoney,
+                            style: primaryTextStyle(
+                                size: 14, color: Colors.white)),
                       ),
                     )
                 ],
@@ -1697,7 +2005,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                   showDialog(
                     context: context,
                     builder: (_) {
-                      return StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+                      return StatefulBuilder(builder:
+                          (BuildContext context, StateSetter setState) {
                         return Observer(builder: (context) {
                           return Stack(
                             children: [
@@ -1707,36 +2016,49 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                                 content: SingleChildScrollView(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(language.paymentMethod, style: boldTextStyle()),
+                                          Text(language.paymentMethod,
+                                              style: boldTextStyle()),
                                           inkWellWidget(
                                             onTap: () {
                                               Navigator.pop(context);
                                             },
                                             child: Container(
                                               padding: EdgeInsets.all(6),
-                                              decoration: BoxDecoration(color: primaryColor, shape: BoxShape.circle),
-                                              child: Icon(Icons.close, color: Colors.white),
+                                              decoration: BoxDecoration(
+                                                  color: primaryColor,
+                                                  shape: BoxShape.circle),
+                                              child: Icon(Icons.close,
+                                                  color: Colors.white),
                                             ),
                                           )
                                         ],
                                       ),
                                       SizedBox(height: 4),
-                                      Text(language.chooseYouPaymentLate, style: secondaryTextStyle()),
+                                      Text(language.chooseYouPaymentLate,
+                                          style: secondaryTextStyle()),
                                       Column(
                                         children: cashList.map((e) {
                                           return RadioListTile(
                                             dense: true,
                                             contentPadding: EdgeInsets.zero,
-                                            controlAffinity: ListTileControlAffinity.trailing,
+                                            controlAffinity:
+                                                ListTileControlAffinity
+                                                    .trailing,
                                             activeColor: primaryColor,
                                             value: e,
-                                            groupValue: paymentMethodType == CASH_WALLET ? CASH : paymentMethodType,
-                                            title: Text(paymentStatus(e), style: boldTextStyle()),
+                                            groupValue:
+                                                paymentMethodType == CASH_WALLET
+                                                    ? CASH
+                                                    : paymentMethodType,
+                                            title: Text(paymentStatus(e),
+                                                style: boldTextStyle()),
                                             onChanged: (String? val) {
                                               paymentMethodType = val!;
                                               setState(() {});
@@ -1749,8 +2071,10 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                                         controller: promoCode,
                                         autoFocus: false,
                                         textFieldType: TextFieldType.EMAIL,
-                                        keyboardType: TextInputType.emailAddress,
-                                        errorThisFieldRequired: language.thisFieldRequired,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                        errorThisFieldRequired:
+                                            language.thisFieldRequired,
                                         readOnly: true,
                                         onTap: () async {
                                           // servicesListData.id;
@@ -1759,7 +2083,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                                             context: context,
                                             backgroundColor: Colors.white,
                                             builder: (_) {
-                                              return CouPonWidget(servicesListData!.serviceId!.toInt());
+                                              return CouPonWidget(
+                                                  servicesListData!.serviceId!
+                                                      .toInt());
                                             },
                                           );
                                           if (data != null) {
@@ -1769,22 +2095,28 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                                         },
                                         decoration: inputDecoration(context,
                                             label: language.enterPromoCode,
-                                            suffixIcon: promoCode.text.isNotEmpty
-                                                ? inkWellWidget(
-                                                    onTap: () {
-                                                      getNewService(coupon: false);
-                                                      promoCode.clear();
-                                                      setState(() {});
-                                                    },
-                                                    child: Icon(Icons.close, color: Colors.black, size: 25),
-                                                  )
-                                                : null),
+                                            suffixIcon:
+                                                promoCode.text.isNotEmpty
+                                                    ? inkWellWidget(
+                                                        onTap: () {
+                                                          getNewService(
+                                                              coupon: false);
+                                                          promoCode.clear();
+                                                          setState(() {});
+                                                        },
+                                                        child: Icon(Icons.close,
+                                                            color: Colors.black,
+                                                            size: 25),
+                                                      )
+                                                    : null),
                                       ),
                                       SizedBox(height: 16),
                                       AppButtonWidget(
-                                        width: MediaQuery.of(context).size.width,
+                                        width:
+                                            MediaQuery.of(context).size.width,
                                         text: language.confirm,
-                                        textStyle: boldTextStyle(color: Colors.white),
+                                        textStyle:
+                                            boldTextStyle(color: Colors.white),
                                         color: primaryColor,
                                         onTap: () {
                                           if (promoCode.text.isNotEmpty) {
@@ -1799,7 +2131,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                                 ),
                               ),
                               Observer(builder: (context) {
-                                return Visibility(visible: appStore.isLoading, child: loaderWidget());
+                                return Visibility(
+                                    visible: appStore.isLoading,
+                                    child: loaderWidget());
                               }),
                             ],
                           );
@@ -1811,8 +2145,11 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                   });
                 },
                 child: Container(
-                  margin: EdgeInsets.fromLTRB(16, 8, appStore.isScheduleRide == "1" ? 4 : 16, 16),
-                  decoration: BoxDecoration(border: Border.all(color: dividerColor), borderRadius: BorderRadius.circular(defaultRadius)),
+                  margin: EdgeInsets.fromLTRB(
+                      16, 8, appStore.isScheduleRide == "1" ? 4 : 16, 16),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: dividerColor),
+                      borderRadius: BorderRadius.circular(defaultRadius)),
                   padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   child: Center(
                     child: Column(
@@ -1820,7 +2157,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                       children: [
                         Row(
                           children: [
-                            Text(language.paymentVia, style: secondaryTextStyle(size: 12, weight: FontWeight.bold)),
+                            Text(language.paymentVia,
+                                style: secondaryTextStyle(
+                                    size: 12, weight: FontWeight.bold)),
                             Container(
                               child: Icon(
                                 Icons.cancel_outlined,
@@ -1838,13 +2177,19 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                             Container(
                               padding: EdgeInsets.all(4),
                               margin: EdgeInsets.only(top: 4),
-                              decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(defaultRadius)),
-                              child: paymentMethodType == CASH_WALLET || paymentMethodType == CASH
+                              decoration: BoxDecoration(
+                                  color: primaryColor,
+                                  borderRadius:
+                                      BorderRadius.circular(defaultRadius)),
+                              child: paymentMethodType == CASH_WALLET ||
+                                      paymentMethodType == CASH
                                   ? Text(
                                       "${appStore.currencyCode}",
                                       style: boldTextStyle(color: Colors.white),
-                                    ).paddingSymmetric(horizontal: 5, vertical: 0)
-                                  : Icon(Icons.wallet_outlined, size: 20, color: Colors.white),
+                                    ).paddingSymmetric(
+                                      horizontal: 5, vertical: 0)
+                                  : Icon(Icons.wallet_outlined,
+                                      size: 20, color: Colors.white),
                             ),
                             SizedBox(width: 10),
                             Expanded(
@@ -1859,7 +2204,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                                               ? language.cash
                                               : paymentMethodType == CASH_WALLET
                                                   ? language.cash
-                                                  : paymentStatus(paymentMethodType),
+                                                  : paymentStatus(
+                                                      paymentMethodType),
                                           style: boldTextStyle(size: 14),
                                           maxLines: 1,
                                         ),
@@ -1868,7 +2214,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    paymentMethodType != CASH_WALLET ? language.forInstantPayment : language.lblPayWhenEnds,
+                                    paymentMethodType != CASH_WALLET
+                                        ? language.forInstantPayment
+                                        : language.lblPayWhenEnds,
                                     style: secondaryTextStyle(size: 12),
                                     maxLines: 2,
                                   ),
@@ -1894,10 +2242,14 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                           builder: (context, child) {
                             return Theme(
                               data: ThemeData.light().copyWith(
-                                primaryColor: primaryColor, // Header background color
-                                hintColor: primaryColor, // Selected date highlight color
-                                colorScheme: ColorScheme.light(primary: primaryColor),
-                                buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+                                primaryColor:
+                                    primaryColor, // Header background color
+                                hintColor:
+                                    primaryColor, // Selected date highlight color
+                                colorScheme:
+                                    ColorScheme.light(primary: primaryColor),
+                                buttonTheme: ButtonThemeData(
+                                    textTheme: ButtonTextTheme.primary),
                               ),
                               child: child!,
                             );
@@ -1910,10 +2262,14 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                             builder: (context, child) {
                               return Theme(
                                 data: ThemeData.light().copyWith(
-                                  primaryColor: primaryColor, // Header background color
-                                  hintColor: primaryColor, // Selected date highlight color
-                                  colorScheme: ColorScheme.light(primary: primaryColor),
-                                  buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+                                  primaryColor:
+                                      primaryColor, // Header background color
+                                  hintColor:
+                                      primaryColor, // Selected date highlight color
+                                  colorScheme:
+                                      ColorScheme.light(primary: primaryColor),
+                                  buttonTheme: ButtonThemeData(
+                                      textTheme: ButtonTextTheme.primary),
                                 ),
                                 child: child!,
                               );
@@ -1921,12 +2277,14 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                             context: context,
                             initialTime: TimeOfDay(hour: 0, minute: 0));
                         if (t1 != null) {
-                          d1 = DateTime(d1.year, d1.month, d1.day, t1.hour, t1.minute);
+                          d1 = DateTime(
+                              d1.year, d1.month, d1.day, t1.hour, t1.minute);
 
                           DateTime now = DateTime.now();
                           DateTime minValid = now.add(Duration(minutes: 15));
                           if (d1.isBefore(minValid)) {
-                            toast("Please select a time at least 15 minutes from now."); // todo language
+                            toast(
+                                "Please select a time at least 15 minutes from now."); // todo language
                           } else {
                             setState(() {
                               schduleRideDateTime = d1;
@@ -1938,7 +2296,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                   },
                   child: Container(
                     margin: EdgeInsets.fromLTRB(4, 8, 16, 16),
-                    decoration: BoxDecoration(border: Border.all(color: dividerColor), borderRadius: BorderRadius.circular(defaultRadius)),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: dividerColor),
+                        borderRadius: BorderRadius.circular(defaultRadius)),
                     padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1947,7 +2307,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                           mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(language.schedule, style: secondaryTextStyle(size: 12, weight: FontWeight.bold)),
+                            Text(language.schedule,
+                                style: secondaryTextStyle(
+                                    size: 12, weight: FontWeight.bold)),
                             if (schduleRideDateTime != null)
                               inkWellWidget(
                                 onTap: () {
@@ -1980,8 +2342,12 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                             Container(
                               padding: EdgeInsets.all(4),
                               margin: EdgeInsets.only(top: 4),
-                              decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(defaultRadius)),
-                              child: Icon(Icons.access_time_filled_outlined, size: 20, color: Colors.white),
+                              decoration: BoxDecoration(
+                                  color: primaryColor,
+                                  borderRadius:
+                                      BorderRadius.circular(defaultRadius)),
+                              child: Icon(Icons.access_time_filled_outlined,
+                                  size: 20, color: Colors.white),
                             ),
                             SizedBox(width: 10),
                             Expanded(
@@ -1999,10 +2365,16 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
                                     ],
                                   ),
                                   SizedBox(height: 4),
-                                  if (!widget.pickupTimeValue.isEmptyOrNull) ...[
-                                    Text(formattedTime ?? '', style: secondaryTextStyle(size: 12)),
+                                  if (!widget
+                                      .pickupTimeValue.isEmptyOrNull) ...[
+                                    Text(formattedTime ?? '',
+                                        style: secondaryTextStyle(size: 12)),
                                   ] else ...[
-                                    Text(schduleRideDateTime != null ? "${DateFormat('dd MMM yyyy hh:mm a').format(schduleRideDateTime!)}" : "${language.now}", style: secondaryTextStyle(size: 12)),
+                                    Text(
+                                        schduleRideDateTime != null
+                                            ? "${DateFormat('dd MMM yyyy hh:mm a').format(schduleRideDateTime!)}"
+                                            : "${language.now}",
+                                        style: secondaryTextStyle(size: 12)),
                                   ],
                                   SizedBox(height: 4),
                                 ],
@@ -2021,7 +2393,11 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
           padding: EdgeInsets.only(left: 16, right: 16, bottom: 0),
           child: AppButtonWidget(
             onTap: () {
-              if (mSelectServiceAmount != null && paymentMethodType != CASH_WALLET && paymentMethodType == WALLET && double.parse(mSelectServiceAmount!) > mTotalAmount.toDouble()) {
+              if (mSelectServiceAmount != null &&
+                  paymentMethodType != CASH_WALLET &&
+                  paymentMethodType == WALLET &&
+                  double.parse(mSelectServiceAmount!) >
+                      mTotalAmount.toDouble()) {
                 return toast(language.noBalanceValidate);
               }
               saveBookingData();
@@ -2053,7 +2429,11 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
             padding: EdgeInsets.only(left: 16, right: 16, bottom: 12),
             child: AppButtonWidget(
               onTap: () {
-                if (mSelectServiceAmount != null && paymentMethodType != CASH_WALLET && paymentMethodType == WALLET && double.parse(mSelectServiceAmount!) > mTotalAmount.toDouble()) {
+                if (mSelectServiceAmount != null &&
+                    paymentMethodType != CASH_WALLET &&
+                    paymentMethodType == WALLET &&
+                    double.parse(mSelectServiceAmount!) >
+                        mTotalAmount.toDouble()) {
                   return toast(language.noBalanceValidate);
                 }
                 saveBookingData(ride_type: "with_bidding");
@@ -2078,11 +2458,13 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
 
   Future<void> saveBookingData({String? ride_type}) async {
     if (bookingInProgress) return;
-    if (schduleRideDateTime != null && schduleRideDateTime!.isBefore(DateTime.now())) {
+    if (schduleRideDateTime != null &&
+        schduleRideDateTime!.isBefore(DateTime.now())) {
       return toast("Enter Valid Schedule Time");
     }
     DateFormat format = DateFormat("yyyy-MM-dd hh:mm a");
-    if (formattedTime != null && format.parse(formattedTime.toString()).isBefore(DateTime.now())) {
+    if (formattedTime != null &&
+        format.parse(formattedTime.toString()).isBefore(DateTime.now())) {
       return toast("Enter Valid Schedule Time");
     }
 
@@ -2091,7 +2473,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     } else if (isRideForOther == false && phoneController.text.isEmpty) {
       return toast(language.phoneNumberIsRequired);
     }
-    if (servicesListData == null) return toast('Select a vehicle to book your ride');
+    if (servicesListData == null)
+      return toast('Select a vehicle to book your ride');
     appStore.setLoading(true);
     widget.dt = DateTime.now().toUtc().toString().replaceAll("Z", "");
     if (!formattedTime.isEmptyOrNull) {
@@ -2111,15 +2494,25 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       "end_address": widget.destinationTitle,
       "seat_count": servicesListData!.capacity.toString(),
       "status": NEW_RIDE_REQUESTED,
-      "payment_type": paymentMethodType == CASH_WALLET ? CASH : paymentMethodType,
+      "payment_type":
+          paymentMethodType == CASH_WALLET ? CASH : paymentMethodType,
       if (promoCode.text.isNotEmpty) "coupon_code": promoCode.text,
-      if (useCoinsEnabled && usedCoins > 0) "use_coins": usedCoins, // ADDED FOR COINS
-      "is_schedule": schduleRideDateTime == null && formattedTime.isEmptyOrNull ? 0 : 1,
-      "schedule_datetime": schduleRideDateTime == null && formattedTime.isEmptyOrNull
-          ? null
-          : schduleRideDateTime == null
-              ? parsedDate
-              : schduleRideDateTime?.toUtc().toString().replaceAll("Z", ""),
+      if (useCoinsEnabled && usedCoins > 0)
+        "use_coins": usedCoins, // ADDED FOR COINS
+      "is_schedule": widget.tripDetail?["schedule_datetime"] != null ||
+              schduleRideDateTime != null ||
+              !formattedTime.isEmptyOrNull
+          ? 1
+          : 0,
+      "schedule_datetime": widget.tripDetail?["schedule_datetime"] ??
+          (schduleRideDateTime == null && formattedTime.isEmptyOrNull
+              ? null
+              : schduleRideDateTime == null
+                  ? parsedDate
+                  : schduleRideDateTime
+                      ?.toUtc()
+                      .toString()
+                      .replaceAll("Z", "")),
       if (isRideForOther == false) "is_ride_for_other": 1,
       if (isRideForOther == false)
         "other_rider_data": {
@@ -2135,10 +2528,13 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       req['flight_number'] = widget.tripDetail["flight_number"];
       req['pickup_point'] = widget.tripDetail["pickup_point"];
       req['preferred_pickup_time'] = widget.tripDetail["preferred_pickup_time"];
-      req['preferred_dropoff_time'] = widget.tripDetail["preferred_dropoff_time"];
+      req['preferred_dropoff_time'] =
+          widget.tripDetail["preferred_dropoff_time"];
       req['trip_type'] = widget.tripDetail["trip_type"];
-      if (widget.tripDetail["rental_hours"] != null) req['rental_hours'] = widget.tripDetail["rental_hours"];
-      if (widget.tripDetail["return_datetime"] != null) req['return_datetime'] = widget.tripDetail["return_datetime"];
+      if (widget.tripDetail["rental_hours"] != null)
+        req['rental_hours'] = widget.tripDetail["rental_hours"];
+      if (widget.tripDetail["return_datetime"] != null)
+        req['return_datetime'] = widget.tripDetail["return_datetime"];
       req['airport_pickup'] = widget.tripDetail["airport_pickup"];
       req['airport_name'] = widget.tripDetail["airport_name"];
       req['pickup_airport_id'] = widget.tripDetail["pickup_airport_id"];
@@ -2149,7 +2545,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       req['duration'] = servicesListData?.duration;
       req['base_fare'] = servicesListData?.baseFare;
       req['discount'] = servicesListData?.discountAmount;
-      req['dropoff_distance_in_km'] = servicesListData?.dropoffDistanceInKm ?? '';
+      req['dropoff_distance_in_km'] =
+          servicesListData?.dropoffDistanceInKm ?? '';
       req['total_amount'] = servicesListData?.totalAmountAfterDiscount ?? '';
       req['subtotal'] = servicesListData?.subtotal ?? '';
       req['time_price'] = servicesListData?.timePrice ?? '';
@@ -2160,7 +2557,13 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       widget.multiDropObj!.forEach(
         (key, value) {
           LatLng s = value as LatLng;
-          abc.add({"drop": key, "lat": s.latitude, "lng": s.longitude, "dropped_at": null, "address": widget.multiDropLocationNamesObj![key]});
+          abc.add({
+            "drop": key,
+            "lat": s.latitude,
+            "lng": s.longitude,
+            "dropped_at": null,
+            "address": widget.multiDropLocationNamesObj![key]
+          });
         },
       );
       req['multi_location'] = abc;
@@ -2184,53 +2587,76 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
       Future.delayed(
         Duration(seconds: 3),
         () {
-          rideService.updateStatusOfRide(rideID: rideRequestId, req: {'on_stream_api_call': 0});
+          rideService.updateStatusOfRide(
+              rideID: rideRequestId, req: {'on_stream_api_call': 0});
         },
       );
       widget.isCurrentRequest = true;
 
       // Outstation trips are assigned to a driver by the S Taxi team, so there is no driver search.
-      final bookedTripType = widget.tripDetail != null ? widget.tripDetail['trip_type']?.toString() : null;
-      if (bookedTripType == tripTypeValueOutstationOneway || bookedTripType == tripTypeValueOutstationRound) {
+      final bookedTripType = widget.tripDetail != null
+          ? widget.tripDetail['trip_type']?.toString()
+          : null;
+      if (bookedTripType == tripTypeValueOutstationOneway ||
+          bookedTripType == tripTypeValueOutstationRound) {
         appStore.setLoading(false);
         await TransactionResultScreen.show(
           context,
           TransactionResultScreen(
             result: TransactionResult.success,
             title: 'Outstation request received',
-            subtitle: 'Our team will assign a driver for your trip and you will be notified with the driver details shortly.',
+            subtitle:
+                'Our team will assign a driver for your trip and you will be notified with the driver details shortly.',
             details: [
               MapEntry('Request', '#$rideRequestId'),
-              MapEntry('Trip', bookedTripType == tripTypeValueOutstationRound ? 'Outstation round trip' : 'Outstation one way'),
-              if (!formattedTime.isEmptyOrNull) MapEntry('Pickup', DateFormat('dd MMM yyyy, hh:mm a').format(DateFormat('yyyy-MM-dd hh:mm a').parse(formattedTime!))),
+              MapEntry(
+                  'Trip',
+                  bookedTripType == tripTypeValueOutstationRound
+                      ? 'Outstation round trip'
+                      : 'Outstation one way'),
+              if (!formattedTime.isEmptyOrNull)
+                MapEntry(
+                    'Pickup',
+                    DateFormat('dd MMM yyyy, hh:mm a').format(
+                        DateFormat('yyyy-MM-dd hh:mm a')
+                            .parse(formattedTime!))),
             ],
             doneText: 'Okay',
           ),
         );
         if (!mounted) return;
-        launchScreen(context, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
+        launchScreen(context, HomeScreen(),
+            isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
         return;
       }
 
       if (schduleRideDateTime != null || formattedTime != null) {
         appStore.setLoading(false);
-        final pickupAt = schduleRideDateTime ?? DateFormat('yyyy-MM-dd hh:mm a').parse(formattedTime!);
+        final pickupAt = schduleRideDateTime ??
+            DateFormat('yyyy-MM-dd hh:mm a').parse(formattedTime!);
         await TransactionResultScreen.show(
           context,
           TransactionResultScreen(
             result: TransactionResult.success,
             title: 'Ride later request received',
-            subtitle: 'Our team will assign a driver before your pickup time and you will be notified with the driver details.',
+            subtitle:
+                'Our team will assign a driver before your pickup time and you will be notified with the driver details.',
             details: [
               MapEntry('Request', '#$rideRequestId'),
-              MapEntry('Trip', bookedTripType == tripTypeValueRental ? 'Rental' : 'Local ride'),
-              MapEntry('Pickup', DateFormat('dd MMM yyyy, hh:mm a').format(pickupAt)),
+              MapEntry(
+                  'Trip',
+                  bookedTripType == tripTypeValueRental
+                      ? 'Rental'
+                      : 'Local ride'),
+              MapEntry('Pickup',
+                  DateFormat('dd MMM yyyy, hh:mm a').format(pickupAt)),
             ],
             doneText: 'Okay',
           ),
         );
         if (!mounted) return;
-        launchScreen(context, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
+        launchScreen(context, HomeScreen(),
+            isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
         return;
       }
       if (ride_type != null) {
@@ -2276,11 +2702,14 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget> wi
     appStore.setLoading(true);
     sharedPref.remove(IS_TIME);
     sharedPref.remove(REMAINING_TIME);
-    await rideDetail(orderId: rideRequestId == 0 ? widget.id : rideRequestId).then((value) {
+    await rideDetail(orderId: rideRequestId == 0 ? widget.id : rideRequestId)
+        .then((value) {
       appStore.setLoading(false);
       if (value.data!.status == CANCELED && value.data!.cancelBy == DRIVER) {
         isPopupOpen = false;
-        launchScreen(getContext, DashBoardScreen(cancelReason: value.data!.reason), isNewTask: true);
+        launchScreen(
+            getContext, DashBoardScreen(cancelReason: value.data!.reason),
+            isNewTask: true);
       } else {
         isPopupOpen = false;
         launchScreen(getContext, DashBoardScreen(), isNewTask: true);
@@ -2324,7 +2753,9 @@ class _CoinSelectionDialogState extends State<CoinSelectionDialog> {
     super.initState();
     _coinsController = TextEditingController();
 
-    maxUsableCoins = widget.totalCoins.toInt() < widget.rideAmount.toInt() ? widget.totalCoins.toInt() : widget.rideAmount.toInt();
+    maxUsableCoins = widget.totalCoins.toInt() < widget.rideAmount.toInt()
+        ? widget.totalCoins.toInt()
+        : widget.rideAmount.toInt();
   }
 
   @override
@@ -2630,7 +3061,8 @@ class _CoinSelectionDialogState extends State<CoinSelectionDialog> {
                           ),
                         ),
                         Text(
-                          (widget.rideAmount - discountAmount).toStringAsFixed(2),
+                          (widget.rideAmount - discountAmount)
+                              .toStringAsFixed(2),
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

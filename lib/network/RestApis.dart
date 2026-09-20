@@ -5,13 +5,19 @@ import 'package:taxi_booking/model/select_location_model.dart';
 import '../manage_imports.dart';
 
 Future<LoginResponse> signUpApi(Map request) async {
-  Response response = await buildHttpResponse('register', request: request, method: HttpMethod.POST);
+  final fcmToken = sharedPref.getString('FCM_TOKEN');
+  final playerId = sharedPref.getString(PLAYER_ID);
+  if (fcmToken != null && fcmToken.isNotEmpty) request['fcm_token'] = fcmToken;
+  if (playerId != null && playerId.isNotEmpty) request['player_id'] = playerId;
+  Response response = await buildHttpResponse('register',
+      request: request, method: HttpMethod.POST);
 
   if (!(response.statusCode >= 200 && response.statusCode <= 206)) {
     if (response.body.isJson()) {
       var json = jsonDecode(response.body);
 
-      if (json.containsKey('code') && json['code'].toString().contains('invalid_username')) {
+      if (json.containsKey('code') &&
+          json['code'].toString().contains('invalid_username')) {
         throw 'invalid_username';
       }
     }
@@ -21,37 +27,59 @@ Future<LoginResponse> signUpApi(Map request) async {
     var loginResponse = LoginResponse.fromJson(json);
 
     if (loginResponse.data!.loginType == 'mobile') {
-      await sharedPref.setString(TOKEN, loginResponse.data!.apiToken.validate());
-      await sharedPref.setString(USER_TYPE, loginResponse.data!.userType.validate());
-      await sharedPref.setString(FIRST_NAME, loginResponse.data!.firstName.validate());
-      await sharedPref.setString(LAST_NAME, loginResponse.data!.lastName.validate());
-      await sharedPref.setString(CONTACT_NUMBER, loginResponse.data!.contactNumber.validate());
-      await sharedPref.setString(USER_EMAIL, loginResponse.data!.email.validate());
-      await sharedPref.setString(USER_NAME, loginResponse.data!.username.validate());
-      await sharedPref.setString(ADDRESS, loginResponse.data!.address.validate());
+      await sharedPref.setString(
+          TOKEN, loginResponse.data!.apiToken.validate());
+      await sharedPref.setString(
+          USER_TYPE, loginResponse.data!.userType.validate());
+      await sharedPref.setString(
+          FIRST_NAME, loginResponse.data!.firstName.validate());
+      await sharedPref.setString(
+          LAST_NAME, loginResponse.data!.lastName.validate());
+      await sharedPref.setString(
+          CONTACT_NUMBER, loginResponse.data!.contactNumber.validate());
+      await sharedPref.setString(
+          USER_EMAIL, loginResponse.data!.email.validate());
+      await sharedPref.setString(
+          USER_NAME, loginResponse.data!.username.validate());
+      await sharedPref.setString(
+          ADDRESS, loginResponse.data!.address.validate());
       await sharedPref.setInt(USER_ID, loginResponse.data!.id!);
-      await sharedPref.setString(USER_PROFILE_PHOTO, loginResponse.data!.profileImage.validate());
+      await sharedPref.setString(
+          USER_PROFILE_PHOTO, loginResponse.data!.profileImage.validate());
       await sharedPref.setString(GENDER, loginResponse.data!.gender.validate());
-      await sharedPref.setString(LOGIN_TYPE, loginResponse.data!.loginType.validate());
+      await sharedPref.setString(
+          LOGIN_TYPE, loginResponse.data!.loginType.validate());
       await appStore.setLoggedIn(true);
       await appStore.setUserEmail(loginResponse.data!.email.validate());
       await sharedPref.setString(UID, loginResponse.data!.uid.validate());
-      await appStore.setUserProfile(loginResponse.data!.profileImage.validate());
-      await appStore.setReferralCode(loginResponse.data!.referralCode.validate());
+      await appStore
+          .setUserProfile(loginResponse.data!.profileImage.validate());
+      await appStore
+          .setReferralCode(loginResponse.data!.referralCode.validate());
+      await updatePlayerId();
     }
 
     return loginResponse;
   });
 }
 
-Future<LoginResponse> logInApi(Map request, {bool isSocialLogin = false}) async {
-  Response response = await buildHttpResponse(isSocialLogin ? 'social-login' : 'login', request: request, method: HttpMethod.POST);
+Future<LoginResponse> logInApi(Map request,
+    {bool isSocialLogin = false}) async {
+  final fcmToken = sharedPref.getString('FCM_TOKEN');
+  if (fcmToken != null && fcmToken.isNotEmpty) request['fcm_token'] = fcmToken;
+  final playerId = sharedPref.getString(PLAYER_ID);
+  if (playerId != null && playerId.isNotEmpty) request['player_id'] = playerId;
+  Response response = await buildHttpResponse(
+      isSocialLogin ? 'social-login' : 'login',
+      request: request,
+      method: HttpMethod.POST);
 
   if (!(response.statusCode >= 200 && response.statusCode <= 206)) {
     if (response.body.isJson()) {
       var json = jsonDecode(response.body);
 
-      if (json.containsKey('code') && json['code'].toString().contains('invalid_username')) {
+      if (json.containsKey('code') &&
+          json['code'].toString().contains('invalid_username')) {
         throw 'invalid_username';
       }
     }
@@ -60,23 +88,37 @@ Future<LoginResponse> logInApi(Map request, {bool isSocialLogin = false}) async 
   return await handleResponse(response).then((json) async {
     var loginResponse = LoginResponse.fromJson(json);
     if (loginResponse.data != null) {
-      await sharedPref.setString(TOKEN, loginResponse.data!.apiToken.validate());
-      await sharedPref.setString(USER_TYPE, loginResponse.data!.userType.validate());
-      await sharedPref.setString(FIRST_NAME, loginResponse.data!.firstName.validate());
-      await sharedPref.setString(LAST_NAME, loginResponse.data!.lastName.validate());
-      await sharedPref.setString(CONTACT_NUMBER, loginResponse.data!.contactNumber.validate());
-      await sharedPref.setString(USER_EMAIL, loginResponse.data!.email.validate());
-      await sharedPref.setString(USER_NAME, loginResponse.data!.username.validate());
-      await sharedPref.setString(ADDRESS, loginResponse.data!.address.validate());
+      await sharedPref.setString(
+          TOKEN, loginResponse.data!.apiToken.validate());
+      await sharedPref.setString(
+          USER_TYPE, loginResponse.data!.userType.validate());
+      await sharedPref.setString(
+          FIRST_NAME, loginResponse.data!.firstName.validate());
+      await sharedPref.setString(
+          LAST_NAME, loginResponse.data!.lastName.validate());
+      await sharedPref.setString(
+          CONTACT_NUMBER, loginResponse.data!.contactNumber.validate());
+      await sharedPref.setString(
+          USER_EMAIL, loginResponse.data!.email.validate());
+      await sharedPref.setString(
+          USER_NAME, loginResponse.data!.username.validate());
+      await sharedPref.setString(
+          ADDRESS, loginResponse.data!.address.validate());
       await sharedPref.setInt(USER_ID, loginResponse.data!.id ?? 0);
-      await sharedPref.setString(USER_PROFILE_PHOTO, loginResponse.data!.profileImage.validate());
+      await sharedPref.setString(
+          USER_PROFILE_PHOTO, loginResponse.data!.profileImage.validate());
       await sharedPref.setString(GENDER, loginResponse.data!.gender.validate());
-      await sharedPref.setString(LOGIN_TYPE, loginResponse.data!.loginType.validate());
+      await sharedPref.setString(
+          LOGIN_TYPE, loginResponse.data!.loginType.validate());
       await appStore.setLoggedIn(true);
       await appStore.setUserEmail(loginResponse.data!.email.validate());
-      if (loginResponse.data!.uid != null) await sharedPref.setString(UID, loginResponse.data!.uid.validate());
-      await appStore.setUserProfile(loginResponse.data!.profileImage.validate());
-      await appStore.setReferralCode(loginResponse.data!.referralCode.validate());
+      if (loginResponse.data!.uid != null)
+        await sharedPref.setString(UID, loginResponse.data!.uid.validate());
+      await appStore
+          .setUserProfile(loginResponse.data!.profileImage.validate());
+      await appStore
+          .setReferralCode(loginResponse.data!.referralCode.validate());
+      await updatePlayerId();
     }
 
     return loginResponse;
@@ -86,13 +128,15 @@ Future<LoginResponse> logInApi(Map request, {bool isSocialLogin = false}) async 
   });
 }
 
-Future<MultipartRequest> getMultiPartRequest(String endPoint, {String? baseUrl}) async {
+Future<MultipartRequest> getMultiPartRequest(String endPoint,
+    {String? baseUrl}) async {
   String url = '${baseUrl ?? buildBaseUrl(endPoint).toString()}';
   log(url);
   return MultipartRequest('POST', Uri.parse(url));
 }
 
-Future sendMultiPartRequest(MultipartRequest multiPartRequest, {Function(dynamic)? onSuccess, Function(dynamic)? onError}) async {
+Future sendMultiPartRequest(MultipartRequest multiPartRequest,
+    {Function(dynamic)? onSuccess, Function(dynamic)? onError}) async {
   multiPartRequest.headers.addAll(buildHeaderTokens());
 
   await multiPartRequest.send().then((res) {
@@ -107,10 +151,18 @@ Future sendMultiPartRequest(MultipartRequest multiPartRequest, {Function(dynamic
 }
 
 /// Profile Update
-Future updateProfile({String? uid, String? firstName, String? lastName, String? userEmail, String? contactNumber, File? file}) async {
-  MultipartRequest multiPartRequest = await getMultiPartRequest('update-profile');
+Future updateProfile(
+    {String? uid,
+    String? firstName,
+    String? lastName,
+    String? userEmail,
+    String? contactNumber,
+    File? file}) async {
+  MultipartRequest multiPartRequest =
+      await getMultiPartRequest('update-profile');
   multiPartRequest.fields['id'] = sharedPref.getInt(USER_ID).toString();
-  multiPartRequest.fields['username'] = sharedPref.getString(USER_NAME).validate();
+  multiPartRequest.fields['username'] =
+      sharedPref.getString(USER_NAME).validate();
   multiPartRequest.fields['email'] = userEmail ?? appStore.userEmail;
   multiPartRequest.fields['first_name'] = firstName.validate();
   multiPartRequest.fields['last_name'] = lastName.validate();
@@ -118,9 +170,12 @@ Future updateProfile({String? uid, String? firstName, String? lastName, String? 
   // multiPartRequest.fields['address'] = address.validate();
   // multiPartRequest.fields['gender'] = gender.validate();
   multiPartRequest.fields['uid'] = uid.validate();
-  multiPartRequest.fields['player_id'] = sharedPref.getString(PLAYER_ID).toString();
+  multiPartRequest.fields['player_id'] =
+      sharedPref.getString(PLAYER_ID).toString();
 
-  if (file != null) multiPartRequest.files.add(await MultipartFile.fromPath('profile_image', file.path));
+  if (file != null)
+    multiPartRequest.files
+        .add(await MultipartFile.fromPath('profile_image', file.path));
 
   await sendMultiPartRequest(multiPartRequest, onSuccess: (data) async {
     if (data != null) {
@@ -128,10 +183,12 @@ Future updateProfile({String? uid, String? firstName, String? lastName, String? 
 
       await sharedPref.setString(FIRST_NAME, res.data!.firstName.validate());
       await sharedPref.setString(LAST_NAME, res.data!.lastName.validate());
-      await sharedPref.setString(USER_PROFILE_PHOTO, res.data!.profileImage.validate());
+      await sharedPref.setString(
+          USER_PROFILE_PHOTO, res.data!.profileImage.validate());
       await sharedPref.setString(USER_NAME, res.data!.username.validate());
       await sharedPref.setString(USER_ADDRESS, res.data!.address.validate());
-      await sharedPref.setString(CONTACT_NUMBER, res.data!.contactNumber.validate());
+      await sharedPref.setString(
+          CONTACT_NUMBER, res.data!.contactNumber.validate());
       await sharedPref.setString(GENDER, res.data!.gender.validate());
       await appStore.setUserEmail(res.data!.email.validate());
       await appStore.setUserProfile(res.data!.profileImage.validate());
@@ -154,99 +211,164 @@ Future<void> logout({bool isDelete = false}) async {
 }
 
 Future<ChangePasswordResponseModel> changePassword(Map req) async {
-  return ChangePasswordResponseModel.fromJson(await handleResponse(await buildHttpResponse('change-password', request: req, method: HttpMethod.POST)));
+  return ChangePasswordResponseModel.fromJson(await handleResponse(
+      await buildHttpResponse('change-password',
+          request: req, method: HttpMethod.POST)));
 }
 
 Future<ChangePasswordResponseModel> forgotPassword(Map req) async {
-  return ChangePasswordResponseModel.fromJson(await handleResponse(await buildHttpResponse('forget-password', request: req, method: HttpMethod.POST)));
+  return ChangePasswordResponseModel.fromJson(await handleResponse(
+      await buildHttpResponse('forget-password',
+          request: req, method: HttpMethod.POST)));
 }
 
 /// Sends a sign-in / registration OTP to the number on WhatsApp.
 Future<Map<String, dynamic>> sendWhatsappOtp(String contactNumber) async {
-  return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse('whatsapp-otp/send', request: {'contact_number': contactNumber}, method: HttpMethod.POST)));
+  return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse(
+      'whatsapp-otp/send',
+      request: {'contact_number': contactNumber},
+      method: HttpMethod.POST)));
 }
 
 /// Verifies the WhatsApp OTP; the response carries a Firebase custom token (`firebase_token`).
-Future<Map<String, dynamic>> verifyWhatsappOtp(String contactNumber, String otp) async {
-  return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse('whatsapp-otp/verify', request: {'contact_number': contactNumber, 'otp': otp}, method: HttpMethod.POST)));
+Future<Map<String, dynamic>> verifyWhatsappOtp(
+    String contactNumber, String otp) async {
+  return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse(
+      'whatsapp-otp/verify',
+      request: {'contact_number': contactNumber, 'otp': otp},
+      method: HttpMethod.POST)));
 }
 
 Future<LoginResponse> getUserDetail({int? userId}) async {
-  return LoginResponse.fromJson(await handleResponse(await buildHttpResponse('user-detail?id=$userId', method: HttpMethod.GET)));
+  return LoginResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'user-detail?id=$userId',
+      method: HttpMethod.GET)));
 }
 
 Future<WalletListModel> getWalletList({required int page}) async {
-  return WalletListModel.fromJson(await handleResponse(await buildHttpResponse('wallet-list?page=$page', method: HttpMethod.GET)));
+  return WalletListModel.fromJson(await handleResponse(await buildHttpResponse(
+      'wallet-list?page=$page',
+      method: HttpMethod.GET)));
 }
 
 Future<PaymentListModel> getPaymentList() async {
-  return PaymentListModel.fromJson(await handleResponse(await buildHttpResponse('payment-gateway-list?status=1', method: HttpMethod.GET)));
+  return PaymentListModel.fromJson(await handleResponse(await buildHttpResponse(
+      'payment-gateway-list?status=1',
+      method: HttpMethod.GET)));
 }
 
 Future<LDBaseResponse> saveWallet(Map request) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('save-wallet', method: HttpMethod.POST, request: request)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'save-wallet',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<LDBaseResponse> saveCoinWallet(Map request) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('save-coin-wallet', method: HttpMethod.POST, request: request)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'save-coin-wallet',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<LDBaseResponse> saveSOS(Map request) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('save-sos', method: HttpMethod.POST, request: request)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'save-sos',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<ContactNumberListModel> getSosList({int? regionId, int? page}) async {
-  return ContactNumberListModel.fromJson(await handleResponse(await buildHttpResponse(regionId != null ? 'sos-list?region_id=$regionId' : 'sos-list?page=$page', method: HttpMethod.GET)));
+  return ContactNumberListModel.fromJson(await handleResponse(
+      await buildHttpResponse(
+          regionId != null
+              ? 'sos-list?region_id=$regionId'
+              : 'sos-list?page=$page',
+          method: HttpMethod.GET)));
 }
 
 Future<ContactNumberListModel> deleteSosList({int? id}) async {
-  return ContactNumberListModel.fromJson(await handleResponse(await buildHttpResponse('sos-delete/$id', method: HttpMethod.POST)));
+  return ContactNumberListModel.fromJson(await handleResponse(
+      await buildHttpResponse('sos-delete/$id', method: HttpMethod.POST)));
 }
 
 /// Rental package tiers (e.g. 4 hrs / 40 km) with their lowest price across car types.
 Future<List<Map<String, dynamic>>> getRentalPackages() async {
-  final res = await handleResponse(await buildHttpResponse('rental-package-list', method: HttpMethod.GET));
-  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+  final res = await handleResponse(
+      await buildHttpResponse('rental-package-list', method: HttpMethod.GET));
+  return (res['data'] as List)
+      .map((e) => Map<String, dynamic>.from(e))
+      .toList();
 }
 
 Future<EstimatePriceModel> estimatePriceList(Map request) async {
-  return EstimatePriceModel.fromJson(await handleResponse(await buildHttpResponse('estimate-price-time', method: HttpMethod.POST, request: request)));
+  return EstimatePriceModel.fromJson(await handleResponse(
+      await buildHttpResponse('estimate-price-time',
+          method: HttpMethod.POST, request: request)));
 }
 
-Future<CouponListModel> getCouponList({required int page, required int serviceId}) async {
-  return CouponListModel.fromJson(await handleResponse(await buildHttpResponse('coupon-list?page=$page', method: HttpMethod.GET)));
+Future<void> recordTripEnquiry(Map request) async {
+  await handleResponse(await buildHttpResponse('trip-enquiry',
+      method: HttpMethod.POST, request: request));
+}
+
+Future<CouponListModel> getCouponList(
+    {required int page, required int serviceId}) async {
+  return CouponListModel.fromJson(await handleResponse(await buildHttpResponse(
+      'coupon-list?page=$page',
+      method: HttpMethod.GET)));
 }
 
 Future<ModelZoneList> getZoneList({String? name, int? zoneId}) async {
-  return ModelZoneList.fromJson(await handleResponse(await buildHttpResponse('managezone-list?per_page=1000&name=$name&zone_id=$zoneId', method: HttpMethod.GET)).then((value) => value));
+  return ModelZoneList.fromJson(await handleResponse(await buildHttpResponse(
+          'managezone-list?per_page=1000&name=$name&zone_id=$zoneId',
+          method: HttpMethod.GET))
+      .then((value) => value));
 }
 
 Future<ModelAirportList> getAirportList({String? name}) async {
-  return ModelAirportList.fromJson(await handleResponse(await buildHttpResponse('airport-list?per_page=1000&name=$name', method: HttpMethod.GET)).then((value) => value));
+  return ModelAirportList.fromJson(await handleResponse(await buildHttpResponse(
+          'airport-list?per_page=1000&name=$name',
+          method: HttpMethod.GET))
+      .then((value) => value));
 }
 
 Future<LDBaseResponse> savePayment(Map request) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('save-payment', method: HttpMethod.POST, request: request)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'save-payment',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<LDBaseResponse> saveRideRequest(Map request) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('save-riderequest', method: HttpMethod.POST, request: request)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'save-riderequest',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<BidListingModel> getBidListing(Map request) async {
-  return BidListingModel.fromJson(await handleResponse(await buildHttpResponse('get-bidding-riderequest', method: HttpMethod.POST, request: request)));
+  return BidListingModel.fromJson(await handleResponse(await buildHttpResponse(
+      'get-bidding-riderequest',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<LDBaseResponse> responseBidListing(Map request) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('riderequest-bid-respond', method: HttpMethod.POST, request: request)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'riderequest-bid-respond',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<AppSettingModel> getAppSetting() async {
-  return AppSettingModel.fromJson(await handleResponse(await buildHttpResponse('admin-dashboard', method: HttpMethod.GET)));
+  return AppSettingModel.fromJson(await handleResponse(
+      await buildHttpResponse('admin-dashboard', method: HttpMethod.GET)));
 }
 
 Future<CurrentRequestModel> getCurrentRideRequest() async {
-  var response = await buildHttpResponse('current-riderequest', method: HttpMethod.GET);
+  var response =
+      await buildHttpResponse('current-riderequest', method: HttpMethod.GET);
   var responseData = await handleResponse(response);
 
   // Check if the response is a list and handle accordingly
@@ -270,41 +392,68 @@ Future<CurrentRequestModel> getCurrentRideRequest() async {
   }
 }
 
-Future<LDBaseResponse> rideRequestUpdate({required Map request, int? rideId}) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('riderequest-update/$rideId', method: HttpMethod.POST, request: request)));
+Future<LDBaseResponse> rideRequestUpdate(
+    {required Map request, int? rideId}) async {
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'riderequest-update/$rideId',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<ServerLanguageResponse> getLanguageList(versionNo) async {
-  return ServerLanguageResponse.fromJson(await handleResponse(await buildHttpResponse('language-table-list?version_no=$versionNo', method: HttpMethod.GET)).then((value) => value));
+  return ServerLanguageResponse.fromJson(await handleResponse(
+          await buildHttpResponse('language-table-list?version_no=$versionNo',
+              method: HttpMethod.GET))
+      .then((value) => value));
 }
 
 Future<LDBaseResponse> ratingReview({required Map request}) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('save-ride-rating', method: HttpMethod.POST, request: request)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'save-ride-rating',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<LDBaseResponse> adminNotify({required Map request}) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('admin-sos-notify', method: HttpMethod.POST, request: request)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'admin-sos-notify',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
-Future<RiderListModel> getRiderRequestList({int? page, String? status, LatLng? sourceLatLog, int? riderId}) async {
+Future<RiderListModel> getRiderRequestList(
+    {int? page, String? status, LatLng? sourceLatLog, int? riderId}) async {
   if (sourceLatLog != null) {
-    return RiderListModel.fromJson(await handleResponse(await buildHttpResponse('riderequest-list?page=$page&rider_id=$riderId', method: HttpMethod.GET)));
+    return RiderListModel.fromJson(await handleResponse(await buildHttpResponse(
+        'riderequest-list?page=$page&rider_id=$riderId',
+        method: HttpMethod.GET)));
   } else {
-    return RiderListModel.fromJson(await handleResponse(await buildHttpResponse(status != null ? 'riderequest-list?page=$page&status=$status&rider_id=$riderId' : 'riderequest-list?page=$page&rider_id=$riderId', method: HttpMethod.GET)));
+    return RiderListModel.fromJson(await handleResponse(await buildHttpResponse(
+        status != null
+            ? 'riderequest-list?page=$page&status=$status&rider_id=$riderId'
+            : 'riderequest-list?page=$page&rider_id=$riderId',
+        method: HttpMethod.GET)));
   }
 }
 
 Future<LDBaseResponse> saveComplain({required Map request}) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('save-complaint', method: HttpMethod.POST, request: request)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'save-complaint',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<RideDetailModel> rideDetail({required int? orderId}) async {
-  return RideDetailModel.fromJson(await handleResponse(await buildHttpResponse('riderequest-detail?id=$orderId', method: HttpMethod.GET)));
+  return RideDetailModel.fromJson(await handleResponse(await buildHttpResponse(
+      'riderequest-detail?id=$orderId',
+      method: HttpMethod.GET)));
 }
 
 /// Get Notification List
 Future<NotificationListModel> getNotification({required int page}) async {
-  return NotificationListModel.fromJson(await handleResponse(await buildHttpResponse('notification-list?page=$page&limit=$PER_PAGE', method: HttpMethod.POST)));
+  return NotificationListModel.fromJson(await handleResponse(
+      await buildHttpResponse('notification-list?page=$page&limit=$PER_PAGE',
+          method: HttpMethod.POST)));
 }
 
 // Future<ModelSearchPlaceRes> searchAddressRequest({String? search}) async {
@@ -316,19 +465,26 @@ Future<NotificationListModel> getNotification({required int page}) async {
 // }
 
 Future<LoginResponse> updateStatus(Map request) async {
-  return LoginResponse.fromJson(await handleResponse(await buildHttpResponse('update-user-status', method: HttpMethod.POST, request: request)));
+  return LoginResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'update-user-status',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<LDBaseResponse> deleteUser() async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('delete-user-account', method: HttpMethod.POST)));
+  return LDBaseResponse.fromJson(await handleResponse(
+      await buildHttpResponse('delete-user-account', method: HttpMethod.POST)));
 }
 
 /// Profile Update
 Future updateProfileUid() async {
-  MultipartRequest multiPartRequest = await getMultiPartRequest('update-profile');
+  MultipartRequest multiPartRequest =
+      await getMultiPartRequest('update-profile');
   multiPartRequest.fields['id'] = sharedPref.getInt(USER_ID).toString();
-  multiPartRequest.fields['username'] = sharedPref.getString(USER_NAME).validate();
-  multiPartRequest.fields['email'] = sharedPref.getString(USER_EMAIL).validate();
+  multiPartRequest.fields['username'] =
+      sharedPref.getString(USER_NAME).validate();
+  multiPartRequest.fields['email'] =
+      sharedPref.getString(USER_EMAIL).validate();
   multiPartRequest.fields['uid'] = sharedPref.getString(UID).toString();
 
   log('multipart request:${multiPartRequest.fields}');
@@ -344,19 +500,30 @@ Future updateProfileUid() async {
 }
 
 Future<LDBaseResponse> complaintComment({required Map request}) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('save-complaintcomment', method: HttpMethod.POST, request: request)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'save-complaintcomment',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
-Future<ComplaintCommentModel> complaintList({required int complaintId, required int currentPage}) async {
-  return ComplaintCommentModel.fromJson(await handleResponse(await buildHttpResponse('complaintcomment-list?complaint_id=$complaintId&page=$currentPage', method: HttpMethod.GET)));
+Future<ComplaintCommentModel> complaintList(
+    {required int complaintId, required int currentPage}) async {
+  return ComplaintCommentModel.fromJson(await handleResponse(
+      await buildHttpResponse(
+          'complaintcomment-list?complaint_id=$complaintId&page=$currentPage',
+          method: HttpMethod.GET)));
 }
 
 Future<LDBaseResponse> logoutApi() async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('logout?clear=player_id', method: HttpMethod.GET)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'logout?clear=player_id',
+      method: HttpMethod.GET)));
 }
 
 Future<UserDetailModel> getDriverDetail({int? userId}) async {
-  return UserDetailModel.fromJson(await handleResponse(await buildHttpResponse('user-detail?id=$userId', method: HttpMethod.GET)));
+  return UserDetailModel.fromJson(await handleResponse(await buildHttpResponse(
+      'user-detail?id=$userId',
+      method: HttpMethod.GET)));
 }
 
 logOutSuccess() async {
@@ -374,7 +541,9 @@ logOutSuccess() async {
   sharedPref.remove(USER_ID);
   sharedPref.remove(COUNTRY);
   appStore.setLoggedIn(false);
-  if (!(sharedPref.getBool(REMEMBER_ME) ?? false) || sharedPref.getString(LOGIN_TYPE) == LoginTypeGoogle || sharedPref.getString(LOGIN_TYPE) == 'mobile') {
+  if (!(sharedPref.getBool(REMEMBER_ME) ?? false) ||
+      sharedPref.getString(LOGIN_TYPE) == LoginTypeGoogle ||
+      sharedPref.getString(LOGIN_TYPE) == 'mobile') {
     sharedPref.remove(USER_EMAIL);
     sharedPref.remove(USER_PASSWORD);
     sharedPref.remove(REMEMBER_ME);
@@ -384,111 +553,176 @@ logOutSuccess() async {
 }
 
 Future<NearByDriverModel> getNearByDriverList({LatLng? latLng}) async {
-  return NearByDriverModel.fromJson(await handleResponse(await buildHttpResponse('near-by-driver?latitude=${latLng!.latitude}&longitude=${latLng.longitude}', method: HttpMethod.GET)));
+  return NearByDriverModel.fromJson(await handleResponse(await buildHttpResponse(
+      'near-by-driver?latitude=${latLng!.latitude}&longitude=${latLng.longitude}',
+      method: HttpMethod.GET)));
 }
 
 /// Recharge / bill payment services that have active operators.
 Future<List<Map<String, dynamic>>> getRechargeServices() async {
-  final res = await handleResponse(await buildHttpResponse('recharge-service-list', method: HttpMethod.GET));
-  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+  final res = await handleResponse(
+      await buildHttpResponse('recharge-service-list', method: HttpMethod.GET));
+  return (res['data'] as List)
+      .map((e) => Map<String, dynamic>.from(e))
+      .toList();
 }
 
 /// Operators of one service (Prepaid, DTH, Electricity, ...).
-Future<List<Map<String, dynamic>>> getRechargeOperators({required String serviceType}) async {
-  final res = await handleResponse(await buildHttpResponse('recharge-operator-list?service_type=${Uri.encodeComponent(serviceType)}', method: HttpMethod.GET));
-  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+Future<List<Map<String, dynamic>>> getRechargeOperators(
+    {required String serviceType}) async {
+  final res = await handleResponse(await buildHttpResponse(
+      'recharge-operator-list?service_type=${Uri.encodeComponent(serviceType)}',
+      method: HttpMethod.GET));
+  return (res['data'] as List)
+      .map((e) => Map<String, dynamic>.from(e))
+      .toList();
 }
 
 /// Places a recharge / bill payment; it is paid from the rider wallet.
 Future<Map<String, dynamic>> saveRecharge(Map request) async {
-  return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse('recharge-save', method: HttpMethod.POST, request: request)));
+  return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse(
+      'recharge-save',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<List<Map<String, dynamic>>> getRechargeHistory({int page = 1}) async {
-  final res = await handleResponse(await buildHttpResponse('recharge-history?page=$page', method: HttpMethod.GET));
-  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+  final res = await handleResponse(await buildHttpResponse(
+      'recharge-history?page=$page',
+      method: HttpMethod.GET));
+  return (res['data'] as List)
+      .map((e) => Map<String, dynamic>.from(e))
+      .toList();
 }
 
 /// One page of recharge history plus the total page count, for infinite scroll.
-Future<(List<Map<String, dynamic>>, int)> getRechargeHistoryPage({int page = 1}) async {
-  final res = await handleResponse(await buildHttpResponse('recharge-history?page=$page', method: HttpMethod.GET));
-  final list = (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+Future<(List<Map<String, dynamic>>, int)> getRechargeHistoryPage(
+    {int page = 1}) async {
+  final res = await handleResponse(await buildHttpResponse(
+      'recharge-history?page=$page',
+      method: HttpMethod.GET));
+  final list =
+      (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
   final pages = int.tryParse('${res['pagination']?['totalPages'] ?? 1}') ?? 1;
   return (list, pages);
 }
 
-Future<Map<String, dynamic>> getRechargeStatus({required String clientId}) async {
-  final res = await handleResponse(await buildHttpResponse('recharge-status?client_id=$clientId', method: HttpMethod.GET));
+Future<Map<String, dynamic>> getRechargeStatus(
+    {required String clientId}) async {
+  final res = await handleResponse(await buildHttpResponse(
+      'recharge-status?client_id=$clientId',
+      method: HttpMethod.GET));
   return Map<String, dynamic>.from(res['data']);
 }
 
 /// Starts a wallet top-up and returns the UPI link to open (money is credited after verification).
 Future<Map<String, dynamic>> initiateWalletTopup({required num amount}) async {
-  final res = await handleResponse(await buildHttpResponse('wallet-topup-initiate', method: HttpMethod.POST, request: {'amount': amount}));
+  final res = await handleResponse(await buildHttpResponse(
+      'wallet-topup-initiate',
+      method: HttpMethod.POST,
+      request: {'amount': amount}));
   return Map<String, dynamic>.from(res['data']);
 }
 
 /// Reports what the UPI app returned; the server still verifies before crediting.
-Future<Map<String, dynamic>> confirmWalletTopup({required String reference, required String appStatus, String? utr}) async {
-  return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse('wallet-topup-confirm', method: HttpMethod.POST, request: {
-    'reference': reference,
-    'app_status': appStatus,
-    if (utr != null && utr.isNotEmpty) 'utr': utr,
-  })));
+Future<Map<String, dynamic>> confirmWalletTopup(
+    {required String reference, required String appStatus, String? utr}) async {
+  return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse(
+      'wallet-topup-confirm',
+      method: HttpMethod.POST,
+      request: {
+        'reference': reference,
+        'app_status': appStatus,
+        if (utr != null && utr.isNotEmpty) 'utr': utr,
+      })));
 }
 
 /// Rider paid outside the app: raises a manual top-up request with an optional screenshot.
-Future<void> submitManualTopup({required num amount, String? utr, String? note, File? screenshot, Function(dynamic)? onSuccess, Function(dynamic)? onError}) async {
+Future<void> submitManualTopup(
+    {required num amount,
+    String? utr,
+    String? note,
+    File? screenshot,
+    Function(dynamic)? onSuccess,
+    Function(dynamic)? onError}) async {
   final request = await getMultiPartRequest('wallet-topup-manual');
   request.fields['amount'] = amount.toString();
   if (utr != null && utr.isNotEmpty) request.fields['utr'] = utr;
   if (note != null && note.isNotEmpty) request.fields['note'] = note;
-  if (screenshot != null) request.files.add(await MultipartFile.fromPath('screenshot', screenshot.path));
+  if (screenshot != null)
+    request.files
+        .add(await MultipartFile.fromPath('screenshot', screenshot.path));
 
   await sendMultiPartRequest(request, onSuccess: onSuccess, onError: onError);
 }
 
 Future<List<Map<String, dynamic>>> getWalletTopups({int page = 1}) async {
-  final res = await handleResponse(await buildHttpResponse('wallet-topup-list?page=$page', method: HttpMethod.GET));
-  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+  final res = await handleResponse(await buildHttpResponse(
+      'wallet-topup-list?page=$page',
+      method: HttpMethod.GET));
+  return (res['data'] as List)
+      .map((e) => Map<String, dynamic>.from(e))
+      .toList();
 }
 
 /// Telecom circles used by the plan list.
 Future<List<Map<String, dynamic>>> getRechargeCircles() async {
-  final res = await handleResponse(await buildHttpResponse('recharge-circle-list', method: HttpMethod.GET));
-  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+  final res = await handleResponse(
+      await buildHttpResponse('recharge-circle-list', method: HttpMethod.GET));
+  return (res['data'] as List)
+      .map((e) => Map<String, dynamic>.from(e))
+      .toList();
 }
 
 /// Prepaid / DTH plans of an operator.
-Future<List<Map<String, dynamic>>> getRechargePlans({required int operatorId, String? circle}) async {
-  final res = await handleResponse(await buildHttpResponse('recharge-plan-list?operator_id=$operatorId&circle=${circle ?? ''}', method: HttpMethod.GET));
-  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+Future<List<Map<String, dynamic>>> getRechargePlans(
+    {required int operatorId, String? circle}) async {
+  final res = await handleResponse(await buildHttpResponse(
+      'recharge-plan-list?operator_id=$operatorId&circle=${circle ?? ''}',
+      method: HttpMethod.GET));
+  return (res['data'] as List)
+      .map((e) => Map<String, dynamic>.from(e))
+      .toList();
 }
 
 /// Special offers for one mobile number.
-Future<List<Map<String, dynamic>>> getRechargeOffers({required int operatorId, required String number}) async {
-  final res = await handleResponse(await buildHttpResponse('recharge-offer-list?operator_id=$operatorId&number=$number', method: HttpMethod.GET));
-  return (res['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+Future<List<Map<String, dynamic>>> getRechargeOffers(
+    {required int operatorId, required String number}) async {
+  final res = await handleResponse(await buildHttpResponse(
+      'recharge-offer-list?operator_id=$operatorId&number=$number',
+      method: HttpMethod.GET));
+  return (res['data'] as List)
+      .map((e) => Map<String, dynamic>.from(e))
+      .toList();
 }
 
 /// Detects operator + circle from a mobile number.
-Future<Map<String, dynamic>?> detectRechargeOperator({required String number, String serviceType = 'Prepaid'}) async {
-  final res = await handleResponse(await buildHttpResponse('recharge-detect-operator?number=$number&service_type=${Uri.encodeComponent(serviceType)}', method: HttpMethod.GET));
+Future<Map<String, dynamic>?> detectRechargeOperator(
+    {required String number, String serviceType = 'Prepaid'}) async {
+  final res = await handleResponse(await buildHttpResponse(
+      'recharge-detect-operator?number=$number&service_type=${Uri.encodeComponent(serviceType)}',
+      method: HttpMethod.GET));
   return res['data'] == null ? null : Map<String, dynamic>.from(res['data']);
 }
 
 /// Fetches the due bill amount for postpaid / biller services.
 Future<Map<String, dynamic>?> fetchRechargeBill(Map request) async {
-  final res = await handleResponse(await buildHttpResponse('recharge-fetch-bill', method: HttpMethod.POST, request: request));
+  final res = await handleResponse(await buildHttpResponse(
+      'recharge-fetch-bill',
+      method: HttpMethod.POST,
+      request: request));
   return res['data'] == null ? null : Map<String, dynamic>.from(res['data']);
 }
 
 Future<WalletInfoModel> getWalletData() async {
-  return WalletInfoModel.fromJson(await handleResponse(await buildHttpResponse('wallet-detail', method: HttpMethod.GET)));
+  return WalletInfoModel.fromJson(await handleResponse(
+      await buildHttpResponse('wallet-detail', method: HttpMethod.GET)));
 }
 
 Future<WithDrawListModel> getWithDrawList({int? page}) async {
-  return WithDrawListModel.fromJson(await handleResponse(await buildHttpResponse('withdrawrequest-list?page=$page', method: HttpMethod.GET)));
+  return WithDrawListModel.fromJson(await handleResponse(
+      await buildHttpResponse('withdrawrequest-list?page=$page',
+          method: HttpMethod.GET)));
 }
 
 Future<RewardsListModel> getRewardsList({int? page}) async {
@@ -499,44 +733,65 @@ Future<RewardsListModel> getRewardsList({int? page}) async {
 }
 
 Future<CoinWalletListModel> getCoinWalletList({required int page}) async {
-  return CoinWalletListModel.fromJson(await handleResponse(await buildHttpResponse(
+  return CoinWalletListModel.fromJson(
+      await handleResponse(await buildHttpResponse(
     'coin-wallet-list?page=$page',
     method: HttpMethod.GET,
   )));
 }
 
 Future<LDBaseResponse> saveWithDrawRequest(Map request) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('save-withdrawrequest', method: HttpMethod.POST, request: request)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'save-withdrawrequest',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
 Future<ReferralHistoryListModel> getReferralList({int? page}) async {
-  return ReferralHistoryListModel.fromJson(await handleResponse(await buildHttpResponse(
+  return ReferralHistoryListModel.fromJson(
+      await handleResponse(await buildHttpResponse(
     'reference-list?page=$page',
     method: HttpMethod.GET,
   )));
 }
 
 Future<ModelFAQ> getFaqList({required int page}) async {
-  return ModelFAQ.fromJson(await handleResponse(await buildHttpResponse('faq-list?app=rider&page=$page', method: HttpMethod.GET)));
+  return ModelFAQ.fromJson(await handleResponse(await buildHttpResponse(
+      'faq-list?app=rider&page=$page',
+      method: HttpMethod.GET)));
 }
 
 /// Get cancel Reason
 Future<cancelReasonList> getCancelReasonList({required String type}) async {
-  return cancelReasonList.fromJson(await handleResponse(await buildHttpResponse('cancelReason-list?type=$type', method: HttpMethod.GET)));
+  return cancelReasonList.fromJson(await handleResponse(await buildHttpResponse(
+      'cancelReason-list?type=$type',
+      method: HttpMethod.GET)));
 }
 
 /// Update Bank Info
-Future updateBankDetail({String? bankName, String? bankCode, String? accountName, String? accountNumber, String? branch}) async {
-  MultipartRequest multiPartRequest = await getMultiPartRequest('update-profile');
-  multiPartRequest.fields['email'] = sharedPref.getString(USER_EMAIL).validate();
-  multiPartRequest.fields['contact_number'] = sharedPref.getString(CONTACT_NUMBER).validate();
-  multiPartRequest.fields['username'] = sharedPref.getString(USER_NAME).validate();
+Future updateBankDetail(
+    {String? bankName,
+    String? bankCode,
+    String? accountName,
+    String? accountNumber,
+    String? branch}) async {
+  MultipartRequest multiPartRequest =
+      await getMultiPartRequest('update-profile');
+  multiPartRequest.fields['email'] =
+      sharedPref.getString(USER_EMAIL).validate();
+  multiPartRequest.fields['contact_number'] =
+      sharedPref.getString(CONTACT_NUMBER).validate();
+  multiPartRequest.fields['username'] =
+      sharedPref.getString(USER_NAME).validate();
   multiPartRequest.fields['user_bank_account[bank_name]'] = bankName.validate();
   multiPartRequest.fields['user_bank_account[bank_code]'] = bankCode.validate();
-  multiPartRequest.fields['user_bank_account[account_holder_name]'] = accountName.validate();
-  multiPartRequest.fields['user_bank_account[account_number]'] = accountNumber.validate();
+  multiPartRequest.fields['user_bank_account[account_holder_name]'] =
+      accountName.validate();
+  multiPartRequest.fields['user_bank_account[account_number]'] =
+      accountNumber.validate();
   // Indian accounts: bank_code holds the IFSC code and bank_address the branch
-  multiPartRequest.fields['user_bank_account[bank_address]'] = branch.validate();
+  multiPartRequest.fields['user_bank_account[bank_address]'] =
+      branch.validate();
 
   log('Request:${multiPartRequest.fields}');
 
@@ -551,17 +806,27 @@ Future updateBankDetail({String? bankName, String? bankCode, String? accountName
 }
 
 Future<LDBaseResponse> updateExtraChargePaymentMethod(Map request) async {
-  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse('update-extra-charge-paymentmethod', method: HttpMethod.POST, request: request)));
+  return LDBaseResponse.fromJson(await handleResponse(await buildHttpResponse(
+      'update-extra-charge-paymentmethod',
+      method: HttpMethod.POST,
+      request: request)));
 }
 
-Future<PolyLineData> getPolylineData(String origins, String destinations) async {
-  return PolyLineData.fromJson(await handleResponse(await buildHttpResponse('directions-polyline-api?origin=$origins&destination=$destinations', method: HttpMethod.GET)));
+Future<PolyLineData> getPolylineData(
+    String origins, String destinations) async {
+  return PolyLineData.fromJson(await handleResponse(await buildHttpResponse(
+      'directions-polyline-api?origin=$origins&destination=$destinations',
+      method: HttpMethod.GET)));
 }
 
 Future<SearchLocationModel> searchAddressRequest(Map request) async {
-  return SearchLocationModel.fromJson(await handleResponse(await buildHttpResponse('place-autocomplete-api', method: HttpMethod.POST, request: request)));
+  return SearchLocationModel.fromJson(await handleResponse(
+      await buildHttpResponse('place-autocomplete-api',
+          method: HttpMethod.POST, request: request)));
 }
 
 Future<SelectLocationModel> searchAddressRequestPlaceId(String placeId) async {
-  return SelectLocationModel.fromJson(await handleResponse(await buildHttpResponse('place-detail-api?placeid=$placeId', method: HttpMethod.GET)));
+  return SelectLocationModel.fromJson(await handleResponse(
+      await buildHttpResponse('place-detail-api?placeid=$placeId',
+          method: HttpMethod.GET)));
 }

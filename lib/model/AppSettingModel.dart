@@ -1,6 +1,7 @@
 import '../manage_imports.dart';
 
 class AppSettingModel {
+  Map<String, dynamic>? soundSetting;
   SettingModel? settingModel;
   List<RideSetting>? rideSetting;
   List<WalletSetting>? walletSetting;
@@ -41,6 +42,7 @@ class AppSettingModel {
         walletSetting!.add(new WalletSetting.fromJson(v));
       });
     }
+    soundSetting = json['sound_setting'] is Map ? Map<String, dynamic>.from(json['sound_setting']) : null;
     currencySetting = json['currency_setting'] != null
         ? new CurrencySetting.fromJson(json['currency_setting'])
         : null;

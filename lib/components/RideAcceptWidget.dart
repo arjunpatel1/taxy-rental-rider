@@ -34,7 +34,12 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
   }
 
   void listenForNewDuration() {
-    FirebaseFirestore.instance.collection(RIDE_COLLECTION).where('rider_id', isEqualTo: sharedPref.getInt(USER_ID)!).where('ride_id', isEqualTo: widget.rideRequest!.id).snapshots().listen((QuerySnapshot snapshot) {
+    FirebaseFirestore.instance
+        .collection(RIDE_COLLECTION)
+        .where('rider_id', isEqualTo: sharedPref.getInt(USER_ID)!)
+        .where('ride_id', isEqualTo: widget.rideRequest!.id)
+        .snapshots()
+        .listen((QuerySnapshot snapshot) {
       for (var doc in snapshot.docs) {
         var rideData = doc.data() as Map<String, dynamic>;
 
@@ -60,12 +65,16 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
       "status": CANCELED,
       "reason": reason,
     };
-    await rideRequestUpdate(request: req, rideId: widget.rideRequest!.id).then((value) async {
+    await rideRequestUpdate(request: req, rideId: widget.rideRequest!.id)
+        .then((value) async {
       toast(value.message);
       chatMessageService.justDeleteChat(
         senderId: sharedPref.getString(UID).validate(),
         receiverId: userData!.uid.validate(),
       );
+      if (!mounted) return;
+      launchScreen(context, DashBoardScreen(),
+          isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
     }).catchError((error) {
       try {
         chatMessageService.justDeleteChat(
@@ -98,7 +107,10 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
     final ride = widget.rideRequest!;
     final driver = widget.driverData!;
     final showOtp = ride.status != IN_PROGRESS && ride.status != COMPLETED;
-    final showEta = (ride.status == ACCEPTED || ride.status == BID_ACCEPTED || ride.status == ARRIVING) && duration != 0;
+    final showEta = (ride.status == ACCEPTED ||
+            ride.status == BID_ACCEPTED ||
+            ride.status == ARRIVING) &&
+        duration != 0;
     final arrived = ride.status == ARRIVED;
 
     return SingleChildScrollView(
@@ -107,7 +119,13 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: BrandTokens.line, borderRadius: BorderRadius.circular(4)))),
+          Center(
+              child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                      color: BrandTokens.line,
+                      borderRadius: BorderRadius.circular(4)))),
           SizedBox(height: 14),
 
           // status + ETA
@@ -133,10 +151,17 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
               if (showEta)
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(color: BrandTokens.blueSoft, borderRadius: BorderRadius.circular(14)),
+                  decoration: BoxDecoration(
+                      color: BrandTokens.blueSoft,
+                      borderRadius: BorderRadius.circular(14)),
                   child: Column(
                     children: [
-                      Text(duration < 1 ? 'Now' : '${duration.toStringAsFixed(0)} min', style: boldTextStyle(size: 16, color: BrandTokens.blue)),
+                      Text(
+                          duration < 1
+                              ? 'Now'
+                              : '${duration.toStringAsFixed(0)} min',
+                          style:
+                              boldTextStyle(size: 16, color: BrandTokens.blue)),
                       Text(language.ETA, style: secondaryTextStyle(size: 10)),
                     ],
                   ),
@@ -148,7 +173,10 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
           // driver + car card
           Container(
             padding: EdgeInsets.all(14),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: BrandTokens.line)),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: BrandTokens.line)),
             child: Column(
               children: [
                 Row(
@@ -158,7 +186,11 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(28),
-                          child: commonCachedNetworkImage(driver.profileImage.validate(), fit: BoxFit.cover, height: 52, width: 52),
+                          child: commonCachedNetworkImage(
+                              driver.profileImage.validate(),
+                              fit: BoxFit.cover,
+                              height: 52,
+                              width: 52),
                         ),
                       ],
                     ),
@@ -167,31 +199,59 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('${driver.firstName.validate()} ${driver.lastName.validate()}'.trim(), maxLines: 1, overflow: TextOverflow.ellipsis, style: boldTextStyle(size: 16)),
+                          Text(
+                              '${driver.firstName.validate()} ${driver.lastName.validate()}'
+                                  .trim(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: boldTextStyle(size: 16)),
                           SizedBox(height: 2),
                           Text(
-                            [driver.userDetail?.carColor.validate(), driver.userDetail?.carModel.validate(), driver.driverService?.name.validate()].where((v) => (v ?? '').isNotEmpty).join(' · '),
+                            [
+                              driver.userDetail?.carColor.validate(),
+                              driver.userDetail?.carModel.validate(),
+                              driver.driverService?.name.validate()
+                            ].where((v) => (v ?? '').isNotEmpty).join(' · '),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: secondaryTextStyle(size: 12),
                           ),
                           SizedBox(height: 6),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(color: Color(0xFFFFF6CC), borderRadius: BorderRadius.circular(6), border: Border.all(color: Color(0xFFE8D36B))),
-                            child: Text(driver.userDetail?.carPlateNumber.validate().toUpperCase() ?? '', style: boldTextStyle(size: 13, letterSpacing: 1)),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                                color: Color(0xFFFFF6CC),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: Color(0xFFE8D36B))),
+                            child: Text(
+                                driver.userDetail?.carPlateNumber
+                                        .validate()
+                                        .toUpperCase() ??
+                                    '',
+                                style:
+                                    boldTextStyle(size: 13, letterSpacing: 1)),
                           ),
                         ],
                       ),
                     ),
                     if (showOtp)
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(color: BrandTokens.blue, borderRadius: BorderRadius.circular(14)),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                            color: BrandTokens.blue,
+                            borderRadius: BorderRadius.circular(14)),
                         child: Column(
                           children: [
-                            Text('OTP', style: secondaryTextStyle(size: 10, color: Colors.white70)),
-                            Text(ride.otp ?? '----', style: boldTextStyle(size: 20, color: Colors.white, letterSpacing: 2)),
+                            Text('OTP',
+                                style: secondaryTextStyle(
+                                    size: 10, color: Colors.white70)),
+                            Text(ride.otp ?? '----',
+                                style: boldTextStyle(
+                                    size: 20,
+                                    color: Colors.white,
+                                    letterSpacing: 2)),
                           ],
                         ),
                       ),
@@ -206,19 +266,25 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
                     _action(
                       icon: Icons.call_rounded,
                       label: 'Call',
-                      onTap: () => launchUrl(Uri.parse('tel:${driver.contactNumber}'), mode: LaunchMode.externalApplication),
+                      onTap: () => launchUrl(
+                          Uri.parse('tel:${driver.contactNumber}'),
+                          mode: LaunchMode.externalApplication),
                     ),
                     if (userData != null)
                       _action(
                         icon: Icons.chat_bubble_outline_rounded,
                         label: 'Chat',
-                        badge: chatCallWidget(Icons.chat_bubble_outline, chat: true),
+                        badge: chatCallWidget(Icons.chat_bubble_outline,
+                            chat: true),
                         onTap: () async {
                           if (userData == null || userData!.uid == null) {
                             init();
                             return;
                           }
-                          launchScreen(context, ChatScreen(userData: userData, ride_id: ride.id!), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+                          launchScreen(context,
+                              ChatScreen(userData: userData, ride_id: ride.id!),
+                              pageRouteAnimation:
+                                  PageRouteAnimation.SlideBottomTop);
                         },
                       ),
                     _action(
@@ -228,7 +294,10 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
                       onTap: () {
                         showDialog(
                           context: context,
-                          builder: (_) => AlertDialog(contentPadding: EdgeInsets.all(0), content: AlertScreen(rideId: ride.id, regionId: ride.regionId)),
+                          builder: (_) => AlertDialog(
+                              contentPadding: EdgeInsets.all(0),
+                              content: AlertScreen(
+                                  rideId: ride.id, regionId: ride.regionId)),
                         );
                       },
                     ),
@@ -241,13 +310,17 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
 
           // route
           _routePoint(BrandTokens.success, 'PICKUP', ride.startAddress ?? ''),
-          Padding(padding: EdgeInsets.only(left: 5), child: Container(width: 2, height: 16, color: BrandTokens.line)),
+          Padding(
+              padding: EdgeInsets.only(left: 5),
+              child: Container(width: 2, height: 16, color: BrandTokens.line)),
           _routePoint(BrandTokens.danger, 'DROP', ride.endAddress ?? ''),
-          if (ride.multiDropLocation != null && ride.multiDropLocation!.isNotEmpty)
+          if (ride.multiDropLocation != null &&
+              ride.multiDropLocation!.isNotEmpty)
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
-                onPressed: () => showOnlyDropLocationsDialog(context, ride.multiDropLocation!),
+                onPressed: () => showOnlyDropLocationsDialog(
+                    context, ride.multiDropLocation!),
                 icon: Icon(Icons.add_location_alt_outlined, size: 18),
                 label: Text(language.viewMore),
               ),
@@ -261,8 +334,11 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
                   foregroundColor: BrandTokens.danger,
-                  side: BorderSide(color: BrandTokens.danger.withValues(alpha: 0.35), width: 1.2),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  side: BorderSide(
+                      color: BrandTokens.danger.withValues(alpha: 0.35),
+                      width: 1.2),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                 ),
                 onPressed: () {
                   showModalBottomSheet(
@@ -283,7 +359,8 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
                     },
                   );
                 },
-                child: Text('Cancel ride', style: boldTextStyle(size: 15, color: BrandTokens.danger)),
+                child: Text('Cancel ride',
+                    style: boldTextStyle(size: 15, color: BrandTokens.danger)),
               ),
             ),
         ],
@@ -299,7 +376,9 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
           margin: EdgeInsets.only(top: 4),
           width: 12,
           height: 12,
-          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color, width: 3)),
+          decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: color, width: 3)),
         ),
         SizedBox(width: 12),
         Expanded(
@@ -307,7 +386,10 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label, style: secondaryTextStyle(size: 11)),
-              Text(address, maxLines: 2, overflow: TextOverflow.ellipsis, style: primaryTextStyle(size: 14)),
+              Text(address,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: primaryTextStyle(size: 14)),
             ],
           ),
         ),
@@ -315,7 +397,12 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
     );
   }
 
-  Widget _action({required IconData icon, required String label, required VoidCallback onTap, bool danger = false, Widget? badge}) {
+  Widget _action(
+      {required IconData icon,
+      required String label,
+      required VoidCallback onTap,
+      bool danger = false,
+      Widget? badge}) {
     final color = danger ? BrandTokens.danger : BrandTokens.blue;
     return InkWell(
       borderRadius: BorderRadius.circular(14),
@@ -330,14 +417,23 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
                 Container(
                   width: 44,
                   height: 44,
-                  decoration: BoxDecoration(color: color.withValues(alpha: 0.10), shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.10),
+                      shape: BoxShape.circle),
                   child: Icon(icon, color: color, size: 21),
                 ),
-                if (badge != null) Positioned(top: -2, right: -2, child: SizedBox(width: 16, height: 16, child: badge)),
+                if (badge != null)
+                  Positioned(
+                      top: -2,
+                      right: -2,
+                      child: SizedBox(width: 16, height: 16, child: badge)),
               ],
             ),
             SizedBox(height: 4),
-            Text(label, style: secondaryTextStyle(size: 12, color: danger ? BrandTokens.danger : BrandTokens.ink)),
+            Text(label,
+                style: secondaryTextStyle(
+                    size: 12,
+                    color: danger ? BrandTokens.danger : BrandTokens.ink)),
           ],
         ),
       ),
@@ -348,10 +444,16 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
   Widget chatCallWidget(IconData icon, {bool chat = false}) {
     if (sharedPref.getString(UID) == null || !chat) return SizedBox();
     return StreamBuilder<int>(
-      stream: chatMessageService.getUnReadCount(senderId: "${sharedPref.getString(UID)}", receiverId: widget.driverData!.uid.toString()),
+      stream: chatMessageService.getUnReadCount(
+          senderId: "${sharedPref.getString(UID)}",
+          receiverId: widget.driverData!.uid.toString()),
       builder: (context, snapshot) {
         if (snapshot.hasData && (snapshot.data ?? 0) > 0) {
-          return Container(decoration: BoxDecoration(color: BrandTokens.danger, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)));
+          return Container(
+              decoration: BoxDecoration(
+                  color: BrandTokens.danger,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2)));
         }
         return SizedBox();
       },
@@ -383,7 +485,11 @@ void showOnlyDropLocationsDialog(
                     children: [
                       Icon(Icons.location_on, color: Colors.green, size: 18),
                       SizedBox(width: 8),
-                      Expanded(child: Text(location.address, style: primaryTextStyle(size: 14), overflow: TextOverflow.ellipsis, maxLines: 2)),
+                      Expanded(
+                          child: Text(location.address,
+                              style: primaryTextStyle(size: 14),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2)),
                       if (location.droppedAt != null)
                         Icon(
                           Icons.check_circle,

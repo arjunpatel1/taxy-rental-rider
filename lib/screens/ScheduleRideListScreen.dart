@@ -52,7 +52,8 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
         appBar: AppBar(
           title: Text(
             "${language.schedule_list_title}",
-            style: primaryTextStyle(size: 18, weight: FontWeight.bold, color: Colors.white),
+            style: primaryTextStyle(
+                size: 18, weight: FontWeight.bold, color: Colors.white),
           ),
         ),
         body: Stack(
@@ -63,7 +64,8 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Text(
                     "🚖 ${language.schedule_list_desc}",
-                    style: secondaryTextStyle(size: 14, color: Colors.black, weight: FontWeight.bold),
+                    style: secondaryTextStyle(
+                        size: 14, color: Colors.black, weight: FontWeight.bold),
                   ),
                 ),
                 Expanded(
@@ -77,65 +79,104 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                           return Container(
                             width: context.width(),
                             padding: EdgeInsets.all(8),
-                            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            margin: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               border: Border.all(color: primaryColor),
-                              borderRadius: BorderRadius.circular(defaultRadius),
+                              borderRadius:
+                                  BorderRadius.circular(defaultRadius),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   mainAxisSize: MainAxisSize.max,
                                   children: [
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
                                         children: [
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               Container(
-                                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 8, vertical: 4),
                                                 decoration: BoxDecoration(
                                                   color: Colors.grey.shade300,
-                                                  borderRadius: BorderRadius.circular(8),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
                                                 ),
                                                 child: Text(
                                                   "${language.rideId}: ${schedule_ride_request[i].id}",
-                                                  style: primaryTextStyle(size: 15, weight: FontWeight.bold),
+                                                  style: primaryTextStyle(
+                                                      size: 15,
+                                                      weight: FontWeight.bold),
                                                 ),
                                               ),
                                               Container(
-                                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 8, vertical: 4),
                                                 decoration: BoxDecoration(
                                                   color: primaryColor,
-                                                  borderRadius: BorderRadius.circular(8),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
                                                 ),
-                                                child: Text('${statusName(status: schedule_ride_request[i].status.toString())}', style: boldTextStyle(size: 14, color: Colors.white)),
+                                                child: Text(
+                                                    '${statusName(status: schedule_ride_request[i].status.toString())}',
+                                                    style: boldTextStyle(
+                                                        size: 14,
+                                                        color: Colors.white)),
                                               ),
                                             ],
                                           ),
 
                                           5.height,
-                                          if (schedule_ride_request[i].driverId != null)
+                                          if (schedule_ride_request[i]
+                                                  .driverId !=
+                                              null)
                                             Row(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
                                               children: [
                                                 ClipRRect(
-                                                  borderRadius: BorderRadius.circular(defaultRadius),
-                                                  child: commonCachedNetworkImage(schedule_ride_request[i].driverProfileImage, height: 38, width: 38, fit: BoxFit.cover),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          defaultRadius),
+                                                  child: commonCachedNetworkImage(
+                                                      schedule_ride_request[i]
+                                                          .driverProfileImage,
+                                                      height: 38,
+                                                      width: 38,
+                                                      fit: BoxFit.cover),
                                                 ),
                                                 SizedBox(width: 12),
                                                 Expanded(
                                                   child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
-                                                      Text('${schedule_ride_request[i].driverName!.capitalizeFirstLetter()}', maxLines: 1, overflow: TextOverflow.ellipsis, style: boldTextStyle(size: 14)),
+                                                      Text(
+                                                          '${schedule_ride_request[i].driverName!.capitalizeFirstLetter()}',
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style: boldTextStyle(
+                                                              size: 14)),
                                                       SizedBox(height: 4),
-                                                      Text('${schedule_ride_request[i].driverEmail.validate()}', maxLines: 1, overflow: TextOverflow.ellipsis, style: secondaryTextStyle()),
+                                                      Text(
+                                                          '${schedule_ride_request[i].driverEmail.validate()}',
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style:
+                                                              secondaryTextStyle()),
                                                     ],
                                                   ),
                                                 ),
@@ -145,29 +186,65 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                                       context: context,
                                                       builder: (_) {
                                                         return AlertDialog(
-                                                          contentPadding: EdgeInsets.all(0),
-                                                          content: AlertScreen(rideId: schedule_ride_request[i].id, regionId: schedule_ride_request[i].regionId),
+                                                          contentPadding:
+                                                              EdgeInsets.all(0),
+                                                          content: AlertScreen(
+                                                              rideId:
+                                                                  schedule_ride_request[
+                                                                          i]
+                                                                      .id,
+                                                              regionId:
+                                                                  schedule_ride_request[
+                                                                          i]
+                                                                      .regionId),
                                                         );
                                                       },
                                                     );
                                                   },
-                                                  child: chatCallWidget(Icons.sos),
+                                                  child:
+                                                      chatCallWidget(Icons.sos),
                                                 ),
                                                 SizedBox(width: 8),
                                                 inkWellWidget(
                                                   onTap: () {
-                                                    launchUrl(Uri.parse('tel:${schedule_ride_request[i].driverContactNumber}'), mode: LaunchMode.externalApplication);
+                                                    launchUrl(
+                                                        Uri.parse(
+                                                            'tel:${schedule_ride_request[i].driverContactNumber}'),
+                                                        mode: LaunchMode
+                                                            .externalApplication);
                                                   },
-                                                  child: chatCallWidget(Icons.call),
+                                                  child: chatCallWidget(
+                                                      Icons.call),
                                                 ),
                                                 SizedBox(width: 8),
-                                                if (schedule_ride_request[i].driverId != null)
+                                                if (schedule_ride_request[i]
+                                                        .driverId !=
+                                                    null)
                                                   inkWellWidget(
                                                     onTap: () {
-                                                      if (schedule_ride_request[i].driverId != null) {
-                                                        getUserDetail(userId: schedule_ride_request[i].driverId).then(
+                                                      if (schedule_ride_request[
+                                                                  i]
+                                                              .driverId !=
+                                                          null) {
+                                                        getUserDetail(
+                                                                userId:
+                                                                    schedule_ride_request[
+                                                                            i]
+                                                                        .driverId)
+                                                            .then(
                                                           (value) {
-                                                            launchScreen(context, ChatScreen(userData: value.data, ride_id: schedule_ride_request[i].id!), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+                                                            launchScreen(
+                                                                context,
+                                                                ChatScreen(
+                                                                    userData:
+                                                                        value
+                                                                            .data,
+                                                                    ride_id:
+                                                                        schedule_ride_request[i]
+                                                                            .id!),
+                                                                pageRouteAnimation:
+                                                                    PageRouteAnimation
+                                                                        .SlideBottomTop);
                                                           },
                                                         );
                                                       }
@@ -181,37 +258,72 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                           // 5.height,
                                           Divider(),
                                           Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
                                                 children: [
                                                   Expanded(
                                                     child: Container(
-                                                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 8,
+                                                              vertical: 4),
                                                       decoration: BoxDecoration(
                                                         color: Colors.green,
-                                                        borderRadius: BorderRadius.circular(8),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
                                                       ),
                                                       child: Text(
                                                         "${language.schedule_at}: ${DateFormat('dd MMM yyyy hh:mm a').format(DateTime.parse(schedule_ride_request[i].schedule_datetime.toString() + "Z").toLocal())}",
-                                                        style: secondaryTextStyle(size: 13, color: Colors.white, weight: FontWeight.bold),
+                                                        style:
+                                                            secondaryTextStyle(
+                                                                size: 13,
+                                                                color: Colors
+                                                                    .white,
+                                                                weight:
+                                                                    FontWeight
+                                                                        .bold),
                                                       ),
                                                     ),
                                                   ),
-                                                  if (schedule_ride_request[i].otp != null) ...[
+                                                  if (schedule_ride_request[i]
+                                                          .otp !=
+                                                      null) ...[
                                                     8.width,
                                                     Container(
-                                                      padding: EdgeInsets.all(8),
-                                                      decoration: BoxDecoration(border: Border.all(color: dividerColor), borderRadius: radius(defaultRadius)),
-                                                      child: Text('${language.otp} ${schedule_ride_request[i].otp ?? ''}', style: boldTextStyle(size: 14)),
+                                                      padding:
+                                                          EdgeInsets.all(8),
+                                                      decoration: BoxDecoration(
+                                                          border: Border.all(
+                                                              color:
+                                                                  dividerColor),
+                                                          borderRadius: radius(
+                                                              defaultRadius)),
+                                                      child: Text(
+                                                          '${language.otp} ${schedule_ride_request[i].otp ?? ''}',
+                                                          style: boldTextStyle(
+                                                              size: 14)),
                                                     ),
                                                   ],
                                                 ],
                                               ),
                                               Text(
                                                 "${language.paymentDetails} : ${schedule_ride_request[i].paymentStatus.toString().toUpperCase()}",
-                                                style: primaryTextStyle(size: 12, weight: FontWeight.bold, color: schedule_ride_request[i].paymentStatus == PAID ? Colors.green : Colors.red /* Colors.white*/),
+                                                style: primaryTextStyle(
+                                                    size: 12,
+                                                    weight: FontWeight.bold,
+                                                    color: schedule_ride_request[
+                                                                    i]
+                                                                .paymentStatus ==
+                                                            PAID
+                                                        ? Colors.green
+                                                        : Colors
+                                                            .red /* Colors.white*/),
                                               ),
                                             ],
                                           ),
@@ -221,10 +333,19 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                   ],
                                 ),
                                 Divider(),
-                                if (schedule_ride_request[i].trip_type == 'airport_pickup' || schedule_ride_request[i].trip_type == 'airport_drop' || schedule_ride_request[i].trip_type == 'zone_to_airport' || schedule_ride_request[i].trip_type == 'airport_to_zone') ...[
+                                if (schedule_ride_request[i].trip_type ==
+                                        'airport_pickup' ||
+                                    schedule_ride_request[i].trip_type ==
+                                        'airport_drop' ||
+                                    schedule_ride_request[i].trip_type ==
+                                        'zone_to_airport' ||
+                                    schedule_ride_request[i].trip_type ==
+                                        'airport_to_zone') ...[
                                   airportPickupSection(
-                                    flightNumber: schedule_ride_request[i].flightNumber!,
-                                    terminal: schedule_ride_request[i].pickupPoint!,
+                                    flightNumber:
+                                        schedule_ride_request[i].flightNumber!,
+                                    terminal:
+                                        schedule_ride_request[i].pickupPoint!,
                                   ),
                                   Divider(),
                                 ],
@@ -233,9 +354,17 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                   children: [
                                     Row(
                                       children: [
-                                        Icon(Icons.near_me, color: Colors.green, size: 18),
+                                        Icon(Icons.near_me,
+                                            color: Colors.green, size: 18),
                                         SizedBox(width: 8),
-                                        Expanded(child: Text(schedule_ride_request[i].startAddress.validate(), style: primaryTextStyle(size: 14), maxLines: 2)),
+                                        Expanded(
+                                            child: Text(
+                                                schedule_ride_request[i]
+                                                    .startAddress
+                                                    .validate(),
+                                                style:
+                                                    primaryTextStyle(size: 14),
+                                                maxLines: 2)),
                                       ],
                                     ),
                                     Row(
@@ -255,12 +384,25 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                     ),
                                     Row(
                                       children: [
-                                        Icon(Icons.location_on, color: Colors.red, size: 18),
+                                        Icon(Icons.location_on,
+                                            color: Colors.red, size: 18),
                                         SizedBox(width: 8),
-                                        Expanded(child: Text(schedule_ride_request[i].endAddress.validate(), style: primaryTextStyle(size: 14), maxLines: 2)),
+                                        Expanded(
+                                            child: Text(
+                                                schedule_ride_request[i]
+                                                    .endAddress
+                                                    .validate(),
+                                                style:
+                                                    primaryTextStyle(size: 14),
+                                                maxLines: 2)),
                                       ],
                                     ),
-                                    if (schedule_ride_request[i].multiDropLocation != null && schedule_ride_request[i].multiDropLocation!.isNotEmpty)
+                                    if (schedule_ride_request[i]
+                                                .multiDropLocation !=
+                                            null &&
+                                        schedule_ride_request[i]
+                                            .multiDropLocation!
+                                            .isNotEmpty)
                                       Row(
                                         children: [
                                           SizedBox(width: 8),
@@ -276,13 +418,23 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                           ),
                                         ],
                                       ),
-                                    if (schedule_ride_request[i].multiDropLocation != null && schedule_ride_request[i].multiDropLocation!.isNotEmpty)
+                                    if (schedule_ride_request[i]
+                                                .multiDropLocation !=
+                                            null &&
+                                        schedule_ride_request[i]
+                                            .multiDropLocation!
+                                            .isNotEmpty)
                                       AppButtonWidget(
                                         textColor: primaryColor,
                                         color: Colors.white,
-                                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 0),
                                         // height: 30,
-                                        shapeBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(defaultRadius), side: BorderSide(color: primaryColor)),
+                                        shapeBorder: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                defaultRadius),
+                                            side: BorderSide(
+                                                color: primaryColor)),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
@@ -300,50 +452,101 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                         onTap: () {
                                           showOnlyDropLocationsDialog(
                                             context,
-                                            schedule_ride_request[i].multiDropLocation!,
+                                            schedule_ride_request[i]
+                                                .multiDropLocation!,
                                           );
                                         },
                                       ),
                                     10.height,
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        if (schedule_ride_request[i].status == COMPLETED) ...[
+                                        if (schedule_ride_request[i].status ==
+                                            COMPLETED) ...[
                                           Expanded(
                                             child: AppButtonWidget(
-                                                text: schedule_ride_request[i].isRiderRated == 0
+                                                text: schedule_ride_request[i]
+                                                            .isRiderRated ==
+                                                        0
                                                     // ? language.addReviews
                                                     ? language.viewDetails
-                                                    : schedule_ride_request[i].paymentType == WALLET && schedule_ride_request[i].paymentStatus != PAID
+                                                    : schedule_ride_request[i]
+                                                                    .paymentType ==
+                                                                WALLET &&
+                                                            schedule_ride_request[
+                                                                        i]
+                                                                    .paymentStatus !=
+                                                                PAID
                                                         ? language.payToPayment
-                                                        : language.waitingForDriverConformation,
+                                                        : language
+                                                            .waitingForDriverConformation,
                                                 textColor: primaryColor,
                                                 color: Colors.white,
-                                                shapeBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(defaultRadius), side: BorderSide(color: primaryColor)),
+                                                shapeBorder:
+                                                    RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                defaultRadius),
+                                                        side: BorderSide(
+                                                            color:
+                                                                primaryColor)),
                                                 onTap: () async {
-                                                  if (schedule_ride_request[i].isRiderRated == 0) {
-                                                    await launchScreen(getContext, ReviewScreen(rideRequest: schedule_ride_request[i], driverData: driver, schedule_ride: true), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+                                                  if (schedule_ride_request[i]
+                                                          .isRiderRated ==
+                                                      0) {
+                                                    await launchScreen(
+                                                        getContext,
+                                                        ReviewScreen(
+                                                            rideRequest:
+                                                                schedule_ride_request[
+                                                                    i],
+                                                            driverData: driver,
+                                                            schedule_ride:
+                                                                true),
+                                                        pageRouteAnimation:
+                                                            PageRouteAnimation
+                                                                .SlideBottomTop);
                                                     init();
                                                   } else if (/*schedule_ride_request[
                                                                   i]
                                                               .paymentType ==
                                                           WALLET &&*/
-                                                      schedule_ride_request[i].paymentStatus != PAID) {
+                                                      schedule_ride_request[i]
+                                                              .paymentStatus !=
+                                                          PAID) {
                                                     launchScreen(
                                                       getContext,
-                                                      RidePaymentDetailScreen(rideId: schedule_ride_request[i].id, schedule_flow: true),
-                                                      pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
+                                                      RidePaymentDetailScreen(
+                                                          rideId:
+                                                              schedule_ride_request[
+                                                                      i]
+                                                                  .id,
+                                                          schedule_flow: true),
+                                                      pageRouteAnimation:
+                                                          PageRouteAnimation
+                                                              .SlideBottomTop,
                                                     );
                                                   }
-                                                  toast(language.waitingForDriverConformation);
+                                                  toast(language
+                                                      .waitingForDriverConformation);
                                                 }),
                                           ),
-                                        ] else if (schedule_ride_request[i].status != IN_PROGRESS && schedule_ride_request[i].status != COMPLETED) ...[
+                                        ] else if (schedule_ride_request[i]
+                                                    .status !=
+                                                IN_PROGRESS &&
+                                            schedule_ride_request[i].status !=
+                                                COMPLETED) ...[
                                           AppButtonWidget(
                                             text: language.cancel,
                                             textColor: primaryColor,
                                             color: Colors.white,
-                                            shapeBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(defaultRadius), side: BorderSide(color: primaryColor)),
+                                            shapeBorder: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        defaultRadius),
+                                                side: BorderSide(
+                                                    color: primaryColor)),
                                             onTap: () async {
                                               showModalBottomSheet(
                                                   context: context,
@@ -353,11 +556,20 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
                                                     return CancelOrderDialog(
                                                       onCancel: (reason) async {
                                                         Navigator.pop(context);
-                                                        appStore.setLoading(true);
-                                                        sharedPref.remove(REMAINING_TIME);
-                                                        sharedPref.remove(IS_TIME);
-                                                        await cancelRequest(reason, ride_id: schedule_ride_request[i].id);
-                                                        appStore.setLoading(false);
+                                                        appStore
+                                                            .setLoading(true);
+                                                        sharedPref.remove(
+                                                            REMAINING_TIME);
+                                                        sharedPref
+                                                            .remove(IS_TIME);
+                                                        await cancelRequest(
+                                                            reason,
+                                                            ride_id:
+                                                                schedule_ride_request[
+                                                                        i]
+                                                                    .id);
+                                                        appStore
+                                                            .setLoading(false);
                                                       },
                                                     );
                                                   });
@@ -552,9 +764,11 @@ class _ScheduleRideListScreenState extends State<ScheduleRideListScreen> {
     await rideRequestUpdate(request: req, rideId: ride_id).then((value) async {
       appStore.setLoading(false);
       toast(value.message);
+      if (!mounted) return;
+      launchScreen(context, HomeScreen(),
+          isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
     }).catchError((error) {
       appStore.setLoading(false);
     });
-    init();
   }
 }

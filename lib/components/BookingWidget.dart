@@ -13,7 +13,9 @@ class BookingWidget extends StatefulWidget {
 }
 
 class BookingWidgetState extends State<BookingWidget> {
-  final int timerMaxSeconds = appStore.rideMinutes != null ? int.parse(appStore.rideMinutes!) * 60 : 5 * 60;
+  final int timerMaxSeconds = appStore.rideMinutes != null
+      ? int.parse(appStore.rideMinutes!) * 60
+      : 5 * 60;
 
   int currentSeconds = 0;
   int duration = 0;
@@ -34,11 +36,16 @@ class BookingWidgetState extends State<BookingWidget> {
       startTimeout();
       sharedPref.setString(
         IS_TIME,
-        DateTime.now().toUtc().add(Duration(seconds: timerMaxSeconds)).toString(),
+        DateTime.now()
+            .toUtc()
+            .add(Duration(seconds: timerMaxSeconds))
+            .toString(),
       );
       sharedPref.setString(REMAINING_TIME, timerMaxSeconds.toString());
     } else {
-      duration = DateTime.parse(sharedPref.getString(IS_TIME)!).difference(DateTime.now().toUtc()).inSeconds;
+      duration = DateTime.parse(sharedPref.getString(IS_TIME)!)
+          .difference(DateTime.now().toUtc())
+          .inSeconds;
 
       if (duration > 0) {
         startTimeout();
@@ -122,9 +129,13 @@ class BookingWidgetState extends State<BookingWidget> {
       "reason": reason,
     };
 
-    await rideRequestUpdate(request: req, rideId: widget.id).then((value) async {
+    await rideRequestUpdate(request: req, rideId: widget.id)
+        .then((value) async {
       isPopupOpen = false;
       toast(value.message);
+      if (!mounted) return;
+      launchScreen(context, DashBoardScreen(),
+          isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
     }).catchError((error) {
       log(error.toString());
     });
@@ -157,7 +168,8 @@ class BookingWidgetState extends State<BookingWidget> {
                     stream: Stream.periodic(Duration(seconds: 1)),
                     builder: (context, snapshot) {
                       if (d2 == null) {
-                        return Text("--:--", style: boldTextStyle(color: Colors.white));
+                        return Text("--:--",
+                            style: boldTextStyle(color: Colors.white));
                       }
 
                       // 🔑 Always compare in UTC
@@ -194,11 +206,14 @@ class BookingWidgetState extends State<BookingWidget> {
                           }
                         });
 
-                        return Text("--:--", style: boldTextStyle(color: Colors.white));
+                        return Text("--:--",
+                            style: boldTextStyle(color: Colors.white));
                       }
 
-                      final minutes = (diff.inSeconds ~/ 60).toString().padLeft(2, "0");
-                      final seconds = (diff.inSeconds % 60).toString().padLeft(2, "0");
+                      final minutes =
+                          (diff.inSeconds ~/ 60).toString().padLeft(2, "0");
+                      final seconds =
+                          (diff.inSeconds % 60).toString().padLeft(2, "0");
 
                       return Text(
                         "$minutes:$seconds",

@@ -1,4 +1,5 @@
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'manage_imports.dart';
 
 LanguageJsonData? selectedServerLanguageData;
@@ -43,10 +44,14 @@ void main() async {
     FirebaseCrashlytics.instance.recordError(error, stack);
     return true;
   };
-  appStore.setLanguage(sharedPref.getString(SELECTED_LANGUAGE_CODE) ?? defaultLanguageCode);
-  await appStore.setLoggedIn(sharedPref.getBool(IS_LOGGED_IN) ?? false, isInitializing: true);
-  await appStore.setUserEmail(sharedPref.getString(USER_EMAIL) ?? '', isInitialization: true);
+  appStore.setLanguage(
+      sharedPref.getString(SELECTED_LANGUAGE_CODE) ?? defaultLanguageCode);
+  await appStore.setLoggedIn(sharedPref.getBool(IS_LOGGED_IN) ?? false,
+      isInitializing: true);
+  await appStore.setUserEmail(sharedPref.getString(USER_EMAIL) ?? '',
+      isInitialization: true);
   await appStore.setUserProfile(sharedPref.getString(USER_PROFILE_PHOTO) ?? '');
+  firebaseMessagingSettings();
   try {
     initJsonFile();
   } catch (e) {}
@@ -62,14 +67,22 @@ void main() async {
 }
 
 Future<void> updatePlayerId() async {
+  String? fcmToken = sharedPref.getString('FCM_TOKEN');
+  if (fcmToken == null || fcmToken.isEmpty) {
+    try {
+      fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken != null) await sharedPref.setString('FCM_TOKEN', fcmToken);
+    } catch (_) {}
+  }
   Map req = {
     "player_id": sharedPref.getString(PLAYER_ID),
+    "fcm_token": fcmToken,
   };
-  updateStatus(req).then((value) {
-    //
-  }).catchError((error) {
-    //
-  });
+  try {
+    await updateStatus(req);
+  } catch (error) {
+    log('Push registration failed: $error');
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -96,7 +109,8 @@ class _MyAppState extends State<MyApp> {
     connectivitySubscription = Connectivity().onConnectivityChanged.listen((e) {
       if (e.contains(ConnectivityResult.none)) {
         log('not connected');
-        launchScreen(navigatorKey.currentState!.overlay!.context, NoInternetScreen());
+        launchScreen(
+            navigatorKey.currentState!.overlay!.context, NoInternetScreen());
       } else {
         if (netScreenKey.currentContext != null) {
           if (Navigator.canPop(navigatorKey.currentState!.overlay!.context)) {
@@ -119,11 +133,15 @@ class _MyAppState extends State<MyApp> {
         darkTheme: AppTheme.darkTheme,
         themeMode: appStore.isDarkMode ? ThemeMode.dark : ThemeMode.light,
         builder: (context, child) {
-          return SafeArea(top: false, child: ScrollConfiguration(behavior: MyBehavior(), child: child!));
+          return SafeArea(
+              top: false,
+              child:
+                  ScrollConfiguration(behavior: MyBehavior(), child: child!));
         },
         home: SplashScreen(),
         supportedLocales: getSupportedLocales(),
-        locale: Locale(appStore.selectedLanguage.validate(value: defaultLanguageCode)),
+        locale: Locale(
+            appStore.selectedLanguage.validate(value: defaultLanguageCode)),
         localizationsDelegates: [
           AppLocalizations(),
           CountryLocalizations.delegate,
@@ -139,7 +157,8 @@ class _MyAppState extends State<MyApp> {
 
 class MyBehavior extends ScrollBehavior {
   @override
-  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
     return child;
   }
 }

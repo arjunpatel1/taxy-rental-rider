@@ -11,10 +11,14 @@ class DashBoardScreen extends StatefulWidget {
   /// Ride type pre-selected in the booking panel: rideTypeLocal, rideTypeRental or rideTypeOutstation.
   final String initialRideType;
 
-  DashBoardScreen({this.cancelReason, this.openBooking = false, this.initialRideType = rideTypeLocal});
+  DashBoardScreen(
+      {this.cancelReason,
+      this.openBooking = false,
+      this.initialRideType = rideTypeLocal});
 }
 
-class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProviderStateMixin {
+class DashBoardScreenState extends State<DashBoardScreen>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   RideService rideService = RideService();
   List<Marker> markers = [];
@@ -69,7 +73,9 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
     rideType = widget.initialRideType;
     if (rideType == rideTypeRental) _loadRentalPackages();
     listenForNewRideRequests();
-    _animController = AnimationController(vsync: this, duration: Duration(milliseconds: 800))..repeat(reverse: true);
+    _animController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 800))
+          ..repeat(reverse: true);
 
     _animation = Tween<double>(begin: 1.0, end: 0.4).animate(_animController);
 
@@ -93,7 +99,9 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
     try {
       rentalPackages = await getRentalPackages();
       if (selectedRentalHours == null && rentalPackages.isNotEmpty) {
-        selectedRentalHours = (rentalPackages.firstWhere((p) => p['hours'] == 4, orElse: () => rentalPackages.first)['hours'] as num).toInt();
+        selectedRentalHours = (rentalPackages.firstWhere((p) => p['hours'] == 4,
+                orElse: () => rentalPackages.first)['hours'] as num)
+            .toInt();
       }
     } catch (e) {
       toast(e.toString());
@@ -104,23 +112,28 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
   /// Earliest allowed pickup: 15 minutes from now, rounded up to the next minute.
   DateTime get _minPickup {
     final t = DateTime.now().add(Duration(minutes: 15));
-    return DateTime(t.year, t.month, t.day, t.hour, t.minute).add(Duration(minutes: 1));
+    return DateTime(t.year, t.month, t.day, t.hour, t.minute)
+        .add(Duration(minutes: 1));
   }
 
   /// Keeps a chosen pickup valid when the rider waited on this screen for a while.
   DateTime _validPickup() {
     final min = _minPickup;
-    if (pickupDateTime == null || pickupDateTime!.isBefore(min)) pickupDateTime = min;
+    if (pickupDateTime == null || pickupDateTime!.isBefore(min))
+      pickupDateTime = min;
     return pickupDateTime!;
   }
 
   Future<void> _pickPickupDateTime() async {
     final min = _minPickup;
     final pickerTheme = (BuildContext context, Widget? child) => Theme(
-          data: ThemeData.light().copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
+          data: ThemeData.light()
+              .copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
           child: child!,
         );
-    final initial = (pickupDateTime != null && pickupDateTime!.isAfter(min)) ? pickupDateTime! : min;
+    final initial = (pickupDateTime != null && pickupDateTime!.isAfter(min))
+        ? pickupDateTime!
+        : min;
     final date = await showDatePicker(
       context: context,
       builder: pickerTheme,
@@ -129,23 +142,30 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
       lastDate: min.add(Duration(days: 30)),
     );
     if (date == null) return;
-    final time = await showTimePicker(context: context, builder: pickerTheme, initialTime: TimeOfDay.fromDateTime(initial));
+    final time = await showTimePicker(
+        context: context,
+        builder: pickerTheme,
+        initialTime: TimeOfDay.fromDateTime(initial));
     if (time == null) return;
-    final picked = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final picked =
+        DateTime(date.year, date.month, date.day, time.hour, time.minute);
     if (picked.isBefore(_minPickup.subtract(Duration(minutes: 1)))) {
       toast('Pickup time should be at least 15 minutes from now');
       return;
     }
     setState(() {
       pickupDateTime = picked;
-      if (returnDateTime != null && !returnDateTime!.isAfter(picked.add(Duration(hours: 1)))) returnDateTime = null;
+      if (returnDateTime != null &&
+          !returnDateTime!.isAfter(picked.add(Duration(hours: 1))))
+        returnDateTime = null;
     });
   }
 
   Future<void> _pickReturnDateTime() async {
     final now = _validPickup();
     final pickerTheme = (BuildContext context, Widget? child) => Theme(
-          data: ThemeData.light().copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
+          data: ThemeData.light()
+              .copyWith(colorScheme: ColorScheme.light(primary: primaryColor)),
           child: child!,
         );
     final date = await showDatePicker(
@@ -156,9 +176,14 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
       lastDate: now.add(Duration(days: 30)),
     );
     if (date == null) return;
-    final time = await showTimePicker(context: context, builder: pickerTheme, initialTime: TimeOfDay.fromDateTime(returnDateTime ?? DateTime(date.year, date.month, date.day, 20)));
+    final time = await showTimePicker(
+        context: context,
+        builder: pickerTheme,
+        initialTime: TimeOfDay.fromDateTime(
+            returnDateTime ?? DateTime(date.year, date.month, date.day, 20)));
     if (time == null) return;
-    final picked = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final picked =
+        DateTime(date.year, date.month, date.day, time.hour, time.minute);
     if (!picked.isAfter(now.add(Duration(hours: 1)))) {
       toast('Return time should be at least an hour after pickup');
       return;
@@ -172,7 +197,9 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(border: Border.all(color: value == null ? dividerColor : brandBlue), borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+            border: Border.all(color: value == null ? dividerColor : brandBlue),
+            borderRadius: BorderRadius.circular(12)),
         child: Row(
           children: [
             Icon(Icons.event_rounded, color: brandBlue, size: 20),
@@ -181,8 +208,14 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('$label date & time', style: secondaryTextStyle(size: 11)),
-                  Text(value == null ? 'Select' : DateFormat('EEE, dd MMM yyyy · hh:mm a').format(value), style: boldTextStyle(size: 14)),
+                  Text('$label date & time',
+                      style: secondaryTextStyle(size: 11)),
+                  Text(
+                      value == null
+                          ? 'Select'
+                          : DateFormat('EEE, dd MMM yyyy · hh:mm a')
+                              .format(value),
+                      style: boldTextStyle(size: 14)),
                 ],
               ),
             ),
@@ -204,30 +237,43 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
             splashColor: brandBlue.withValues(alpha: 0.15),
             onTap: () {
               setState(() => rideType = type);
-              if (type == rideTypeRental && rentalPackages.isEmpty) _loadRentalPackages();
+              if (type == rideTypeRental && rentalPackages.isEmpty)
+                _loadRentalPackages();
             },
             child: AnimatedContainer(
-            duration: Duration(milliseconds: 200),
-            margin: EdgeInsets.symmetric(horizontal: 4),
-            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 6),
-            decoration: BoxDecoration(
-              color: selected ? brandBlue : Color(0xFFF1F4F9),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: selected ? brandBlue : Colors.transparent, width: 1.2),
-            ),
-            child: Column(
-              children: [
-                Icon(icon, color: selected ? Colors.white : brandBlue, size: 26),
-                SizedBox(height: 6),
-                FittedBox(fit: BoxFit.scaleDown, child: Text(title, maxLines: 1, style: boldTextStyle(size: 14, color: selected ? Colors.white : brandBlack))),
-                SizedBox(height: 2),
-                Text(subtitle,
-                    style: secondaryTextStyle(size: 11, color: selected ? Colors.white70 : textSecondaryColor),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-              ],
-            ),
+              duration: Duration(milliseconds: 200),
+              margin: EdgeInsets.symmetric(horizontal: 4),
+              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+              decoration: BoxDecoration(
+                color: selected ? brandBlue : Color(0xFFF1F4F9),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                    color: selected ? brandBlue : Colors.transparent,
+                    width: 1.2),
+              ),
+              child: Column(
+                children: [
+                  Icon(icon,
+                      color: selected ? Colors.white : brandBlue, size: 26),
+                  SizedBox(height: 6),
+                  FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(title,
+                          maxLines: 1,
+                          style: boldTextStyle(
+                              size: 14,
+                              color: selected ? Colors.white : brandBlack))),
+                  SizedBox(height: 2),
+                  Text(subtitle,
+                      style: secondaryTextStyle(
+                          size: 11,
+                          color:
+                              selected ? Colors.white70 : textSecondaryColor),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                ],
+              ),
             ),
           ),
         ),
@@ -246,8 +292,12 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
               duration: Duration(milliseconds: 200),
               padding: EdgeInsets.symmetric(vertical: 10),
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: selected ? brandBlue : Colors.transparent, borderRadius: BorderRadius.circular(10)),
-              child: Text(label, style: boldTextStyle(size: 14, color: selected ? Colors.white : brandBlack)),
+              decoration: BoxDecoration(
+                  color: selected ? brandBlue : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10)),
+              child: Text(label,
+                  style: boldTextStyle(
+                      size: 14, color: selected ? Colors.white : brandBlack)),
             ),
           ),
         ),
@@ -264,16 +314,36 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
             children: [
               Container(
                 padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(color: brandBlue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                child: Icon(rideType == rideTypeRental ? Icons.timer_outlined : (rideType == rideTypeOutstation ? Icons.alt_route_rounded : Icons.local_taxi_rounded), color: brandBlue),
+                decoration: BoxDecoration(
+                    color: brandBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12)),
+                child: Icon(
+                    rideType == rideTypeRental
+                        ? Icons.timer_outlined
+                        : (rideType == rideTypeOutstation
+                            ? Icons.alt_route_rounded
+                            : Icons.local_taxi_rounded),
+                    color: brandBlue),
               ),
               SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(rideType == rideTypeRental ? 'Rental booking' : (rideType == rideTypeOutstation ? 'Outstation booking' : 'Local booking'), style: boldTextStyle(size: 17)),
-                    Text(rideType == rideTypeRental ? 'Car by the hour' : (rideType == rideTypeOutstation ? 'Car to other cities' : 'Car · Bike · Auto'), style: secondaryTextStyle(size: 12)),
+                    Text(
+                        rideType == rideTypeRental
+                            ? 'Rental booking'
+                            : (rideType == rideTypeOutstation
+                                ? 'Outstation booking'
+                                : 'Local booking'),
+                        style: boldTextStyle(size: 17)),
+                    Text(
+                        rideType == rideTypeRental
+                            ? 'Car by the hour'
+                            : (rideType == rideTypeOutstation
+                                ? 'Car to other cities'
+                                : 'Car · Bike · Auto'),
+                        style: secondaryTextStyle(size: 12)),
                   ],
                 ),
               ),
@@ -284,9 +354,12 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
           SizedBox(height: 12),
           Row(
             children: [
-              typeCard(rideTypeLocal, 'Local', 'Car · Bike · Auto', Icons.local_taxi_rounded),
-              typeCard(rideTypeRental, 'Rental', 'Car by the hour', Icons.timer_outlined),
-              typeCard(rideTypeOutstation, 'Outstation', 'Other cities', Icons.alt_route_rounded),
+              typeCard(rideTypeLocal, 'Local', 'Car · Bike · Auto',
+                  Icons.local_taxi_rounded),
+              typeCard(rideTypeRental, 'Rental', 'Car by the hour',
+                  Icons.timer_outlined),
+              typeCard(rideTypeOutstation, 'Outstation', 'Other cities',
+                  Icons.alt_route_rounded),
             ],
           ),
         ],
@@ -294,10 +367,13 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
           SizedBox(height: 14),
           Container(
             padding: EdgeInsets.all(4),
-            decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12)),
             child: Row(
               children: [
-                tripToggle('Ride now', !rideLater, () => setState(() => rideLater = false)),
+                tripToggle('Ride now', !rideLater,
+                    () => setState(() => rideLater = false)),
                 tripToggle('Ride later', rideLater, () {
                   setState(() => rideLater = true);
                   _validPickup();
@@ -309,7 +385,9 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
             SizedBox(height: 10),
             _dateTile('Pickup', pickupDateTime, _pickPickupDateTime),
             SizedBox(height: 6),
-            Text('Ride later bookings are confirmed by our team, who assign a driver for your pickup time.', style: secondaryTextStyle(size: 12)),
+            Text(
+                'Ride later bookings are confirmed by our team, who assign a driver for your pickup time.',
+                style: secondaryTextStyle(size: 12)),
           ],
         ],
         if (rideType == rideTypeRental) ...[
@@ -317,9 +395,16 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
           Text('Select a package', style: primaryTextStyle(size: 14)),
           SizedBox(height: 8),
           if (rentalLoading)
-            Center(child: Padding(padding: EdgeInsets.all(8), child: SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2))))
+            Center(
+                child: Padding(
+                    padding: EdgeInsets.all(8),
+                    child: SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2))))
           else if (rentalPackages.isEmpty)
-            Text('Rental packages are not available right now.', style: secondaryTextStyle())
+            Text('Rental packages are not available right now.',
+                style: secondaryTextStyle())
           else
             Wrap(
               spacing: 8,
@@ -333,17 +418,34 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                   selectedColor: brandBlue,
                   backgroundColor: Colors.grey.withValues(alpha: 0.08),
                   side: BorderSide(color: selected ? brandBlue : dividerColor),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  onSelected: (_) => setState(() => selectedRentalHours = hours),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  onSelected: (_) =>
+                      setState(() => selectedRentalHours = hours),
                   label: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(p['label'].toString(), style: boldTextStyle(size: 13, color: selected ? Colors.white : brandBlack)),
+                      Text(p['label'].toString(),
+                          style: boldTextStyle(
+                              size: 13,
+                              color: selected ? Colors.white : brandBlack)),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('from ', style: secondaryTextStyle(size: 11, color: selected ? Colors.white70 : textSecondaryColor)),
-                          printAmountWidget(amount: (p['starting_price'] as num).toStringAsFixed(0), size: 11, weight: FontWeight.normal, color: selected ? Colors.white70 : textSecondaryColor),
+                          Text('from ',
+                              style: secondaryTextStyle(
+                                  size: 11,
+                                  color: selected
+                                      ? Colors.white70
+                                      : textSecondaryColor)),
+                          printAmountWidget(
+                              amount: (p['starting_price'] as num)
+                                  .toStringAsFixed(0),
+                              size: 11,
+                              weight: FontWeight.normal,
+                              color: selected
+                                  ? Colors.white70
+                                  : textSecondaryColor),
                         ],
                       ),
                     ],
@@ -356,21 +458,28 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
           SizedBox(height: 14),
           Container(
             padding: EdgeInsets.all(4),
-            decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12)),
             child: Row(
               children: [
-                tripToggle('One-way trip', !outstationRoundTrip, () => setState(() => outstationRoundTrip = false)),
-                tripToggle('Round trip', outstationRoundTrip, () => setState(() => outstationRoundTrip = true)),
+                tripToggle('One-way trip', !outstationRoundTrip,
+                    () => setState(() => outstationRoundTrip = false)),
+                tripToggle('Round trip', outstationRoundTrip,
+                    () => setState(() => outstationRoundTrip = true)),
               ],
             ),
           ),
           SizedBox(height: 8),
           Text(
-            outstationRoundTrip ? 'Your driver stays with you and brings you back.' : 'Get dropped at your destination city.',
+            outstationRoundTrip
+                ? 'Your driver stays with you and brings you back.'
+                : 'Get dropped at your destination city.',
             style: secondaryTextStyle(size: 12),
           ),
           SizedBox(height: 10),
-          _dateTile('Pickup', pickupDateTime ?? _validPickup(), _pickPickupDateTime),
+          _dateTile(
+              'Pickup', pickupDateTime ?? _validPickup(), _pickPickupDateTime),
           if (outstationRoundTrip) ...[
             SizedBox(height: 8),
             _dateTile('Return', returnDateTime, _pickReturnDateTime),
@@ -392,7 +501,9 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
 
   Future<void> checkAndShowFirebasePopup() async {
     try {
-      final docRef = FirebaseFirestore.instance.collection('show_popup').doc('config'); // single config document
+      final docRef = FirebaseFirestore.instance
+          .collection('show_popup')
+          .doc('config'); // single config document
       final doc = await docRef.get();
       if (!doc.exists) {
         // Create default document
@@ -425,23 +536,29 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
 
   Future<void> getCurrentUserLocation() async {
     if (permissionData != LocationPermission.denied) {
-      final geoPosition = await Geolocator.getCurrentPosition(timeLimit: Duration(seconds: 30), desiredAccuracy: LocationAccuracy.high);
+      final geoPosition = await Geolocator.getCurrentPosition(
+          timeLimit: Duration(seconds: 30),
+          desiredAccuracy: LocationAccuracy.high);
 
       lat = geoPosition.longitude;
       long = geoPosition.longitude;
 
       sourceLocation = LatLng(geoPosition.latitude, geoPosition.longitude);
       try {
-        List<Placemark>? placemarks = await placemarkFromCoordinates(geoPosition.latitude, geoPosition.longitude);
+        List<Placemark>? placemarks = await placemarkFromCoordinates(
+            geoPosition.latitude, geoPosition.longitude);
         Placemark places = placemarks[0];
-        addressTitle = "${places.name != null ? places.name : places.subThoroughfare}, ${places.subLocality}, ${places.locality}, ${places.administrativeArea} ${places.postalCode}, ${places.country}";
+        addressTitle =
+            "${places.name != null ? places.name : places.subThoroughfare}, ${places.subLocality}, ${places.locality}, ${places.administrativeArea} ${places.postalCode}, ${places.country}";
         await getNearByDriver();
 
         //set Country
-        sharedPref.setString(COUNTRY, placemarks[0].isoCountryCode.validate(value: defaultCountry));
+        sharedPref.setString(COUNTRY,
+            placemarks[0].isoCountryCode.validate(value: defaultCountry));
 
         Placemark place = placemarks[0];
-        sourceLocationTitle = "${place.name != null ? place.name : place.subThoroughfare}, ${place.subLocality}, ${place.locality}, ${place.administrativeArea} ${place.postalCode}, ${place.country}";
+        sourceLocationTitle =
+            "${place.name != null ? place.name : place.subThoroughfare}, ${place.subLocality}, ${place.locality}, ${place.administrativeArea} ${place.postalCode}, ${place.country}";
         polylineSource = LatLng(geoPosition.latitude, geoPosition.longitude);
       } catch (e) {
         throw e;
@@ -451,7 +568,9 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
 
       setState(() {});
     } else {
-      if (locationScreenKey.currentContext == null) launchScreen(navigatorKey.currentState!.overlay!.context, LocationPermissionScreen());
+      if (locationScreenKey.currentContext == null)
+        launchScreen(navigatorKey.currentState!.overlay!.context,
+            LocationPermissionScreen());
     }
   }
 
@@ -472,25 +591,41 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
         setState(() {});
       }
       if (servicesListData != null) {
-        if ((value.ride_has_bids == 1) && (servicesListData!.status == NEW_RIDE_REQUESTED || servicesListData!.status == "bid_rejected")) {
+        if ((value.ride_has_bids == 1) &&
+            (servicesListData!.status == NEW_RIDE_REQUESTED ||
+                servicesListData!.status == "bid_rejected")) {
           launchScreen(
             context,
             isNewTask: true,
-            Bidingscreen(dt: servicesListData!.isSchedule == 1 ? servicesListData!.schedule_datetime : servicesListData!.datetime, ride_id: servicesListData!.id!, source: {}, endLocation: {}, multiDropObj: {}, multiDropLocationNamesObj: {}),
+            Bidingscreen(
+                dt: servicesListData!.isSchedule == 1
+                    ? servicesListData!.schedule_datetime
+                    : servicesListData!.datetime,
+                ride_id: servicesListData!.id!,
+                source: {},
+                endLocation: {},
+                multiDropObj: {},
+                multiDropLocationNamesObj: {}),
             pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
           );
-        } else if ((servicesListData!.trip_type == tripTypeValueOutstationOneway || servicesListData!.trip_type == tripTypeValueOutstationRound) &&
+        } else if ((servicesListData!.trip_type ==
+                    tripTypeValueOutstationOneway ||
+                servicesListData!.trip_type == tripTypeValueOutstationRound) &&
             servicesListData!.status == NEW_RIDE_REQUESTED) {
           // outstation request waiting for the team to assign a driver - no driver search screen
           setState(() {});
-        } else if (servicesListData!.status != COMPLETED && servicesListData!.status != CANCELED) {
+        } else if (servicesListData!.status != COMPLETED &&
+            servicesListData!.status != CANCELED) {
           int x = 0;
           if (value.rideRequest == null && value.onRideRequest == null) {
             x = servicesListData!.id!;
           } else {
-            x = value.rideRequest != null ? value.rideRequest!.id! : value.onRideRequest!.id!;
+            x = value.rideRequest != null
+                ? value.rideRequest!.id!
+                : value.onRideRequest!.id!;
           }
-          QuerySnapshot<Object?> b = await rideService.checkIsRideExist(rideId: x);
+          QuerySnapshot<Object?> b =
+              await rideService.checkIsRideExist(rideId: x);
           if (b.docs.length > 0) {
             // Check Condition so screen looping issue not occur
             // if Ride Not exist in firebase than don't navigate to next screen
@@ -498,10 +633,16 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
             launchScreen(
               getContext,
               Newestimateridelistwidget(
-                dt: servicesListData!.isSchedule == 1 ? servicesListData!.schedule_datetime : servicesListData!.datetime,
+                dt: servicesListData!.isSchedule == 1
+                    ? servicesListData!.schedule_datetime
+                    : servicesListData!.datetime,
                 timezone: value.timezone,
-                sourceLatLog: LatLng(double.parse(servicesListData!.startLatitude!), double.parse(servicesListData!.startLongitude!)),
-                destinationLatLog: LatLng(double.parse(servicesListData!.endLatitude!), double.parse(servicesListData!.endLongitude!)),
+                sourceLatLog: LatLng(
+                    double.parse(servicesListData!.startLatitude!),
+                    double.parse(servicesListData!.startLongitude!)),
+                destinationLatLog: LatLng(
+                    double.parse(servicesListData!.endLatitude!),
+                    double.parse(servicesListData!.endLongitude!)),
                 sourceTitle: servicesListData!.startAddress!,
                 destinationTitle: servicesListData!.endAddress!,
                 isCurrentRequest: true,
@@ -513,25 +654,32 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
               pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
             );
           } else {
-            if (value.schedule_ride_request != null && value.schedule_ride_request!.isNotEmpty) {
+            if (value.schedule_ride_request != null &&
+                value.schedule_ride_request!.isNotEmpty) {
               if (value.schedule_ride_request!.first.id == x) {
                 return;
               }
             }
             return toast(rideNotFound);
           }
-        } else if (servicesListData!.status == COMPLETED && servicesListData!.isRiderRated == 0) {
+        } else if (servicesListData!.status == COMPLETED &&
+            servicesListData!.isRiderRated == 0) {
           Future.delayed(Duration(seconds: 1), () {
             launchScreen(
               getContext,
-              ReviewScreen(rideRequest: servicesListData!, driverData: value.driver),
+              ReviewScreen(
+                  rideRequest: servicesListData!, driverData: value.driver),
               pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
               isNewTask: true,
             );
           });
         }
-      } else if (value.payment != null && value.payment!.paymentStatus != "paid") {
-        launchScreen(getContext, RidePaymentDetailScreen(rideId: value.payment!.rideRequestId), pageRouteAnimation: PageRouteAnimation.SlideBottomTop, isNewTask: true);
+      } else if (value.payment != null &&
+          value.payment!.paymentStatus != "paid") {
+        launchScreen(getContext,
+            RidePaymentDetailScreen(rideId: value.payment!.rideRequestId),
+            pageRouteAnimation: PageRouteAnimation.SlideBottomTop,
+            isNewTask: true);
       }
     }).catchError((error, s) {
       log(error.toString() + "::$s");
@@ -543,7 +691,9 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
     serviceStatusStream = Geolocator.getServiceStatusStream().listen(
       (ServiceStatus status) {
         if (status == ServiceStatus.disabled) {
-          if (locationScreenKey.currentContext == null) launchScreen(navigatorKey.currentState!.overlay!.context, LocationPermissionScreen());
+          if (locationScreenKey.currentContext == null)
+            launchScreen(navigatorKey.currentState!.overlay!.context,
+                LocationPermissionScreen());
         } else if (status == ServiceStatus.enabled) {
           getCurrentUserLocation();
           if (locationScreenKey.currentContext != null) {
@@ -572,7 +722,10 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
   }
 
   Future<void> startLocationTracking() async {
-    Map req = {"latitude": sourceLocation!.latitude.toString(), "longitude": sourceLocation!.longitude.toString()};
+    Map req = {
+      "latitude": sourceLocation!.latitude.toString(),
+      "longitude": sourceLocation!.longitude.toString()
+    };
     await updateStatus(req).then((value) {}).catchError((error) {
       log(error);
     });
@@ -583,7 +736,8 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
       value.data!.forEach((element) async {
         print("CHECKIMAGE:::${element}");
         try {
-          var driverIcon1 = await getNetworkImageMarker(element.service_marker.validate());
+          var driverIcon1 =
+              await getNetworkImageMarker(element.service_marker.validate());
           // markers.add(
           //   Marker(
           //     markerId: MarkerId('Driver${element.id}'),
@@ -593,15 +747,19 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
           //   ),
           // );
 
-          markers.removeWhere((marker) => marker.markerId.value == "Driver${element.id}");
+          markers.removeWhere(
+              (marker) => marker.markerId.value == "Driver${element.id}");
 
           markers.add(
             Marker(
               markerId: MarkerId('Driver${element.id}'),
-              position: LatLng(double.parse(element.latitude!.toString()), double.parse(element.longitude!.toString())),
+              position: LatLng(double.parse(element.latitude!.toString()),
+                  double.parse(element.longitude!.toString())),
               rotation: element.currentHeading?.toDouble() ?? 0.0,
               anchor: Offset(0.5, 0.5),
-              infoWindow: InfoWindow(title: '${element.firstName} ${element.lastName}', snippet: ''),
+              infoWindow: InfoWindow(
+                  title: '${element.firstName} ${element.lastName}',
+                  snippet: ''),
               icon: driverIcon1,
             ),
           );
@@ -613,8 +771,11 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
           markers.add(
             Marker(
               markerId: MarkerId('Driver${element.id}'),
-              position: LatLng(double.parse(element.latitude!.toString()), double.parse(element.longitude!.toString())),
-              infoWindow: InfoWindow(title: '${element.firstName} ${element.lastName}', snippet: ''),
+              position: LatLng(double.parse(element.latitude!.toString()),
+                  double.parse(element.longitude!.toString())),
+              infoWindow: InfoWindow(
+                  title: '${element.firstName} ${element.lastName}',
+                  snippet: ''),
               icon: driverIcon,
             ),
           );
@@ -632,7 +793,13 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
   }
 
   void listenForNewRideRequests() {
-    FirebaseFirestore.instance.collection(RIDE_COLLECTION).where('rider_id', isEqualTo: sharedPref.getInt(USER_ID)!).where('status', isEqualTo: NEW_RIDE_REQUESTED).where('book_by_admin', isEqualTo: true).snapshots().listen((QuerySnapshot snapshot) {
+    FirebaseFirestore.instance
+        .collection(RIDE_COLLECTION)
+        .where('rider_id', isEqualTo: sharedPref.getInt(USER_ID)!)
+        .where('status', isEqualTo: NEW_RIDE_REQUESTED)
+        .where('book_by_admin', isEqualTo: true)
+        .snapshots()
+        .listen((QuerySnapshot snapshot) {
       for (var doc in snapshot.docs) {
         var rideData = doc.data() as Map<String, dynamic>;
 
@@ -654,7 +821,10 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        systemOverlayStyle: SystemUiOverlayStyle(statusBarIconBrightness: Brightness.dark, statusBarColor: Colors.transparent, statusBarBrightness: Brightness.dark),
+        systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarIconBrightness: Brightness.dark,
+            statusBarColor: Colors.transparent,
+            statusBarBrightness: Brightness.dark),
         toolbarHeight: 0,
       ),
       resizeToAvoidBottomInset: true,
@@ -672,7 +842,8 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
       ),
       body: Stack(
         children: [
-          if (sharedPref.getDouble(LATITUDE) != null && sharedPref.getDouble(LONGITUDE) != null)
+          if (sharedPref.getDouble(LATITUDE) != null &&
+              sharedPref.getDouble(LONGITUDE) != null)
             GoogleMap(
               onMapCreated: (controller) {
                 mapController = controller;
@@ -686,7 +857,13 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
               mapType: MapType.normal,
               markers: markers.map((e) => e).toSet(),
               polylines: _polyLines,
-              initialCameraPosition: CameraPosition(target: sourceLocation ?? LatLng(sharedPref.getDouble(LATITUDE)!, sharedPref.getDouble(LONGITUDE)!), zoom: cameraZoom, tilt: cameraTilt, bearing: cameraBearing),
+              initialCameraPosition: CameraPosition(
+                  target: sourceLocation ??
+                      LatLng(sharedPref.getDouble(LATITUDE)!,
+                          sharedPref.getDouble(LONGITUDE)!),
+                  zoom: cameraZoom,
+                  tilt: cameraTilt,
+                  bearing: cameraBearing),
             ),
           Positioned(
             top: context.statusBarHeight + 4,
@@ -727,7 +904,11 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                     padding: EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), spreadRadius: 1)],
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            spreadRadius: 1)
+                      ],
                       borderRadius: BorderRadius.circular(defaultRadius),
                     ),
                     child: Icon(Icons.my_location),
@@ -760,7 +941,10 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(defaultRadius),
-                  boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 2, spreadRadius: 1)],
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.grey, blurRadius: 2, spreadRadius: 1)
+                  ],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -776,7 +960,10 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                           margin: EdgeInsets.only(bottom: 12),
                           height: 5,
                           width: 70,
-                          decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(defaultRadius)),
+                          decoration: BoxDecoration(
+                              color: primaryColor,
+                              borderRadius:
+                                  BorderRadius.circular(defaultRadius)),
                         ),
                         inkWellWidget(
                           onTap: () {
@@ -794,14 +981,18 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                               shape: BoxShape.circle,
                               border: Border.all(color: dividerColor),
                             ),
-                            child: Icon(Icons.close, color: context.iconColor, size: 24),
+                            child: Icon(Icons.close,
+                                color: context.iconColor, size: 24),
                           ),
                         ),
                       ],
                     ),
                     _rideTypePanel(),
                     // if Airport Pick Or Drop case view
-                    if (selectedTripType == tripTypeAirportDropoff || selectedTripType == tripTypeAirportPickup || selectedTripType == tripTypeAirportToZone || selectedTripType == tripTypeZoneToAirport)
+                    if (selectedTripType == tripTypeAirportDropoff ||
+                        selectedTripType == tripTypeAirportPickup ||
+                        selectedTripType == tripTypeAirportToZone ||
+                        selectedTripType == tripTypeZoneToAirport)
                       Column(
                         children: [
                           // preferred drop-off time
@@ -813,7 +1004,9 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                             autoFocus: false,
                             textFieldType: TextFieldType.NAME,
                             errorThisFieldRequired: errorThisFieldRequired,
-                            decoration: inputDecoration(context, label: '${language.flightNumber}', prefixIcon: Icon(Icons.flight)),
+                            decoration: inputDecoration(context,
+                                label: '${language.flightNumber}',
+                                prefixIcon: Icon(Icons.flight)),
                           ),
                           SizedBox(height: 8),
                           // Pickup points
@@ -822,13 +1015,20 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                             autoFocus: false,
                             textFieldType: TextFieldType.NAME,
                             errorThisFieldRequired: errorThisFieldRequired,
-                            decoration: inputDecoration(context, label: '${language.terminalAddress}', prefixIcon: Icon(Icons.airport_shuttle)),
+                            decoration: inputDecoration(context,
+                                label: '${language.terminalAddress}',
+                                prefixIcon: Icon(Icons.airport_shuttle)),
                           ),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Padding(padding: EdgeInsets.only(top: 4.0, right: 2), child: Icon(Icons.info_outline_rounded, size: 12)),
-                              Expanded(child: Text('${language.terminalHelperText}', style: secondaryTextStyle())),
+                              Padding(
+                                  padding: EdgeInsets.only(top: 4.0, right: 2),
+                                  child: Icon(Icons.info_outline_rounded,
+                                      size: 12)),
+                              Expanded(
+                                  child: Text('${language.terminalHelperText}',
+                                      style: secondaryTextStyle())),
                             ],
                           ),
                           SizedBox(height: 8),
@@ -844,10 +1044,14 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                                 builder: (context, child) {
                                   return Theme(
                                     data: ThemeData.light().copyWith(
-                                      primaryColor: primaryColor, // Header background color
-                                      hintColor: primaryColor, // Selected date highlight color
-                                      colorScheme: ColorScheme.light(primary: primaryColor),
-                                      buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+                                      primaryColor:
+                                          primaryColor, // Header background color
+                                      hintColor:
+                                          primaryColor, // Selected date highlight color
+                                      colorScheme: ColorScheme.light(
+                                          primary: primaryColor),
+                                      buttonTheme: ButtonThemeData(
+                                          textTheme: ButtonTextTheme.primary),
                                     ),
                                     child: child!,
                                   );
@@ -855,12 +1059,16 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                                 context: context,
                                 initialDate: DateTime.now(),
                                 firstDate: DateTime.now(),
-                                lastDate: DateTime.now().add(Duration(days: 45)),
+                                lastDate:
+                                    DateTime.now().add(Duration(days: 45)),
                               );
 
-                              bool isToday = DateUtils.isSameDay(d1, DateTime.now());
+                              bool isToday =
+                                  DateUtils.isSameDay(d1, DateTime.now());
 
-                              TimeOfDay initialTime = TimeOfDay(hour: isToday ? DateTime.now().hour : 0, minute: isToday ? DateTime.now().minute : 0);
+                              TimeOfDay initialTime = TimeOfDay(
+                                  hour: isToday ? DateTime.now().hour : 0,
+                                  minute: isToday ? DateTime.now().minute : 0);
 
                               if (d1 != null) {
                                 TimeOfDay? t1 = await showTimePicker(
@@ -870,8 +1078,10 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                                       data: ThemeData.light().copyWith(
                                         primaryColor: primaryColor,
                                         hintColor: primaryColor,
-                                        colorScheme: ColorScheme.light(primary: primaryColor),
-                                        buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+                                        colorScheme: ColorScheme.light(
+                                            primary: primaryColor),
+                                        buttonTheme: ButtonThemeData(
+                                            textTheme: ButtonTextTheme.primary),
                                       ),
                                       child: child!,
                                     );
@@ -880,22 +1090,31 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                                 );
 
                                 if (t1 != null) {
-                                  final selectedDateTime = DateTime(d1.year, d1.month, d1.day, t1.hour, t1.minute);
+                                  final selectedDateTime = DateTime(d1.year,
+                                      d1.month, d1.day, t1.hour, t1.minute);
                                   final now = DateTime.now();
 
                                   if (selectedDateTime.isAfter(now)) {
                                     setState(() {
-                                      pickupTimeValue = selectedDateTime.toString();
-                                      pickupTimeController.text = DateFormat('dd MMM yy hh:mm a').format(selectedDateTime);
+                                      pickupTimeValue =
+                                          selectedDateTime.toString();
+                                      pickupTimeController.text =
+                                          DateFormat('dd MMM yy hh:mm a')
+                                              .format(selectedDateTime);
                                     });
                                   } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please select a future time.')));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                'Please select a future time.')));
                                   }
                                 }
                               }
                             },
                             errorThisFieldRequired: errorThisFieldRequired,
-                            decoration: inputDecoration(context, label: '${language.preferredPickupTime}', prefixIcon: Icon(Icons.access_time_rounded)),
+                            decoration: inputDecoration(context,
+                                label: '${language.preferredPickupTime}',
+                                prefixIcon: Icon(Icons.access_time_rounded)),
                           ),
                           SizedBox(height: 8),
                         ],
@@ -910,28 +1129,43 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                           final pickup = _validPickup();
                           setState(() {});
                           bookingPickupTime = pickup.toString();
-                          tripDetail['schedule_datetime'] = pickup.toUtc().toString().replaceAll('Z', '');
+                          tripDetail['schedule_datetime'] =
+                              pickup.toUtc().toString().replaceAll('Z', '');
                         }
                         if (rideType == rideTypeRental) {
-                          if (selectedRentalHours == null) return toast('Please choose a rental package');
+                          if (selectedRentalHours == null)
+                            return toast('Please choose a rental package');
                           tripDetail['trip_type'] = tripTypeValueRental;
                           tripDetail['rental_hours'] = selectedRentalHours;
                         } else if (rideType == rideTypeOutstation) {
                           if (outstationRoundTrip) {
-                            if (returnDateTime == null) return toast('Please choose your return date and time');
-                            if (!returnDateTime!.isAfter(_validPickup().add(Duration(hours: 1)))) return toast('Return time should be at least an hour after pickup');
-                            tripDetail['trip_type'] = tripTypeValueOutstationRound;
-                            tripDetail['return_datetime'] = returnDateTime!.toUtc().toString().replaceAll('Z', '');
+                            if (returnDateTime == null)
+                              return toast(
+                                  'Please choose your return date and time');
+                            if (!returnDateTime!.isAfter(
+                                _validPickup().add(Duration(hours: 1))))
+                              return toast(
+                                  'Return time should be at least an hour after pickup');
+                            tripDetail['trip_type'] =
+                                tripTypeValueOutstationRound;
+                            tripDetail['return_datetime'] = returnDateTime!
+                                .toUtc()
+                                .toString()
+                                .replaceAll('Z', '');
                           } else {
-                            tripDetail['trip_type'] = tripTypeValueOutstationOneway;
+                            tripDetail['trip_type'] =
+                                tripTypeValueOutstationOneway;
                           }
                         } else {
-                          tripDetail['trip_type'] = getTripTypeValue(tripTypeRegular);
+                          tripDetail['trip_type'] =
+                              getTripTypeValue(tripTypeRegular);
                         }
                         showModalBottomSheet(
                           isScrollControlled: true,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(topLeft: Radius.circular(defaultRadius), topRight: Radius.circular(defaultRadius)),
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(defaultRadius),
+                                topRight: Radius.circular(defaultRadius)),
                           ),
                           context: context,
                           builder: (_) {
@@ -939,7 +1173,8 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                             return TripTypeLocationComponent(
                               trip_type: tripTypeRegular,
                               tripDetail: tripDetail,
-                              pickupTimeValue: bookingPickupTime ?? pickupTimeValue,
+                              pickupTimeValue:
+                                  bookingPickupTime ?? pickupTimeValue,
                               // lat: lat,
                               // long: long,
                               addressTitle: addressTitle,
@@ -1005,7 +1240,10 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
             padding: EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), spreadRadius: 1)],
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2), spreadRadius: 1)
+              ],
               borderRadius: BorderRadius.circular(defaultRadius),
             ),
             child: Icon(Icons.drag_handle),
@@ -1013,7 +1251,9 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
         ),
         inkWellWidget(
           onTap: () async {
-            launchScreen(context, NotificationScreen(), pageRouteAnimation: PageRouteAnimation.Slide).then((v) {
+            launchScreen(context, NotificationScreen(),
+                    pageRouteAnimation: PageRouteAnimation.Slide)
+                .then((v) {
               notificationCount = 0;
               setState(() {});
             });
@@ -1022,7 +1262,10 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
             padding: EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), spreadRadius: 1)],
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2), spreadRadius: 1)
+              ],
               borderRadius: BorderRadius.circular(defaultRadius),
             ),
             child: Stack(
@@ -1036,10 +1279,14 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
                       padding: EdgeInsets.only(bottom: 2),
                       height: 12,
                       width: 12,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.red),
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle, color: Colors.red),
                       child: Text(
                         notificationCount.toString(),
-                        style: boldTextStyle(color: Colors.white, size: 8, weight: FontWeight.w700),
+                        style: boldTextStyle(
+                            color: Colors.white,
+                            size: 8,
+                            weight: FontWeight.w700),
                       ),
                     ),
                   ),
@@ -1062,7 +1309,9 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: Text("${language.rideCanceledByDriver}", maxLines: 2, style: boldTextStyle())),
+              Expanded(
+                  child: Text("${language.rideCanceledByDriver}",
+                      maxLines: 2, style: boldTextStyle())),
               InkWell(
                 onTap: () {
                   Navigator.pop(context);
@@ -1094,14 +1343,18 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 2, spreadRadius: 1)],
+          boxShadow: [
+            BoxShadow(color: Colors.grey, blurRadius: 2, spreadRadius: 1)
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Lottie.asset(messageDetect, height: 30, width: 30, fit: BoxFit.cover),
+            Lottie.asset(messageDetect,
+                height: 30, width: 30, fit: BoxFit.cover),
             SizedBox(width: 8),
-            Text('${language.lblUpcomingService}', style: boldTextStyle(size: 12)),
+            Text('${language.lblUpcomingService}',
+                style: boldTextStyle(size: 12)),
           ],
         ),
       ),
@@ -1109,10 +1362,17 @@ class DashBoardScreenState extends State<DashBoardScreen> with SingleTickerProvi
   }
 
   Future<void> cancelRequest(String reason, {int? ride_id}) async {
-    Map req = {"id": ride_id, "cancel_by": RIDER, "status": CANCELED, "reason": reason};
+    Map req = {
+      "id": ride_id,
+      "cancel_by": RIDER,
+      "status": CANCELED,
+      "reason": reason
+    };
     await rideRequestUpdate(request: req, rideId: ride_id).then((value) async {
-      getCurrentRequest();
       toast(value.message);
+      if (!mounted) return;
+      launchScreen(context, HomeScreen(),
+          isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
     }).catchError((error) {});
   }
 }
