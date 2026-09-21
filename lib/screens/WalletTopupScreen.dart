@@ -167,8 +167,10 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
           ],
         ),
         actions: [
+          // Only the rider saying so closes a top-up as failed; the UPI app's
+          // own verdict is not reliable enough to lose a real payment over.
           TextButton(
-              onPressed: () => _finishTopup('failure'),
+              onPressed: () => _finishTopup('user_cancelled'),
               child: Text('Not paid')),
           ElevatedButton(
             onPressed: () => _finishTopup('submitted'),
