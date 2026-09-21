@@ -268,7 +268,7 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
       SearchLocationModel response = await searchAddressRequest(req);
 
       setState(() {
-        placeSuggestions = response.suggestions ?? [];
+        placeSuggestions = response.suggestions;
       });
     } catch (e) {
       log("Autocomplete Error: $e");

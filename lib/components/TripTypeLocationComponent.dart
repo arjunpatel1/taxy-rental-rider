@@ -158,7 +158,7 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                                                       };
                                                       searchAddressRequest(req).then((value) {
                                                         isDone = true;
-                                                        listAddress = value.suggestions ?? [];
+                                                        listAddress = value.suggestions;
                                                         setState(() {});
                                                       }).catchError((error) {
                                                         log(error);
@@ -293,7 +293,7 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                                                           "language": appStore.selectedLanguage.validate(value: defaultLanguageCode),
                                                         };
                                                         searchAddressRequest(req).then((value) {
-                                                          listAddress = value.suggestions ?? [];
+                                                          listAddress = value.suggestions;
                                                           setState(() {});
                                                         }).catchError((error) {
                                                           log(error);
@@ -372,7 +372,7 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                           color: primaryColor,
                         ),
                         minLeadingWidth: 16,
-                        title: Text(mData.placePrediction.text.text ?? "", style: primaryTextStyle()),
+                        title: Text(mData.placePrediction.text.text, style: primaryTextStyle()),
                         onTap: () async {
                           await searchAddressRequestPlaceId(mData.placePrediction.placeId).then((value) async {
                             double lat = value.location.latitude;
@@ -537,7 +537,7 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                                     "language": appStore.selectedLanguage.validate(value: defaultLanguageCode),
                                   };
                                   searchAddressRequest(req).then((value) {
-                                    listAddress = value.suggestions ?? [];
+                                    listAddress = value.suggestions;
                                     setState(() {});
                                   }).catchError((error) {
                                     log(error);

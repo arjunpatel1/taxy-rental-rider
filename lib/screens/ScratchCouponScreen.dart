@@ -62,7 +62,7 @@ class ScratchCouponScreenState extends State<ScratchCouponScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         launchScreen(getContext, HomeScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
       },

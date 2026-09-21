@@ -1,4 +1,3 @@
-import 'package:intl/intl.dart';
 
 import '../components/AnimatedTaxiRoad.dart';
 import '../manage_imports.dart';

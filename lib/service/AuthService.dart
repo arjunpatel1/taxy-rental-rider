@@ -336,6 +336,10 @@ Future<UserCredential?> appleLogIn(BuildContext context) async {
     } else if (appleCred.email.isEmptyOrNull && appleCred.givenName.isEmptyOrNull) {
       loginFromFirebase(result.user!, LoginTypeApple, appleCred.authorizationCode, appleCred.userIdentifier, false, context);
     }
+
+    // These branches carry on through their own flow rather than handing the
+    // credential back; returning null says so instead of falling off the end.
+    return null;
   } catch (e) {
     debugPrint("Apple Login Error: $e");
     rethrow;

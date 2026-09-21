@@ -1291,7 +1291,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
             border: Border.all(color: dividerColor),
             borderRadius: BorderRadius.circular(defaultRadius),
             color:
-                useCoinsEnabled ? primaryColor.withOpacity(0.05) : Colors.white,
+                useCoinsEnabled ? primaryColor.withValues(alpha: 0.05) : Colors.white,
           ),
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           child: Row(
@@ -1299,7 +1299,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
               Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: primaryColor.withOpacity(0.1),
+                  color: primaryColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Image.asset(
@@ -1352,7 +1352,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
                   child: Container(
                     padding: EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
+                      color: Colors.red.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -2838,7 +2838,7 @@ class _CoinSelectionDialogState extends State<CoinSelectionDialog> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: primaryColor.withOpacity(0.1),
+                color: primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -2998,10 +2998,10 @@ class _CoinSelectionDialogState extends State<CoinSelectionDialog> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: Colors.green.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.green.withOpacity(0.3),
+                    color: Colors.green.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -3154,7 +3154,7 @@ class _QuickSelectButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          border: Border.all(color: primaryColor.withOpacity(0.5)),
+          border: Border.all(color: primaryColor.withValues(alpha: 0.5)),
           borderRadius: BorderRadius.circular(8),
           color: Colors.white,
         ),

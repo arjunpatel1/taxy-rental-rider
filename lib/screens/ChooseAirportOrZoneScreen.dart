@@ -2,7 +2,7 @@ import '../manage_imports.dart';
 
 class ChooseAirportOrZoneScreen extends StatefulWidget {
   final bool? zone_selection;
-  int? zoneId;
+  final int? zoneId;
 
   ChooseAirportOrZoneScreen({super.key, this.zone_selection, this.zoneId});
 
