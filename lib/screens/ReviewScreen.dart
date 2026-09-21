@@ -19,8 +19,26 @@ class ReviewScreenState extends State<ReviewScreen> {
   TextEditingController reviewController = TextEditingController();
   num rattingData = 0;
   int currentIndex = -1;
-  /// How the rider settles this trip. Cash by default, matching the old flow.
-  bool payWithCash = true;
+  /// How the rider settles this trip: cash, wallet, or part of each.
+  String payMethod = 'cash';
+  TextEditingController walletPartController = TextEditingController();
+
+  num get _fare => widget.rideRequest.totalAmount ?? 0;
+  num get _walletPart => num.tryParse(walletPartController.text.trim()) ?? 0;
+
+  String _payHint() {
+    switch (payMethod) {
+      case 'wallet':
+        return 'The fare will be taken from your S Taxi wallet';
+      case 'split':
+        if (_walletPart <= 0 || _walletPart >= _fare) {
+          return 'Enter how much to take from the wallet, less than the fare';
+        }
+        return 'Wallet ${appStore.currencyCode}$_walletPart, cash ${appStore.currencyCode}${_fare - _walletPart} to the driver';
+      default:
+        return 'Pay the driver in cash';
+    }
+  }
   OnRideRequest? servicesListData;
 
   @override
@@ -96,14 +114,15 @@ class ReviewScreenState extends State<ReviewScreen> {
     try {
       await rideRequestUpdate(
         request: {
-          'payment_type': payWithCash ? CASH : WALLET,
+          'payment_type': payMethod,
           'is_change_payment_type': 1,
+          if (payMethod == 'split') 'wallet_amount': _walletPart,
         },
         rideId: widget.rideRequest.id,
       );
       await rideService.updateStatusOfRide(
         rideID: widget.rideRequest.id,
-        req: {'on_stream_api_call': 0, 'payment_type': payWithCash ? CASH : WALLET},
+        req: {'on_stream_api_call': 0, 'payment_type': payMethod},
       );
     } catch (e) {
       // The rating still stands; the rider can change this from the trip page.
@@ -113,6 +132,13 @@ class ReviewScreenState extends State<ReviewScreen> {
 
   Future<void> userReviewData({bool? skip}) async {
     if (skip != true && !formKey.currentState!.validate()) return;
+    // A split has to name a wallet share smaller than the fare.
+    if (widget.rideRequest.paymentStatus != PAID &&
+        payMethod == 'split' &&
+        (_walletPart <= 0 || _walletPart >= _fare)) {
+      toast('Enter how much to take from the wallet, less than the fare');
+      return;
+    }
     hideKeyboard(context);
     if (rattingData == 0 && skip != true)
       return toast(language.pleaseSelectRating);
@@ -286,28 +312,48 @@ class ReviewScreenState extends State<ReviewScreen> {
                           child: _payOption(
                             label: language.cash,
                             icon: Icons.payments_outlined,
-                            selected: payWithCash,
-                            onTap: () => setState(() => payWithCash = true),
+                            selected: payMethod == 'cash',
+                            onTap: () => setState(() => payMethod = 'cash'),
                           ),
                         ),
-                        SizedBox(width: 12),
+                        SizedBox(width: 8),
                         Expanded(
                           child: _payOption(
                             label: language.wallet,
                             icon: Icons.account_balance_wallet_outlined,
-                            selected: !payWithCash,
-                            onTap: () => setState(() => payWithCash = false),
+                            selected: payMethod == 'wallet',
+                            onTap: () => setState(() => payMethod = 'wallet'),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: _payOption(
+                            label: 'Both',
+                            icon: Icons.call_split_rounded,
+                            selected: payMethod == 'split',
+                            onTap: () => setState(() => payMethod = 'split'),
                           ),
                         ),
                       ],
                     ),
+                    // Part from the wallet, the rest in cash: a 500 fare with
+                    // 200 in the wallet is 200 wallet + 300 cash.
+                    if (payMethod == 'split') ...[
+                      SizedBox(height: 12),
+                      TextField(
+                        controller: walletPartController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Pay from wallet',
+                          prefixText: appStore.currencyCode,
+                        ),
+                      ),
+                    ],
                     SizedBox(height: 6),
-                    Text(
-                      payWithCash
-                          ? 'Pay the driver in cash'
-                          : 'The fare will be taken from your S Taxi wallet',
-                      style: secondaryTextStyle(size: 12),
-                    ),
+                    Text(_payHint(), style: secondaryTextStyle(size: 12)),
                   ],
                   SizedBox(height: 16),
                   AppButtonWidget(
