@@ -19,21 +19,13 @@ class ReviewScreenState extends State<ReviewScreen> {
   TextEditingController reviewController = TextEditingController();
   num rattingData = 0;
   int currentIndex = -1;
-  TextEditingController tipController = TextEditingController();
-  bool isMoreTip = false;
-  bool isTipShow = true;
+  /// How the rider settles this trip. Cash by default, matching the old flow.
+  bool payWithCash = true;
   OnRideRequest? servicesListData;
 
   @override
   void initState() {
     super.initState();
-    init();
-  }
-
-  void init() async {
-    appStore.walletPresetTipAmount.isNotEmpty
-        ? appStore.setWalletTipAmount(appStore.walletPresetTipAmount)
-        : appStore.setWalletTipAmount('10|20|50');
   }
 
   Future<void> getCurrentRequest() async {
@@ -68,6 +60,57 @@ class ReviewScreenState extends State<ReviewScreen> {
     });
   }
 
+  Widget _payOption({
+    required String label,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return inkWellWidget(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        decoration: BoxDecoration(
+          color: selected ? primaryColor.withValues(alpha: 0.08) : Colors.transparent,
+          border: Border.all(
+              color: selected ? primaryColor : Colors.grey.shade300,
+              width: selected ? 2 : 1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 20, color: selected ? primaryColor : Colors.grey),
+            SizedBox(width: 8),
+            Text(label,
+                style: selected
+                    ? boldTextStyle(color: primaryColor, size: 14)
+                    : primaryTextStyle(size: 14)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _savePaymentChoice() async {
+    try {
+      await rideRequestUpdate(
+        request: {
+          'payment_type': payWithCash ? CASH : WALLET,
+          'is_change_payment_type': 1,
+        },
+        rideId: widget.rideRequest.id,
+      );
+      await rideService.updateStatusOfRide(
+        rideID: widget.rideRequest.id,
+        req: {'on_stream_api_call': 0, 'payment_type': payWithCash ? CASH : WALLET},
+      );
+    } catch (e) {
+      // The rating still stands; the rider can change this from the trip page.
+      log('Payment choice not saved: $e');
+    }
+  }
+
   Future<void> userReviewData({bool? skip}) async {
     if (skip != true && !formKey.currentState!.validate()) return;
     hideKeyboard(context);
@@ -79,14 +122,13 @@ class ReviewScreenState extends State<ReviewScreen> {
       "ride_request_id": widget.rideRequest.id,
       "rating": skip == true ? 0 : rattingData,
       "comment": skip == true ? '' : reviewController.text.trim(),
-      if (tipController.text.isNotEmpty) "tips": tipController.text,
     };
     await ratingReview(request: req).then((value) async {
-      print(widget.rideRequest.id);
-      if (tipController.text.isNotEmpty)
-        await rideService.updateStatusOfRide(
-            rideID: widget.rideRequest.id,
-            req: {/*"tips": 1,*/ "on_stream_api_call": 0});
+      // Record how the rider chose to pay, so a trip booked as cash can still
+      // be settled from the wallet and the other way round.
+      if (widget.rideRequest.paymentStatus != PAID) {
+        await _savePaymentChoice();
+      }
       appStore.setLoading(false);
       if (widget.schedule_ride == true) {
         print("back");
@@ -231,133 +273,42 @@ class ReviewScreenState extends State<ReviewScreen> {
                     minLines: 2,
                     maxLines: 5,
                   ),
-                  StreamBuilder(
-                      stream:
-                          rideService.fetchRide(rideId: widget.rideRequest.id),
-                      builder: (context, snap) {
-                        if (snap.hasData) {
-                          List<FRideBookingModel> data = snap.data!.docs
-                              .map((e) => FRideBookingModel.fromJson(
-                                  e.data() as Map<String, dynamic>))
-                              .toList();
-                          if (data.length != 0)
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(height: 16),
-                                if (widget.rideRequest.paymentStatus != PAID)
-                                  Row(
-                                    children: [
-                                      Text(language.wouldYouLikeToAddTip,
-                                          style: boldTextStyle()),
-                                      SizedBox(width: 16),
-                                      if (tipController.text.isNotEmpty)
-                                        inkWellWidget(
-                                          onTap: () {
-                                            currentIndex = -1;
-                                            tipController.clear();
-                                            setState(() {});
-                                          },
-                                          child: Icon(Icons.clear_all,
-                                              size: 30, color: primaryColor),
-                                        )
-                                    ],
-                                  ),
-                                if (widget.rideRequest.paymentStatus != PAID)
-                                  SizedBox(height: 10),
-                                if (widget.rideRequest.paymentStatus != PAID)
-                                  Wrap(
-                                    spacing: 10,
-                                    runSpacing: 16,
-                                    children: appStore.walletPresetTipAmount
-                                        .split('|')
-                                        .map((e) {
-                                      return inkWellWidget(
-                                        onTap: () {
-                                          currentIndex = appStore
-                                              .walletPresetTipAmount
-                                              .split('|')
-                                              .indexOf(e);
-                                          tipController.text = e;
-                                          tipController.selection =
-                                              TextSelection.fromPosition(
-                                                  TextPosition(
-                                                      offset:
-                                                          e.toString().length));
-                                          setState(() {});
-                                        },
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 6, horizontal: 10),
-                                          decoration: BoxDecoration(
-                                              color: currentIndex ==
-                                                      appStore
-                                                          .walletPresetTipAmount
-                                                          .split('|')
-                                                          .indexOf(e)
-                                                  ? primaryColor
-                                                  : primaryColor.withValues(
-                                                      alpha: 0.4),
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                      defaultRadius)),
-                                          child: printAmountWidget(
-                                              amount: e,
-                                              color: Colors.white,
-                                              size: 14,
-                                              weight: FontWeight.normal),
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                if (widget.rideRequest.paymentStatus != PAID)
-                                  SizedBox(height: 16),
-                                if (widget.rideRequest.paymentStatus != PAID)
-                                  Column(
-                                    children: [
-                                      Visibility(
-                                        visible: isMoreTip,
-                                        child: AppTextField(
-                                          textFieldType: TextFieldType.PHONE,
-                                          inputFormatters: [
-                                            FilteringTextInputFormatter.allow(
-                                                RegExp(r'^\d*\.?\d*$')),
-                                          ],
-                                          controller: tipController,
-                                          isValidationRequired: false,
-                                          decoration: inputDecoration(context,
-                                              label: language.addMoreTip),
-                                        ),
-                                      ),
-                                      if (!isMoreTip)
-                                        inkWellWidget(
-                                            child: Container(
-                                              padding: EdgeInsets.symmetric(
-                                                  vertical: 8, horizontal: 10),
-                                              decoration: BoxDecoration(
-                                                  color: primaryColor,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          defaultRadius)),
-                                              child: Text(language.addMore,
-                                                  style: boldTextStyle(
-                                                      color: Colors.white,
-                                                      size: 14)),
-                                            ),
-                                            onTap: () {
-                                              isMoreTip = true;
-                                              setState(() {});
-                                            }),
-                                    ],
-                                  ),
-                                SizedBox(height: 16),
-                              ],
-                            );
-                          else
-                            return SizedBox();
-                        } else
-                          return snapWidgetHelper(snap);
-                      }),
+                  // Tipping was removed. What the rider needs here is to say how
+                  // they are paying, because many forget to choose at booking.
+                  if (widget.rideRequest.paymentStatus != PAID) ...[
+                    SizedBox(height: 20),
+                    Text('How would you like to pay?',
+                        style: boldTextStyle(size: 16)),
+                    SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _payOption(
+                            label: language.cash,
+                            icon: Icons.payments_outlined,
+                            selected: payWithCash,
+                            onTap: () => setState(() => payWithCash = true),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: _payOption(
+                            label: language.wallet,
+                            icon: Icons.account_balance_wallet_outlined,
+                            selected: !payWithCash,
+                            onTap: () => setState(() => payWithCash = false),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      payWithCash
+                          ? 'Pay the driver in cash'
+                          : 'The fare will be taken from your S Taxi wallet',
+                      style: secondaryTextStyle(size: 12),
+                    ),
+                  ],
                   SizedBox(height: 16),
                   AppButtonWidget(
                     text: language.submit,
