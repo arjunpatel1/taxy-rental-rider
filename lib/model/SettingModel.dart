@@ -1,6 +1,8 @@
 class SettingModel {
   String? contactEmail;
   String? contactNumber;
+  /// Office address shown under Need Help.
+  String? officeAddress;
   String? createdAt;
   String? facebookUrl;
   int? id;
@@ -19,6 +21,7 @@ class SettingModel {
   SettingModel({
     this.contactEmail,
     this.contactNumber,
+    this.officeAddress,
     this.createdAt,
     this.facebookUrl,
     this.id,
@@ -39,6 +42,7 @@ class SettingModel {
     return SettingModel(
       contactEmail: json['contact_email'],
       contactNumber: json['contact_number'],
+      officeAddress: json['office_address'],
       createdAt: json['created_at'],
       facebookUrl: json['facebook_url'],
       id: json['id'],
@@ -60,6 +64,7 @@ class SettingModel {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['contact_email'] = this.contactEmail;
     data['contact_number'] = this.contactNumber;
+    data['office_address'] = this.officeAddress;
     data['created_at'] = this.createdAt;
     data['facebook_url'] = this.facebookUrl;
     data['id'] = this.id;
