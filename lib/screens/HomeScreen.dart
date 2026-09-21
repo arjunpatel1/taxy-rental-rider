@@ -323,8 +323,8 @@ class HomeScreenState extends State<HomeScreen> {
               iconBg: brandBlue,
               label: 'Wallet',
               value: isLoading
-                  ? Text('...', style: TextStyle(color: brandBlack, fontSize: 20, fontWeight: FontWeight.w800))
-                  : Text('$currencySymbol${walletBalance.toStringAsFixed(walletBalance % 1 == 0 ? 0 : 2)}', maxLines: 1, style: TextStyle(color: brandBlack, fontSize: 20, fontWeight: FontWeight.w800)),
+                  ? Text('...', style: TextStyle(color: brandBlack, fontSize: 26, fontWeight: FontWeight.w800))
+                  : Text('$currencySymbol${walletBalance.toStringAsFixed(walletBalance % 1 == 0 ? 0 : 2)}', maxLines: 1, style: TextStyle(color: brandBlack, fontSize: 26, fontWeight: FontWeight.w800)),
               trailing: 'Add',
               onTap: () => _open(WalletTopupScreen(currentBalance: walletBalance)),
             ),
@@ -335,7 +335,7 @@ class HomeScreenState extends State<HomeScreen> {
               icon: Icons.stars_rounded,
               iconBg: Color(0xFF2E7D6B),
               label: 'Points',
-              value: Text(isLoading ? '...' : '${coins.toInt()}', style: TextStyle(color: brandBlack, fontSize: 20, fontWeight: FontWeight.w800)),
+              value: Text(isLoading ? '...' : '${coins.toInt()}', style: TextStyle(color: brandBlack, fontSize: 26, fontWeight: FontWeight.w800)),
               onTap: () => _open(CoinWalletListScreen()),
             ),
           ),
@@ -344,6 +344,8 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Label over a large amount, with a plain "+" when the card can be topped up.
+  /// The coloured icon block was dropped so the amount gets the whole width.
   Widget _statCard({required IconData icon, required Color iconBg, required String label, required Widget value, required VoidCallback onTap, String? trailing}) {
     return Material(
       color: Colors.white,
@@ -352,36 +354,34 @@ class HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Padding(
-          padding: EdgeInsets.all(14),
+          padding: EdgeInsets.all(16),
           child: Row(
             children: [
-              Container(
-                padding: EdgeInsets.all(9),
-                decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
-                child: Icon(icon, color: Colors.white, size: 20),
-              ),
-              SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: textSecondaryColor, fontSize: 13, fontWeight: FontWeight.w600)),
-                    SizedBox(height: 2),
+                    Text(label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: textSecondaryColor, fontSize: 15, fontWeight: FontWeight.w600)),
+                    SizedBox(height: 4),
                     FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: value),
                   ],
                 ),
               ),
-              if (trailing != null)
-                // compact round "+" so the label and amount keep the full width
+              if (trailing != null) ...[
+                SizedBox(width: 8),
                 Tooltip(
                   message: trailing,
                   child: Container(
-                    width: 30,
-                    height: 30,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(color: brandBlue, shape: BoxShape.circle),
-                    child: Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                    child: Icon(Icons.add_rounded, color: Colors.white, size: 22),
                   ),
                 ),
+              ],
             ],
           ),
         ),

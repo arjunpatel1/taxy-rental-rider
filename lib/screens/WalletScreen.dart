@@ -217,21 +217,36 @@ class WalletScreenState extends State<WalletScreen> {
                                       ],
                                     ),
                                   ),
-                                  Row(
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text("${data.type == CREDIT ? "+" : "-"}",
-                                          style: boldTextStyle(
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text("${data.type == CREDIT ? "+" : "-"}",
+                                              style: boldTextStyle(
+                                                  color: data.type == CREDIT
+                                                      ? Colors.green
+                                                      : Colors.red)),
+                                          printAmountWidget(
+                                              amount:
+                                                  '${data.amount?.toStringAsFixed(digitAfterDecimal)}',
                                               color: data.type == CREDIT
                                                   ? Colors.green
-                                                  : Colors.red)),
-                                      printAmountWidget(
-                                          amount:
-                                              '${data.amount?.toStringAsFixed(digitAfterDecimal)}',
-                                          color: data.type == CREDIT
-                                              ? Colors.green
-                                              : Colors.red,
-                                          weight: FontWeight.bold),
-
+                                                  : Colors.red,
+                                              weight: FontWeight.bold),
+                                        ],
+                                      ),
+                                      // Balance left after this transaction, so the
+                                      // running total can be followed down the list.
+                                      if (data.balance != null) ...[
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'Bal ${appStore.currencyCode}${data.balance!.toStringAsFixed(digitAfterDecimal)}',
+                                          style: secondaryTextStyle(size: 11),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ],
