@@ -73,7 +73,9 @@ class RideAcceptWidgetState extends State<RideAcceptWidget> {
         receiverId: userData!.uid.validate(),
       );
       if (!mounted) return;
-      launchScreen(context, DashBoardScreen(),
+      // Home, not the booking screen: isNewTask clears the stack, so landing
+      // on booking left back with nothing to pop and closed the app.
+      launchScreen(context, HomeScreen(),
           isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
     }).catchError((error) {
       try {

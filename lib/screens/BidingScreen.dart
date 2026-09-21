@@ -125,7 +125,7 @@ class BidingscreenState extends State<Bidingscreen> {
   //             sharedPref.remove(REMAINING_TIME2);
   //             sharedPref.remove(IS_TIME2);
   //             toast(value.message);
-  //             launchScreen(context, DashBoardScreen(), isNewTask: true);
+  //             launchScreen(context, HomeScreen(), isNewTask: true);
   //           }).catchError((error) {
   //             appStore.setLoading(false);
   //             log(error.toString());
@@ -150,7 +150,7 @@ class BidingscreenState extends State<Bidingscreen> {
     ).then((value) async {
       appStore.setLoading(false);
       toast(value.message);
-      launchScreen(context, DashBoardScreen(), isNewTask: true);
+      launchScreen(context, HomeScreen(), isNewTask: true);
     }).catchError((error, s) {
       appStore.setLoading(false);
       try {} catch (e) {}
@@ -340,7 +340,7 @@ class BidingscreenState extends State<Bidingscreen> {
                                               toast(language.noNearByDriverFound);
                                               sharedPref.remove(REMAINING_TIME);
                                               sharedPref.remove(IS_TIME);
-                                              launchScreen(context, DashBoardScreen(), isNewTask: true);
+                                              launchScreen(context, HomeScreen(), isNewTask: true);
                                             }).catchError((error) {
                                               appStore.setLoading(false);
                                               log(error.toString());
@@ -491,7 +491,7 @@ class BidingscreenState extends State<Bidingscreen> {
     } catch (e) {}
     appStore.setLoading(false);
     await rideService.updateStatusOfRide(rideID: widget.ride_id, req: {"on_stream_api_call": 0});
-    launchScreen(context, DashBoardScreen(), isNewTask: true);
+    launchScreen(context, HomeScreen(), isNewTask: true);
   }
 
   void rejectBid({required String driverId, required String amount}) async {
