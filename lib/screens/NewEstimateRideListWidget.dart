@@ -1,3 +1,5 @@
+import 'NoCabsScreen.dart';
+import '../components/NoServiceView.dart';
 import '../manage_imports.dart';
 import '../utils/BrandTheme.dart';
 import '../utils/BookingFare.dart';
@@ -1612,19 +1614,25 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
                 borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(2 * defaultRadius),
                     topRight: Radius.circular(2 * defaultRadius))),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                emptyWidget(),
-                Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(serviceLoadError ?? language.servicesNotFound,
-                        textAlign: TextAlign.center, style: boldTextStyle())),
-                TextButton(
-                    onPressed: () => getNewService(), child: Text('Retry')),
-                SizedBox(height: 8),
-              ],
-            ),
+            // No services back without a load error means the pickup is
+            // outside every region: say so and offer a call, with no retry,
+            // since searching the same place again cannot succeed. A genuine
+            // load failure still gets its retry.
+            child: serviceLoadError == null
+                ? NoServiceView(outsideArea: true)
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      emptyWidget(),
+                      Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(serviceLoadError!,
+                              textAlign: TextAlign.center, style: boldTextStyle())),
+                      TextButton(
+                          onPressed: () => getNewService(), child: Text('Retry')),
+                      SizedBox(height: 8),
+                    ],
+                  ),
           ),
         ),
       ],
@@ -2717,6 +2725,12 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
         isPopupOpen = false;
         launchScreen(
             getContext, DashBoardScreen(cancelReason: value.data!.reason),
+            isNewTask: true);
+      } else if (value.data!.status == CANCELED && value.data!.cancelBy == AUTO) {
+        // The server ran out of drivers before the app's own timer did.
+        isPopupOpen = false;
+        launchScreen(getContext,
+            NoCabsScreen(rideId: rideRequestId == 0 ? widget.id! : rideRequestId),
             isNewTask: true);
       } else {
         isPopupOpen = false;

@@ -1,3 +1,4 @@
+import '../components/FareBreakdownCard.dart';
 import '../manage_imports.dart';
 
 class RidePaymentDetailScreen extends StatefulWidget {
@@ -762,10 +763,10 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                 //   ),
                 // Divider(height: 16, thickness: 1),
                 // riderModel!.tips != null ? totalCount(title: language.total, amount: riderModel!.totalAmount! + riderModel!.tips!, isTotal: true) : totalCount(title: language.total, amount: riderModel!.totalAmount, isTotal: true),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [Text(language.totalFare, style: boldTextStyle(size: 24)), printAmountWidget(amount: '${riderModel!.totalAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold, size: 24)],
-                ),
+                // Billed trips show the four-line bill, estimates the three-line one.
+                FareBreakdownCard.isFinal(riderModel!.tripFareData)
+                    ? FareBreakdownCard(bill: riderModel!.tripFareData!, total: riderModel!.totalAmount ?? 0, distanceUnit: riderModel!.distanceUnit ?? 'km')
+                    : EstimateFareCard(total: riderModel!.totalAmount ?? 0, gst: riderModel!.gstAmount ?? 0),
               ],
             )
           : Column(
@@ -787,10 +788,10 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                 //   ),
                 //   SizedBox(height: 8),
                 // ],
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [Text(language.totalFare, style: boldTextStyle(size: 24)), printAmountWidget(amount: '${riderModel!.totalAmount!.toStringAsFixed(digitAfterDecimal)}', weight: FontWeight.bold, size: 24)],
-                ),
+                // Billed trips show the four-line bill, estimates the three-line one.
+                FareBreakdownCard.isFinal(riderModel!.tripFareData)
+                    ? FareBreakdownCard(bill: riderModel!.tripFareData!, total: riderModel!.totalAmount ?? 0, distanceUnit: riderModel!.distanceUnit ?? 'km')
+                    : EstimateFareCard(total: riderModel!.totalAmount ?? 0, gst: riderModel!.gstAmount ?? 0),
                 // riderModel!.subtotal! <= riderModel!.estimated_price['minimum_fare'] ?? riderModel!.minimumFare!
                 //     ? totalCount(title: language.minimumFare, amount: riderModel!.estimated_price['minimum_fare'] ?? riderModel!.minimumFare!)
                 //     :

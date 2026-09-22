@@ -112,3 +112,43 @@ class FareBreakdownCard extends StatelessWidget {
         ]),
       );
 }
+
+/// Estimate before the trip is billed: Trip Fare, Tax and Total Fare only.
+/// The final bill adds Additional Trip Charges once the odometer is closed.
+class EstimateFareCard extends StatelessWidget {
+  final num total;
+  final num gst;
+
+  const EstimateFareCard({super.key, required this.total, required this.gst});
+
+  @override
+  Widget build(BuildContext context) {
+    final tax = gst < 0 ? 0 : gst;
+    final tripFare = total - tax < 0 ? 0 : total - tax;
+    Widget row(String label, num amount, {bool bold = false}) => Padding(
+          padding: EdgeInsets.symmetric(vertical: 5),
+          child: Row(
+            children: [
+              Expanded(
+                  child: Text(label,
+                      style: bold
+                          ? boldTextStyle(size: 16)
+                          : primaryTextStyle(size: 14))),
+              printAmountWidget(
+                  amount: amount.toStringAsFixed(2),
+                  size: bold ? 18 : 14,
+                  weight: bold ? FontWeight.w700 : FontWeight.w500),
+            ],
+          ),
+        );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        row('Trip Fare', tripFare),
+        row('Tax', tax),
+        Divider(height: 18),
+        row('Total Fare', total, bold: true),
+      ],
+    );
+  }
+}

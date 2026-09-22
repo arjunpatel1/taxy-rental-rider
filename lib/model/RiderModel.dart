@@ -56,6 +56,8 @@ class RiderModel {
   String? paymentType;
   String? paymentStatus;
   List<ExtraChargeRequestModel>? extraCharges;
+  /// GST on the fare, shown as Tax on the estimate and the bill.
+  num? gstAmount;
   num? couponDiscount;
   int? couponCode;
   CouponData? couponData;
@@ -166,6 +168,7 @@ class RiderModel {
     tripFareData = json['trip_fare_data'] is Map ? Map<String, dynamic>.from(json['trip_fare_data']) : null;
     subtotal = num.tryParse(json['subtotal'].toString()) ?? 0;
     extraChargesAmount = num.tryParse(json['extra_charges_amount'].toString()) ?? 0;
+    gstAmount = num.tryParse('${json['gst_amount'] ?? 0}') ?? 0;
     extraChargesPaymentMethod = json['extra_charges_payment_method'];
     extraChargesPaymentDate = json['extra_charges_payment_date'];
     driverId = json['driver_id'];

@@ -836,3 +836,12 @@ Future<SelectLocationModel> searchAddressRequestPlaceId(String placeId) async {
       await buildHttpResponse('place-detail-api?placeid=$placeId',
           method: HttpMethod.GET)));
 }
+
+/// Search again after no driver accepted: the server makes a fresh request
+/// from the same trip and returns its id.
+Future<int?> retryRideRequest(int rideId) async {
+  final res = await handleResponse(await buildHttpResponse(
+      'riderequest-retry/$rideId',
+      method: HttpMethod.POST));
+  return int.tryParse('${res['riderequest_id'] ?? ''}');
+}

@@ -1,3 +1,4 @@
+import '../screens/NoCabsScreen.dart';
 import '../manage_imports.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -197,9 +198,14 @@ class BookingWidgetState extends State<BookingWidget> {
                               rideId: widget.id,
                             ).then((v) {
                               isPopupOpen = false;
-                              toast(language.noNearByDriverFound);
                               sharedPref.remove(REMAINING_TIME);
                               sharedPref.remove(IS_TIME);
+                              // A full screen with Call to Book and Try Again,
+                              // rather than a toast the rider can miss.
+                              if (mounted) {
+                                launchScreen(context, NoCabsScreen(rideId: widget.id!),
+                                    isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
+                              }
                             });
                           } catch (e) {
                             log(e.toString());
