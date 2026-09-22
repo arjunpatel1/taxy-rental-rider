@@ -37,6 +37,9 @@ Future<LoginResponse> signUpApi(Map request) async {
           LAST_NAME, loginResponse.data!.lastName.validate());
       await sharedPref.setString(
           CONTACT_NUMBER, loginResponse.data!.contactNumber.validate());
+      // Review account: the home screen hides recharge and bill payment.
+      await sharedPref.setInt(
+          IS_REVIEW_ACCOUNT, loginResponse.data!.isReviewAccount ?? 0);
       await sharedPref.setString(
           USER_EMAIL, loginResponse.data!.email.validate());
       await sharedPref.setString(
@@ -98,6 +101,9 @@ Future<LoginResponse> logInApi(Map request,
           LAST_NAME, loginResponse.data!.lastName.validate());
       await sharedPref.setString(
           CONTACT_NUMBER, loginResponse.data!.contactNumber.validate());
+      // Review account: the home screen hides recharge and bill payment.
+      await sharedPref.setInt(
+          IS_REVIEW_ACCOUNT, loginResponse.data!.isReviewAccount ?? 0);
       await sharedPref.setString(
           USER_EMAIL, loginResponse.data!.email.validate());
       await sharedPref.setString(

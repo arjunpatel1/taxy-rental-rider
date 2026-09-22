@@ -35,6 +35,8 @@ class UserModel {
   String? lastName;
   String? email;
   String? contactNumber;
+  /// Play Store review account: recharge and bill payment are hidden for it.
+  int? isReviewAccount;
   String? country_code;
   String? username;
   String? gender;
@@ -70,6 +72,7 @@ class UserModel {
     this.email,
     this.username,
     this.contactNumber,
+    this.isReviewAccount,
     this.gender,
     this.emailVerifiedAt,
     this.address,
@@ -104,6 +107,7 @@ class UserModel {
       email: json['email'],
       username: json['username'],
       contactNumber: json['contact_number'],
+      isReviewAccount: int.tryParse('${json['is_review_account'] ?? 0}') ?? 0,
       gender: json['gender'],
       emailVerifiedAt: json['email_verified_at'],
       address: json['address'],

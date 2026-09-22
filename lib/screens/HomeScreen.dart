@@ -400,18 +400,26 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Recharge, DTH, Google Play codes and bill payment are hidden for the
+  /// Play Store review account: they are not what the listing describes, and
+  /// selling Google Play balance is against Play's payments policy.
+  bool get _hideBillPayServices =>
+      (sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) == 1;
+
   Widget _quickActions() {
     final actions = [
       _QuickAction('Local Booking', Icons.local_taxi_rounded, Color(0xFFE3ECFF), brandBlue, () => _openBooking(rideTypeLocal)),
       _QuickAction('Rental Booking', Icons.timer_outlined, Color(0xFFE8F0FE), brandBlue, () => _openBooking(rideTypeRental)),
       _QuickAction('Outstation Booking', Icons.alt_route_rounded, Color(0xFFE6F6FF), brandLightBlue, () => _openBooking(rideTypeOutstation)),
       _QuickAction('Ride Later', Icons.event_available_rounded, Color(0xFFEDF2FF), Color(0xFF3B5BDB), () => _open(ScheduleRideListScreen())),
-      _QuickAction('Mobile Recharge', Icons.phone_iphone_rounded, Color(0xFFEDE7FF), Color(0xFF5B3DF5), () => _open(MobileRechargeScreen())),
-      _QuickAction('DTH Recharge', Icons.satellite_alt_rounded, Color(0xFFF3E8FF), Color(0xFF7048E8),
-          () => _open(RechargeScreen(title: 'DTH Recharge', serviceTypes: ['DTH']))),
-      _QuickAction('Google Play Recharge', Icons.shop_rounded, Color(0xFFE6FCF5), Color(0xFF0CA678),
-          () => _open(RechargeScreen(title: 'Google Play Recharge', serviceTypes: ['Google Play']))),
-      _QuickAction('Bill Payment', Icons.receipt_long_rounded, Color(0xFFFFF4E6), Color(0xFFE8590C), () => _open(BillPaymentScreen())),
+      if (!_hideBillPayServices) ...[
+        _QuickAction('Mobile Recharge', Icons.phone_iphone_rounded, Color(0xFFEDE7FF), Color(0xFF5B3DF5), () => _open(MobileRechargeScreen())),
+        _QuickAction('DTH Recharge', Icons.satellite_alt_rounded, Color(0xFFF3E8FF), Color(0xFF7048E8),
+            () => _open(RechargeScreen(title: 'DTH Recharge', serviceTypes: ['DTH']))),
+        _QuickAction('Google Play Recharge', Icons.shop_rounded, Color(0xFFE6FCF5), Color(0xFF0CA678),
+            () => _open(RechargeScreen(title: 'Google Play Recharge', serviceTypes: ['Google Play']))),
+        _QuickAction('Bill Payment', Icons.receipt_long_rounded, Color(0xFFFFF4E6), Color(0xFFE8590C), () => _open(BillPaymentScreen())),
+      ],
       _QuickAction('My Rides', Icons.directions_car_filled_rounded, Color(0xFFF1F3F5), Color(0xFF495057), () => _open(RideListScreen())),
       _QuickAction('Reward', Icons.card_giftcard_rounded, Color(0xFFE0F2EF), Color(0xFF12836B), () => _open(RewardListScreen())),
       _QuickAction('Refer and Earn', Icons.group_add_rounded, Color(0xFFE9F8EF), Color(0xFF1E9E57), () => _open(ReferEarnScreen())),
