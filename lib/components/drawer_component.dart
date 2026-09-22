@@ -71,13 +71,16 @@ class _DrawerComponentState extends State<DrawerComponent> {
                       Navigator.pop(context);
                       launchScreen(context, RideListScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
                     }),
-                DrawerWidget(
-                    title: language.wallet,
-                    iconData: ic_my_wallet,
-                    onTap: () {
-                      Navigator.pop(context);
-                      launchScreen(context, WalletScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
-                    }),
+                // Hidden for the Play Store review account along with the rest
+                // of the stored-value features.
+                if ((sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) != 1)
+                  DrawerWidget(
+                      title: language.wallet,
+                      iconData: ic_my_wallet,
+                      onTap: () {
+                        Navigator.pop(context);
+                        launchScreen(context, WalletScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+                      }),
                 DrawerWidget(
                     title: language.bankInfo,
                     iconData: ic_update_bank_info,

@@ -301,7 +301,9 @@ class ReviewScreenState extends State<ReviewScreen> {
                   ),
                   // Tipping was removed. What the rider needs here is to say how
                   // they are paying, because many forget to choose at booking.
-                  if (widget.rideRequest.paymentStatus != PAID) ...[
+                  // The review account has no wallet, so it settles in cash only.
+                  if (widget.rideRequest.paymentStatus != PAID &&
+                      (sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) != 1) ...[
                     SizedBox(height: 20),
                     Text('How would you like to pay?',
                         style: boldTextStyle(size: 16)),

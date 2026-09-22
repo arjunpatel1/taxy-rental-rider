@@ -316,7 +316,7 @@ class HomeScreenState extends State<HomeScreen> {
       padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Row(
         children: [
-          Expanded(
+          if (!_hideWallet) Expanded(
             child: _statCard(
               icon: Icons.account_balance_wallet_rounded,
               iconBg: brandBlue,
@@ -328,7 +328,7 @@ class HomeScreenState extends State<HomeScreen> {
               onTap: () => _open(WalletTopupScreen(currentBalance: walletBalance)),
             ),
           ),
-          SizedBox(width: 12),
+          if (!_hideWallet) SizedBox(width: 12),
           Expanded(
             child: _statCard(
               icon: Icons.stars_rounded,
@@ -405,6 +405,10 @@ class HomeScreenState extends State<HomeScreen> {
   /// selling Google Play balance is against Play's payments policy.
   bool get _hideBillPayServices =>
       (sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) == 1;
+
+  /// The wallet holds stored value and is topped up outside Play billing, so it
+  /// is kept out of the review account's view as well.
+  bool get _hideWallet => (sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) == 1;
 
   Widget _quickActions() {
     final actions = [
@@ -597,22 +601,21 @@ class HomeScreenState extends State<HomeScreen> {
       unselectedItemColor: textSecondaryColor,
       selectedLabelStyle: TextStyle(fontWeight: FontWeight.w700),
       onTap: (index) {
-        switch (index) {
-          case 1:
-            _open(RideListScreen());
-            break;
-          case 2:
-            _open(WalletScreen());
-            break;
-          case 3:
-            _open(SettingScreen());
-            break;
+        // The wallet tab is absent for a review account, so the items after it
+        // shift down by one.
+        if (index == 1) {
+          _open(RideListScreen());
+        } else if (index == 2) {
+          _hideWallet ? _open(SettingScreen()) : _open(WalletScreen());
+        } else if (index == 3 && !_hideWallet) {
+          _open(SettingScreen());
         }
       },
       items: [
         BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Rides'),
-        BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_rounded), label: 'Wallet'),
+        if (!_hideWallet)
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_rounded), label: 'Wallet'),
         BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Account'),
       ],
     );

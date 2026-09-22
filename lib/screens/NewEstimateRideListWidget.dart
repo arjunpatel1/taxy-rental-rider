@@ -527,10 +527,14 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
       }
       if (serviceList.isNotEmpty)
         paymentMethodType = (serviceList[0].paymentMethod ?? CASH_WALLET);
-      if (serviceList.isNotEmpty)
-        cashList = paymentMethodType == CASH_WALLET
-            ? cashList = [CASH, WALLET]
-            : cashList = [paymentMethodType];
+      if (serviceList.isNotEmpty) {
+        // The review account has no wallet, so cash is the only option offered.
+        final reviewAccount = (sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) == 1;
+        cashList = reviewAccount
+            ? [CASH]
+            : (paymentMethodType == CASH_WALLET ? [CASH, WALLET] : [paymentMethodType]);
+        if (reviewAccount) paymentMethodType = CASH;
+      }
       if (serviceList.isNotEmpty) {
         if ((serviceList[0].discountAmount ?? 0) > 0) {
           mSelectServiceAmount =
@@ -637,10 +641,14 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
       if (serviceList.isNotEmpty) servicesListData = serviceList[0];
       if (serviceList.isNotEmpty)
         paymentMethodType = (serviceList[0].paymentMethod ?? CASH_WALLET);
-      if (serviceList.isNotEmpty)
-        cashList = paymentMethodType == CASH_WALLET
-            ? cashList = [CASH, WALLET]
-            : cashList = [paymentMethodType];
+      if (serviceList.isNotEmpty) {
+        // The review account has no wallet, so cash is the only option offered.
+        final reviewAccount = (sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) == 1;
+        cashList = reviewAccount
+            ? [CASH]
+            : (paymentMethodType == CASH_WALLET ? [CASH, WALLET] : [paymentMethodType]);
+        if (reviewAccount) paymentMethodType = CASH;
+      }
       if (serviceList.isNotEmpty) {
         if ((serviceList[0].discountAmount ?? 0) > 0) {
           mSelectServiceAmount =
