@@ -66,7 +66,9 @@ class AboutWidgetState extends State<AboutWidget> {
                         Text(widget.userData!.firstName.validate(),
                             style: boldTextStyle(size: 14)),
                         SizedBox(height: 4),
-                        Text(widget.userData!.email.validate(),
+                        // Riders call the driver, they never mail them, so the
+                        // phone number is what belongs under the name here.
+                        Text(widget.userData!.contactNumber.validate(),
                             style: secondaryTextStyle()),
                       ],
                     ),

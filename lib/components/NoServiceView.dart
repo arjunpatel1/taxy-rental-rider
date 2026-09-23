@@ -14,7 +14,11 @@ class NoServiceView extends StatelessWidget {
   final VoidCallback? onTryAgain;
   final bool busy;
 
-  const NoServiceView({super.key, required this.outsideArea, this.onTryAgain, this.busy = false});
+  /// Overrides the wording, e.g. when the drop rather than the pickup is out of area.
+  final String? titleOverride;
+  final String? subtitleOverride;
+
+  const NoServiceView({super.key, required this.outsideArea, this.onTryAgain, this.busy = false, this.titleOverride, this.subtitleOverride});
 
   String get _supportNumber =>
       (appStore.settingModel.contactNumber ?? '').replaceAll(RegExp(r'[^0-9+]'), '');
@@ -33,10 +37,11 @@ class NoServiceView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = outsideArea ? 'S Taxi is not available in this area yet' : 'No Cabs Available';
-    final subtitle = outsideArea
-        ? 'We are currently serving only in selected areas. This location is outside our service area.'
-        : 'There are currently no cabs available in your area.';
+    final title = titleOverride ?? (outsideArea ? 'S Taxi is not available in this area yet' : 'No Cabs Available');
+    final subtitle = subtitleOverride ??
+        (outsideArea
+            ? 'We are currently serving only in selected areas. This location is outside our service area.'
+            : 'There are currently no cabs available in your area.');
 
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(20, 24, 20, 24),

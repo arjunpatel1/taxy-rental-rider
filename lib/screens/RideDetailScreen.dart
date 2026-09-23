@@ -612,7 +612,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                 //         : totalCount(title: language.total, amount: riderModel!.subtotal, isTotal: true),
                 FareBreakdownCard.isFinal(riderModel!.tripFareData)
                     ? FareBreakdownCard(bill: riderModel!.tripFareData!, total: riderModel!.totalAmount ?? 0, distanceUnit: riderModel!.distanceUnit ?? 'km')
-                    : EstimateFareCard(total: riderModel!.totalAmount ?? 0, gst: riderModel!.gstAmount ?? 0),
+                    : EstimateFareCard(total: riderModel!.totalAmount ?? 0, gst: riderModel!.gstAmount ?? 0, distance: num.tryParse('${riderModel!.distance ?? ''}') ?? 0, distanceUnit: riderModel!.distanceUnit, extraCharges: num.tryParse('${riderModel!.extraChargesAmount ?? ''}') ?? 0),
               ],
             )
           : Column(
@@ -678,7 +678,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                 // payment != null && payment!.driverTips != 0 ? totalCount(title: language.total, amount: riderModel!.totalAmount! + payment!.driverTips!, isTotal: true) : totalCount(title: language.total, amount: riderModel!.totalAmount, isTotal: true),
                 FareBreakdownCard.isFinal(riderModel!.tripFareData)
                     ? FareBreakdownCard(bill: riderModel!.tripFareData!, total: riderModel!.totalAmount ?? 0, distanceUnit: riderModel!.distanceUnit ?? 'km')
-                    : EstimateFareCard(total: riderModel!.totalAmount ?? 0, gst: riderModel!.gstAmount ?? 0),
+                    : EstimateFareCard(total: riderModel!.totalAmount ?? 0, gst: riderModel!.gstAmount ?? 0, distance: num.tryParse('${riderModel!.distance ?? ''}') ?? 0, distanceUnit: riderModel!.distanceUnit, extraCharges: num.tryParse('${riderModel!.extraChargesAmount ?? ''}') ?? 0),
               ],
             ),
     );

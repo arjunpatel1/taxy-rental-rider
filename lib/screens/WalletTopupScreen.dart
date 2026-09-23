@@ -212,7 +212,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
       final subtitle = state == TransactionResult.failed
           ? 'No money was added to your wallet. You can try again.'
           : state == TransactionResult.pending
-              ? 'No money has been added yet. Your wallet will be credited only after payment verification.'
+              ? 'Our team has been alerted and will check your payment. Your wallet is credited as soon as it is confirmed, and you will get a notification.'
               : null;
       await TransactionResultScreen.show(
           context,

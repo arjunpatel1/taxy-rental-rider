@@ -766,7 +766,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                 // Billed trips show the four-line bill, estimates the three-line one.
                 FareBreakdownCard.isFinal(riderModel!.tripFareData)
                     ? FareBreakdownCard(bill: riderModel!.tripFareData!, total: riderModel!.totalAmount ?? 0, distanceUnit: riderModel!.distanceUnit ?? 'km')
-                    : EstimateFareCard(total: riderModel!.totalAmount ?? 0, gst: riderModel!.gstAmount ?? 0),
+                    : EstimateFareCard(total: riderModel!.totalAmount ?? 0, gst: riderModel!.gstAmount ?? 0, distance: num.tryParse('${riderModel!.distance ?? ''}') ?? 0, distanceUnit: riderModel!.distanceUnit, extraCharges: num.tryParse('${riderModel!.extraChargesAmount ?? ''}') ?? 0),
               ],
             )
           : Column(
@@ -791,7 +791,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                 // Billed trips show the four-line bill, estimates the three-line one.
                 FareBreakdownCard.isFinal(riderModel!.tripFareData)
                     ? FareBreakdownCard(bill: riderModel!.tripFareData!, total: riderModel!.totalAmount ?? 0, distanceUnit: riderModel!.distanceUnit ?? 'km')
-                    : EstimateFareCard(total: riderModel!.totalAmount ?? 0, gst: riderModel!.gstAmount ?? 0),
+                    : EstimateFareCard(total: riderModel!.totalAmount ?? 0, gst: riderModel!.gstAmount ?? 0, distance: num.tryParse('${riderModel!.distance ?? ''}') ?? 0, distanceUnit: riderModel!.distanceUnit, extraCharges: num.tryParse('${riderModel!.extraChargesAmount ?? ''}') ?? 0),
                 // riderModel!.subtotal! <= riderModel!.estimated_price['minimum_fare'] ?? riderModel!.minimumFare!
                 //     ? totalCount(title: language.minimumFare, amount: riderModel!.estimated_price['minimum_fare'] ?? riderModel!.minimumFare!)
                 //     :

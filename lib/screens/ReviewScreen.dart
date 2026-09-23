@@ -1,5 +1,6 @@
 import '../manage_imports.dart';
 import '../utils/BrandTheme.dart';
+import '../components/FareBreakdownCard.dart';
 
 class ReviewScreen extends StatefulWidget {
   final Driver? driverData;
@@ -21,22 +22,52 @@ class ReviewScreenState extends State<ReviewScreen> {
   int currentIndex = -1;
   /// How the rider settles this trip: cash, wallet, or part of each.
   String payMethod = 'cash';
-  TextEditingController walletPartController = TextEditingController();
+  /// Wallet balance, loaded once so the rider can see what they can cover.
+  num walletBalance = 0;
+  bool walletLoaded = false;
 
   num get _fare => widget.rideRequest.totalAmount ?? 0;
-  num get _walletPart => num.tryParse(walletPartController.text.trim()) ?? 0;
+  /// Wallet + cash always puts the whole balance towards the fare, never more
+  /// than the fare itself; the rest is handed to the driver in cash.
+  num get _walletPart => walletBalance >= _fare ? _fare : walletBalance;
+  bool get _walletCoversFare => walletBalance >= _fare && _fare > 0;
 
   String _payHint() {
     switch (payMethod) {
       case 'wallet':
-        return 'The fare will be taken from your S Taxi wallet';
+        return 'The full fare will be taken from your S Taxi wallet';
       case 'split':
-        if (_walletPart <= 0 || _walletPart >= _fare) {
-          return 'Enter how much to take from the wallet, less than the fare';
-        }
-        return 'Wallet ${appStore.currencyCode}$_walletPart, cash ${appStore.currencyCode}${_fare - _walletPart} to the driver';
+        return 'Wallet ${appStore.currencyCode}${_walletPart.toStringAsFixed(2)}  ·  Cash ${appStore.currencyCode}${(_fare - _walletPart).toStringAsFixed(2)} to the driver';
       default:
-        return 'Pay the driver in cash';
+        return 'Pay the driver ${appStore.currencyCode}${_fare.toStringAsFixed(2)} in cash';
+    }
+  }
+
+  Future<void> _callSupport() async {
+    final number = (appStore.settingModel.contactNumber ?? '')
+        .replaceAll(RegExp(r'[^0-9+]'), '');
+    if (number.isEmpty) {
+      toast('Support number is not available right now');
+      return;
+    }
+    try {
+      await launchUrl(Uri.parse('tel:$number'), mode: LaunchMode.externalApplication);
+    } catch (e) {
+      toast('Could not open the dialer');
+    }
+  }
+
+  Future<void> _loadWallet() async {
+    try {
+      final info = await getWalletData();
+      if (!mounted) return;
+      setState(() {
+        walletBalance = info.totalAmount ?? info.walletData?.totalAmount ?? 0;
+        walletLoaded = true;
+      });
+    } catch (e) {
+      log('Wallet balance not loaded: $e');
+      if (mounted) setState(() => walletLoaded = true);
     }
   }
   OnRideRequest? servicesListData;
@@ -44,6 +75,7 @@ class ReviewScreenState extends State<ReviewScreen> {
   @override
   void initState() {
     super.initState();
+    if ((sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) != 1) _loadWallet();
   }
 
   Future<void> getCurrentRequest() async {
@@ -117,6 +149,7 @@ class ReviewScreenState extends State<ReviewScreen> {
           'payment_type': payMethod,
           'is_change_payment_type': 1,
           if (payMethod == 'split') 'wallet_amount': _walletPart,
+          if (payMethod == 'wallet') 'wallet_amount': _fare,
         },
         rideId: widget.rideRequest.id,
       );
@@ -131,42 +164,23 @@ class ReviewScreenState extends State<ReviewScreen> {
   }
 
   Future<void> userReviewData({bool? skip}) async {
-    if (skip != true && !formKey.currentState!.validate()) return;
-    // A split has to name a wallet share smaller than the fare.
-    if (widget.rideRequest.paymentStatus != PAID &&
-        payMethod == 'split' &&
-        (_walletPart <= 0 || _walletPart >= _fare)) {
-      toast('Enter how much to take from the wallet, less than the fare');
+    // The rider only confirms how they are paying here; rating a driver moved
+    // out of this screen because the fare is what they need at trip end.
+    if (widget.rideRequest.paymentStatus != PAID && payMethod == 'wallet' && !_walletCoversFare) {
+      toast('Your wallet balance is not enough for this trip');
       return;
     }
     hideKeyboard(context);
-    if (rattingData == 0 && skip != true)
-      return toast(language.pleaseSelectRating);
-    formKey.currentState!.save();
     appStore.setLoading(true);
-    Map req = {
-      "ride_request_id": widget.rideRequest.id,
-      "rating": skip == true ? 0 : rattingData,
-      "comment": skip == true ? '' : reviewController.text.trim(),
-    };
-    await ratingReview(request: req).then((value) async {
-      // Record how the rider chose to pay, so a trip booked as cash can still
-      // be settled from the wallet and the other way round.
-      if (widget.rideRequest.paymentStatus != PAID) {
-        await _savePaymentChoice();
-      }
-      appStore.setLoading(false);
-      if (widget.schedule_ride == true) {
-        print("back");
-        Navigator.pop(context);
-      } else {
-        print("not back");
-        getCurrentRequest();
-      }
-    }).catchError((error) {
-      appStore.setLoading(false);
-      log(error.toString());
-    });
+    if (widget.rideRequest.paymentStatus != PAID) {
+      await _savePaymentChoice();
+    }
+    appStore.setLoading(false);
+    if (widget.schedule_ride == true) {
+      Navigator.pop(context);
+    } else {
+      getCurrentRequest();
+    }
   }
 
   @override
@@ -182,23 +196,8 @@ class ReviewScreenState extends State<ReviewScreen> {
         backgroundColor: brandBlue,
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
-        title: Text('Rate your trip',
+        title: Text('Trip payment',
             style: boldTextStyle(color: Colors.white, size: 18)),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: MaterialButton(
-              shape: RoundedRectangleBorder(
-                  side: BorderSide(color: Colors.white),
-                  borderRadius: BorderRadius.circular(12)),
-              onPressed: () {
-                userReviewData(skip: true);
-              },
-              child: Text(language.skip,
-                  style: boldTextStyle(color: Colors.white)),
-            ),
-          )
-        ],
       ),
       body: Stack(
         children: [
@@ -219,91 +218,52 @@ class ReviewScreenState extends State<ReviewScreen> {
                           decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: BrandTokens.blue.withValues(alpha: 0.25), width: 3)),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(44),
-                            child: commonCachedNetworkImage(widget.driverData!.profileImage.validate(), height: 84, width: 84, fit: BoxFit.cover),
+                            child: commonCachedNetworkImage(widget.driverData!.profileImage.validate(), height: 64, width: 64, fit: BoxFit.cover),
                           ),
-                        ),
-                        SizedBox(height: 12),
-                        Text('How was your trip with', style: secondaryTextStyle(size: 14)),
-                        Text(
-                          '${widget.driverData!.firstName.validate().capitalizeFirstLetter()} ${widget.driverData!.lastName.validate().capitalizeFirstLetter()}?'.trim(),
-                          style: boldTextStyle(size: 20),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          [widget.driverData!.userDetail?.carModel.validate(), widget.driverData!.userDetail?.carPlateNumber.validate().toUpperCase()].where((v) => (v ?? '').isNotEmpty).join(' · '),
-                          style: secondaryTextStyle(size: 12),
-                        ),
-                        SizedBox(height: 18),
-                        RatingBar.builder(
-                          direction: Axis.horizontal,
-                          glow: false,
-                          allowHalfRating: false,
-                          itemCount: 5,
-                          itemSize: 44,
-                          unratedColor: BrandTokens.line,
-                          itemPadding: EdgeInsets.symmetric(horizontal: 4),
-                          itemBuilder: (context, _) => Icon(Icons.star_rounded, color: Color(0xFFFFB300)),
-                          onRatingUpdate: (rating) {
-                            setState(() => rattingData = rating);
-                          },
                         ),
                         SizedBox(height: 8),
-                        AnimatedSwitcher(
-                          duration: Duration(milliseconds: 180),
-                          child: Text(
-                            ['Tap a star to rate', 'Terrible', 'Bad', 'Okay', 'Good', 'Excellent!'][rattingData.toInt().clamp(0, 5)],
-                            key: ValueKey(rattingData),
-                            style: boldTextStyle(size: 15, color: rattingData >= 4 ? BrandTokens.success : (rattingData == 0 ? BrandTokens.inkSoft : BrandTokens.warning)),
-                          ),
+                        Text('Trip completed with', style: secondaryTextStyle(size: 13)),
+                        Text(
+                          '${widget.driverData!.firstName.validate().capitalizeFirstLetter()} ${widget.driverData!.lastName.validate().capitalizeFirstLetter()}'.trim(),
+                          style: boldTextStyle(size: 18),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(height: 20),
-                  if (rattingData > 0) ...[
-                    Text(rattingData >= 4 ? 'What went well?' : 'What could be better?', style: boldTextStyle(size: 15)),
-                    SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: (rattingData >= 4
-                              ? ['Safe driving', 'Clean car', 'On time', 'Polite driver', 'Smooth ride']
-                              : ['Late pickup', 'Rash driving', 'Car not clean', 'Rude behaviour', 'Wrong route'])
-                          .map((tag) {
-                        final picked = reviewController.text.contains(tag);
-                        return ChoiceChip(
-                          label: Text(tag),
-                          selected: picked,
-                          showCheckmark: false,
-                          selectedColor: BrandTokens.blue,
-                          labelStyle: primaryTextStyle(size: 13, color: picked ? Colors.white : BrandTokens.ink),
-                          onSelected: (_) {
-                            final parts = reviewController.text.split(', ').where((t) => t.trim().isNotEmpty).toList();
-                            picked ? parts.remove(tag) : parts.add(tag);
-                            reviewController.text = parts.join(', ');
-                            setState(() {});
-                          },
-                        );
-                      }).toList(),
+                  SizedBox(height: 18),
+                  // The fare first: the rider's question at trip end is always
+                  // how much to pay, so it is shown before anything else.
+                  Container(
+                    padding: EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: context.cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: BrandTokens.line),
                     ),
-                    SizedBox(height: 16),
-                  ],
-                  Text(language.addReviews, style: boldTextStyle(size: 15)),
-                  SizedBox(height: 10),
-                  AppTextField(
-                    controller: reviewController,
-                    decoration: inputDecoration(context,
-                        label: language.writeYourComments),
-                    textFieldType: TextFieldType.NAME,
-                    minLines: 2,
-                    maxLines: 5,
+                    child: EstimateFareCard(
+                      total: _fare,
+                      gst: num.tryParse('${widget.rideRequest.gstAmount ?? ''}') ?? 0,
+                      distance: num.tryParse('${widget.rideRequest.distance ?? ''}') ?? 0,
+                      distanceUnit: widget.rideRequest.distanceUnit,
+                      extraCharges: num.tryParse('${widget.rideRequest.extraChargesAmount ?? ''}') ?? 0,
+                    ),
                   ),
-                  // Tipping was removed. What the rider needs here is to say how
-                  // they are paying, because many forget to choose at booking.
-                  // The review account has no wallet, so it settles in cash only.
                   if (widget.rideRequest.paymentStatus != PAID &&
                       (sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) != 1) ...[
+                    SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Icon(Icons.account_balance_wallet_outlined, size: 18, color: BrandTokens.inkSoft),
+                        SizedBox(width: 8),
+                        Text('Wallet Balance', style: primaryTextStyle(size: 14)),
+                        Spacer(),
+                        Text(
+                          walletLoaded ? '${appStore.currencyCode}${walletBalance.toStringAsFixed(2)}' : '...',
+                          style: boldTextStyle(size: 15),
+                        ),
+                      ],
+                    ),
                     SizedBox(height: 20),
                     Text('How would you like to pay?',
                         style: boldTextStyle(size: 16)),
@@ -319,44 +279,78 @@ class ReviewScreenState extends State<ReviewScreen> {
                           ),
                         ),
                         SizedBox(width: 8),
+                        // Greyed out while the balance cannot cover the whole
+                        // fare, so the rider cannot pick a payment that fails.
                         Expanded(
-                          child: _payOption(
-                            label: language.wallet,
-                            icon: Icons.account_balance_wallet_outlined,
-                            selected: payMethod == 'wallet',
-                            onTap: () => setState(() => payMethod = 'wallet'),
+                          child: Opacity(
+                            opacity: _walletCoversFare ? 1 : 0.4,
+                            child: IgnorePointer(
+                              ignoring: !_walletCoversFare,
+                              child: _payOption(
+                                label: language.wallet,
+                                icon: Icons.account_balance_wallet_outlined,
+                                selected: payMethod == 'wallet',
+                                onTap: () => setState(() => payMethod = 'wallet'),
+                              ),
+                            ),
                           ),
                         ),
                         SizedBox(width: 8),
                         Expanded(
-                          child: _payOption(
-                            label: 'Both',
-                            icon: Icons.call_split_rounded,
-                            selected: payMethod == 'split',
-                            onTap: () => setState(() => payMethod = 'split'),
+                          child: Opacity(
+                            opacity: walletBalance > 0 ? 1 : 0.4,
+                            child: IgnorePointer(
+                              ignoring: walletBalance <= 0,
+                              child: _payOption(
+                                label: 'Wallet + Cash',
+                                icon: Icons.call_split_rounded,
+                                selected: payMethod == 'split',
+                                onTap: () => setState(() => payMethod = 'split'),
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    // Part from the wallet, the rest in cash: a 500 fare with
-                    // 200 in the wallet is 200 wallet + 300 cash.
-                    if (payMethod == 'split') ...[
-                      SizedBox(height: 12),
-                      TextField(
-                        controller: walletPartController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        onChanged: (_) => setState(() {}),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Pay from wallet',
-                          prefixText: appStore.currencyCode,
-                        ),
-                      ),
+                    SizedBox(height: 8),
+                    Text(_payHint(), style: boldTextStyle(size: 13, color: BrandTokens.blue)),
+                    if (!_walletCoversFare && walletLoaded) ...[
+                      SizedBox(height: 4),
+                      Text('Not enough wallet balance to pay the full fare',
+                          style: secondaryTextStyle(size: 12)),
                     ],
-                    SizedBox(height: 6),
-                    Text(_payHint(), style: secondaryTextStyle(size: 12)),
                   ],
+                  SizedBox(height: 18),
+                  // Raising a complaint had no home in the app; riders were
+                  // told to call support with no number in front of them.
+                  Container(
+                    padding: EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: BrandTokens.blue.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.support_agent_rounded, color: BrandTokens.blue),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Any problem with this trip?', style: boldTextStyle(size: 14)),
+                              SizedBox(height: 2),
+                              Text('Call our support team and we will sort it out',
+                                  style: secondaryTextStyle(size: 12)),
+                            ],
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => _callSupport(),
+                          child: Text('Complaint', style: boldTextStyle(color: BrandTokens.blue, size: 14)),
+                        ),
+                      ],
+                    ),
+                  ),
                   SizedBox(height: 16),
                   AppButtonWidget(
                     text: language.submit,

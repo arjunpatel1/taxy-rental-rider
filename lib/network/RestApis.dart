@@ -845,3 +845,15 @@ Future<int?> retryRideRequest(int rideId) async {
       method: HttpMethod.POST));
   return int.tryParse('${res['riderequest_id'] ?? ''}');
 }
+
+/// Ask the server to push a chat message alert to the other side of a trip.
+/// The device used to call OneSignal directly, which no longer delivers.
+Future<void> sendChatNotification({required int receiverId, required String message, int? rideId}) async {
+  await handleResponse(await buildHttpResponse('chat-notification',
+      request: {
+        'receiver_id': receiverId,
+        'message': message,
+        if (rideId != null) 'ride_id': rideId,
+      },
+      method: HttpMethod.POST));
+}

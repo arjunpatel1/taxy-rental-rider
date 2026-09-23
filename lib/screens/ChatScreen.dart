@@ -65,16 +65,16 @@ class _ChatScreenState extends State<ChatScreen> {
     data.msg_topic = widget.ride_id.toString();
     data.createdAt = DateTime.now().millisecondsSinceEpoch;
     data.messageType = MessageType.TEXT.name;
-    String f_name = sharedPref.getString(FIRST_NAME) ?? '';
-    String l_name = sharedPref.getString(LAST_NAME) ?? '';
-    notificationService
-        .sendPushNotifications(
-            f_name == ''
-                ? sharedPref.getString(USER_NAME)!
-                : f_name + " $l_name",
-            messageCont.text,
-            receiverPlayerId: widget.userData!.playerId)
-        .catchError(log);
+    // The server pushes this over Firebase; the old OneSignal call from the
+    // device never reached anyone because that service is not configured.
+    final receiverId = widget.userData!.id;
+    if (receiverId != null) {
+      sendChatNotification(
+        receiverId: int.tryParse('$receiverId') ?? 0,
+        message: messageCont.text,
+        rideId: widget.ride_id,
+      ).catchError((e) => log('Chat notification failed: $e'));
+    }
     messageCont.clear();
     setState(() {});
     return await chatMessageService.addMessage(data).then((value) async {

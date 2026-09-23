@@ -106,6 +106,7 @@ class OnRideRequest {
   num? totalAmount;
   num? subtotal;
   num? extraChargesAmount;
+  num? gstAmount;
   num? extraChargesPaymentMethod;
   int? driverId;
   String? driverName;
@@ -174,6 +175,7 @@ class OnRideRequest {
       this.totalAmount,
       this.subtotal,
       this.extraChargesAmount,
+      this.gstAmount,
       this.extraChargesPaymentMethod,
       this.driverId,
       this.driverName,
@@ -243,6 +245,7 @@ class OnRideRequest {
     totalAmount = json['total_amount'];
     subtotal = num.tryParse(json['subtotal'].toString());
     extraChargesAmount = json['extra_charges_amount'];
+    gstAmount = num.tryParse('${json['gst_amount'] ?? ''}') ?? 0;
     extraChargesPaymentMethod = json['extra_charges_payment_method'];
     driverId = json['driver_id'];
     driverName = json['driver_name'];

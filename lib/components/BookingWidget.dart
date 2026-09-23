@@ -196,21 +196,23 @@ class BookingWidgetState extends State<BookingWidget> {
                             await rideRequestUpdate(
                               request: req,
                               rideId: widget.id,
-                            ).then((v) {
-                              isPopupOpen = false;
-                              sharedPref.remove(REMAINING_TIME);
-                              sharedPref.remove(IS_TIME);
-                              // A full screen with Call to Book and Try Again,
-                              // rather than a toast the rider can miss.
-                              if (mounted) {
-                                launchScreen(context, NoCabsScreen(rideId: widget.id!),
-                                    isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
-                              }
-                            });
+                            );
                           } catch (e) {
-                            log(e.toString());
+                            // The trip may already be cancelled on the server,
+                            // or the network dropped. Either way the rider must
+                            // not be left on a dead screen with a stopped timer.
+                            log('Auto cancel failed: $e');
                           } finally {
+                            isPopupOpen = false;
+                            sharedPref.remove(REMAINING_TIME);
+                            sharedPref.remove(IS_TIME);
                             appStore.setLoading(false);
+                            // A full screen with Call to Book and Try Again,
+                            // rather than a toast the rider can miss.
+                            if (mounted) {
+                              launchScreen(context, NoCabsScreen(rideId: widget.id!),
+                                  isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
+                            }
                           }
                         });
 
@@ -249,24 +251,22 @@ class BookingWidgetState extends State<BookingWidget> {
           AppButtonWidget(
             width: MediaQuery.of(context).size.width,
             text: language.cancel,
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isDismissible: false,
-                isScrollControlled: true,
-                builder: (context) {
-                  return CancelOrderDialog(
-                    onCancel: (reason) async {
-                      Navigator.pop(context);
-                      appStore.setLoading(true);
-                      sharedPref.remove(REMAINING_TIME);
-                      sharedPref.remove(IS_TIME);
-                      await cancelRequest(reason);
-                      appStore.setLoading(false);
-                    },
-                  );
-                },
+            onTap: () async {
+              // No driver has accepted yet, so nobody's plans change and no
+              // fee applies: asking the rider for a reason here is pointless.
+              final confirmed = await showConfirmDialogCustom(
+                context,
+                title: language.cancelRide,
+                positiveText: language.yes,
+                negativeText: language.no,
+                onAccept: (_) {},
               );
+              if (confirmed != true) return;
+              appStore.setLoading(true);
+              sharedPref.remove(REMAINING_TIME);
+              sharedPref.remove(IS_TIME);
+              await cancelRequest('');
+              appStore.setLoading(false);
             },
           ),
         ],

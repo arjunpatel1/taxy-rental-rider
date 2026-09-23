@@ -118,13 +118,31 @@ class FareBreakdownCard extends StatelessWidget {
 class EstimateFareCard extends StatelessWidget {
   final num total;
   final num gst;
+  // Distance travelled, shown next to the trip fare as "Trip Fare 17km".
+  final num? distance;
+  final String? distanceUnit;
+  // Waiting time, tolls and anything the driver added after the trip.
+  final num extraCharges;
 
-  const EstimateFareCard({super.key, required this.total, required this.gst});
+  const EstimateFareCard({
+    super.key,
+    required this.total,
+    required this.gst,
+    this.distance,
+    this.distanceUnit,
+    this.extraCharges = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
     final tax = gst < 0 ? 0 : gst;
-    final tripFare = total - tax < 0 ? 0 : total - tax;
+    final extra = extraCharges < 0 ? 0 : extraCharges;
+    // The trip fare is everything the rider is charged for the ride itself:
+    // base fare, distance and time, with tax and any extras shown separately.
+    final tripFare = total - tax - extra < 0 ? 0 : total - tax - extra;
+    final km = distance == null || distance! <= 0
+        ? ''
+        : ' ${distance!.toStringAsFixed(distance! % 1 == 0 ? 0 : 1)}${distanceUnit ?? 'km'}';
     Widget row(String label, num amount, {bool bold = false}) => Padding(
           padding: EdgeInsets.symmetric(vertical: 5),
           child: Row(
@@ -144,8 +162,9 @@ class EstimateFareCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        row('Trip Fare', tripFare),
+        row('Trip Fare$km', tripFare),
         row('Tax', tax),
+        if (extra > 0) row('Additional Trip Charges', extra),
         Divider(height: 18),
         row('Total Fare', total, bold: true),
       ],

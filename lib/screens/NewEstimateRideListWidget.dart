@@ -99,6 +99,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
   BitmapDescriptor driverIcon = BitmapDescriptor.defaultMarker;
   bool currentScreen = true;
   String? serviceLoadError;
+  /// Set when the server says the drop is outside every service region.
+  String? outsideCityMessage;
 
   String? formattedTime;
   String? parsedDate;
@@ -430,6 +432,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
 
   Future<void> getNewService({bool coupon = false}) async {
     serviceLoadError = null;
+    outsideCityMessage = null;
     appStore.setLoading(true);
     // final tripDetail = widget.tripDetail;
     Map req = {
@@ -489,6 +492,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
       if (!mounted) return;
       appStore.setLoading(false);
       serviceList.clear();
+      // A city trip dropping outside the service area is an outstation
+      // journey; the rider is told to switch rather than shown no fares.
+      outsideCityMessage = value.outsideCity ? value.message : null;
       final available = (value.data ?? <ServicesListData>[])
           .where((service) => service.totalAmount != null)
           .toList();
@@ -1389,8 +1395,12 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
     return PopScope(
       canPop: !isBooking,
       onPopInvokedWithResult: (didPop, v2) {
-        if (didPop == false) {
-          SystemNavigator.pop();
+        // Back while a booking is running used to close the app outright,
+        // which left the rider with no way out of the search screen. Home
+        // keeps the trip running and shows it on the dashboard instead.
+        if (didPop == false && mounted) {
+          launchScreen(context, HomeScreen(),
+              isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
         }
       },
       child: Scaffold(
@@ -1619,7 +1629,12 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
             // since searching the same place again cannot succeed. A genuine
             // load failure still gets its retry.
             child: serviceLoadError == null
-                ? NoServiceView(outsideArea: true)
+                ? NoServiceView(
+                    outsideArea: true,
+                    titleOverride: outsideCityMessage != null
+                        ? 'Outstation trip needed'
+                        : null,
+                    subtitleOverride: outsideCityMessage)
                 : Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -2039,7 +2054,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(language.paymentMethod,
+                                          Text('Offer',
                                               style: boldTextStyle()),
                                           inkWellWidget(
                                             onTap: () {
@@ -2057,31 +2072,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
                                         ],
                                       ),
                                       SizedBox(height: 4),
-                                      Text(language.chooseYouPaymentLate,
+                                      Text('Apply a promo code to get a discount on this trip',
                                           style: secondaryTextStyle()),
-                                      Column(
-                                        children: cashList.map((e) {
-                                          return RadioListTile(
-                                            dense: true,
-                                            contentPadding: EdgeInsets.zero,
-                                            controlAffinity:
-                                                ListTileControlAffinity
-                                                    .trailing,
-                                            activeColor: primaryColor,
-                                            value: e,
-                                            groupValue:
-                                                paymentMethodType == CASH_WALLET
-                                                    ? CASH
-                                                    : paymentMethodType,
-                                            title: Text(paymentStatus(e),
-                                                style: boldTextStyle()),
-                                            onChanged: (String? val) {
-                                              paymentMethodType = val!;
-                                              setState(() {});
-                                            },
-                                          );
-                                        }).toList(),
-                                      ),
                                       SizedBox(height: 16),
                                       AppTextField(
                                         controller: promoCode,
@@ -2173,7 +2165,7 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
                       children: [
                         Row(
                           children: [
-                            Text(language.paymentVia,
+                            Text('Offer',
                                 style: secondaryTextStyle(
                                     size: 12, weight: FontWeight.bold)),
                             Container(
@@ -2197,15 +2189,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
                                   color: primaryColor,
                                   borderRadius:
                                       BorderRadius.circular(defaultRadius)),
-                              child: paymentMethodType == CASH_WALLET ||
-                                      paymentMethodType == CASH
-                                  ? Text(
-                                      "${appStore.currencyCode}",
-                                      style: boldTextStyle(color: Colors.white),
-                                    ).paddingSymmetric(
-                                      horizontal: 5, vertical: 0)
-                                  : Icon(Icons.wallet_outlined,
-                                      size: 20, color: Colors.white),
+                              child: Icon(Icons.local_offer_outlined,
+                                  size: 20, color: Colors.white),
                             ),
                             SizedBox(width: 10),
                             Expanded(
@@ -2216,12 +2201,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
                                     children: [
                                       Expanded(
                                         child: Text(
-                                          isRideForOther == false
-                                              ? language.cash
-                                              : paymentMethodType == CASH_WALLET
-                                                  ? language.cash
-                                                  : paymentStatus(
-                                                      paymentMethodType),
+                                          promoCode.text.trim().isNotEmpty
+                                              ? promoCode.text.trim()
+                                              : language.enterPromoCode,
                                           style: boldTextStyle(size: 14),
                                           maxLines: 1,
                                         ),
@@ -2230,9 +2212,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    paymentMethodType != CASH_WALLET
-                                        ? language.forInstantPayment
-                                        : language.lblPayWhenEnds,
+                                    promoCode.text.trim().isNotEmpty
+                                        ? 'Offer applied'
+                                        : 'Tap to see available offers',
                                     style: secondaryTextStyle(size: 12),
                                     maxLines: 2,
                                   ),

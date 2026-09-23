@@ -5,8 +5,11 @@ class EstimatePriceModel {
   PaginationModel? pagination;
   String? message;
   num? totalCoins;
+  /// Set when the drop is outside every service region: a city fare does not
+  /// apply and the rider is asked to book an outstation trip instead.
+  bool outsideCity;
 
-  EstimatePriceModel({this.data, this.pagination, this.message, this.totalCoins});
+  EstimatePriceModel({this.data, this.pagination, this.message, this.totalCoins, this.outsideCity = false});
 
   factory EstimatePriceModel.fromJson(Map<String, dynamic> json) {
     return EstimatePriceModel(
@@ -14,6 +17,7 @@ class EstimatePriceModel {
       pagination: json['pagination'] != null ? PaginationModel.fromJson(json['pagination']) : null,
       message: json['message'],
       totalCoins: json['total_coins'],
+      outsideCity: json['outside_city'] == true,
     );
   }
 
