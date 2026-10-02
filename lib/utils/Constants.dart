@@ -16,6 +16,7 @@ final DOMAIN_URL = AppServerConfig.baseUrl;
 
 const PRIVACY_URL = "https://staxi.co.in/privacypolicy";
 const TNC_URL = "https://staxi.co.in/termofservice";
+const REFUND_URL = "https://staxi.co.in/refund-cancellation";
 //endregion
 
 //region OneSignal Keys

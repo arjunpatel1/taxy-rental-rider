@@ -24,6 +24,10 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Tracking a ride and chatting with the driver read from Firestore,
+    // which refuses everything without a Firebase user. Restoring the
+    // session here covers a rider whose sign-in lapsed.
+    ensureFirebaseSignedIn();
     _load();
   }
 

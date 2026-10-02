@@ -63,6 +63,14 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
 
   num get _amount => num.tryParse(amountController.text.trim()) ?? 0;
 
+  /// UPI apps whose reply cannot be trusted.
+  ///
+  /// PhonePe answers SUCCESS as soon as it has taken the request, whether or
+  /// not the payment went through, so a failed payment was being reported as
+  /// paid and credited. Until that can be verified against the bank, it is
+  /// left out of the list and riders pay with another app, or by UPI ID.
+  static const _unreliableUpiApps = ['com.phonepe'];
+
   /// Lets the rider choose which UPI app to pay from.
   ///
   /// Returns the package to open, null to fall back to the system chooser, or
@@ -76,6 +84,8 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
           .map((e) => Map<String, String>.from(
               (e as Map).map((k, v) => MapEntry('$k', '$v'))))
           .where((e) => (e['package'] ?? '').isNotEmpty)
+          .where((e) => !_unreliableUpiApps
+              .any((blocked) => (e['package'] ?? '').startsWith(blocked)))
           .toList();
     } catch (e) {
       log('UPI app list unavailable: $e');

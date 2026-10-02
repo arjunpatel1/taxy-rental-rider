@@ -96,6 +96,16 @@ class SettingScreenState extends State<SettingScreen> {
                   toast(language.txtURLEmpty);
                 }
               }),
+            // Required alongside the privacy and terms pages: a rider must be
+            // able to read how cancellations and refunds work before paying.
+            settingItemWidget(
+                Ionicons.ios_refresh_circle_outline, 'Refund & Cancellation', () {
+              launchScreen(
+                  context,
+                  TermsConditionScreen(
+                      title: 'Refund & Cancellation', subtitle: REFUND_URL),
+                  pageRouteAnimation: PageRouteAnimation.Slide);
+            }),
             settingItemWidget(
               Ionicons.information,
               language.aboutUs,

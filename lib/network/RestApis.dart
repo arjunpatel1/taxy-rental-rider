@@ -237,6 +237,29 @@ Future<Map<String, dynamic>> sendWhatsappOtp(String contactNumber) async {
 }
 
 /// Verifies the WhatsApp OTP; the response carries a Firebase custom token (`firebase_token`).
+/// Makes sure there is a Firebase user before anything touches Firestore.
+///
+/// Firebase sign-in used to happen once, right after the OTP was checked. If
+/// that failed, or the session was lost later, every ride and chat read came
+/// back "permission-denied" and stayed that way until the next sign-in. The
+/// server issues a fresh token on request, so the app can put itself right.
+Future<bool> ensureFirebaseSignedIn() async {
+  if (FirebaseAuth.instance.currentUser != null) return true;
+  if (sharedPref.getString(TOKEN) == null) return false;
+
+  try {
+    final response = await handleResponse(
+        await buildHttpResponse('firebase-token', method: HttpMethod.POST));
+    final token = ((response['data'] ?? {})['firebase_token'] ?? '').toString();
+    if (token.isEmpty) return false;
+    await FirebaseAuth.instance.signInWithCustomToken(token);
+    return true;
+  } catch (e) {
+    log('Firebase sign-in could not be restored: $e');
+    return false;
+  }
+}
+
 Future<Map<String, dynamic>> verifyWhatsappOtp(
     String contactNumber, String otp) async {
   return Map<String, dynamic>.from(await handleResponse(await buildHttpResponse(
