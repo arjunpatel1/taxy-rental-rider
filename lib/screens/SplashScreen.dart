@@ -35,6 +35,20 @@ class SplashScreenState extends State<SplashScreen> with TickerProviderStateMixi
     super.dispose();
   }
 
+  /// Asks for a permission without ever holding up the launch.
+  ///
+  /// A permission dialog that is dismissed by the system, or never shown at
+  /// all, leaves the request unanswered. Waiting on it kept the app on the
+  /// splash screen indefinitely, so the wait is capped and the launch carries
+  /// on; the screen that needs the permission asks again for itself.
+  Future<void> _ask(Future<dynamic> Function() request, String name) async {
+    try {
+      await request().timeout(const Duration(seconds: 8));
+    } catch (e) {
+      log('$name permission request did not finish: $e');
+    }
+  }
+
   Future<void> _waitForIntro() async {
     final remaining = _minSplashDuration - DateTime.now().difference(_shownAt);
     if (remaining > Duration.zero) await Future.delayed(remaining);
@@ -91,19 +105,14 @@ class SplashScreenState extends State<SplashScreen> with TickerProviderStateMixi
       log('Connectivity check failed: $e');
     }
 
-    // Asked here (after the intro) rather than in main(), which would block the first frame.
-    try {
-      await Permission.notification.request();
-    } catch (e) {
-      log('Notification permission request failed: $e');
-    }
+    // Asked here (after the intro) rather than in main(), which would block the
+    // first frame. Every request is given a deadline: on some devices the
+    // system dialog never returns an answer, and the app then sat on the
+    // splash screen for ever with no way forward.
+    await _ask(() => Permission.notification.request(), 'notification');
 
     if (sharedPref.getBool(IS_FIRST_TIME) ?? true) {
-      try {
-        await Geolocator.requestPermission();
-      } catch (e) {
-        log('Location permission request failed: $e');
-      }
+      await _ask(() => Geolocator.requestPermission(), 'location');
       _goTo(WalkThroughScreen());
       _cacheLocation();
       return;
@@ -141,11 +150,7 @@ class SplashScreenState extends State<SplashScreen> with TickerProviderStateMixi
       appStore.setLoading(false);
     });
 
-    try {
-      await Geolocator.requestPermission();
-    } catch (e) {
-      log('Location permission request failed: $e');
-    }
+    await _ask(() => Geolocator.requestPermission(), 'location');
     // Home opens whether or not location was granted - it asks again itself.
     _goTo(HomeScreen());
     _cacheLocation();
@@ -303,7 +308,8 @@ class SplashScreenState extends State<SplashScreen> with TickerProviderStateMixi
   void _checkNotifyPermission() async {
     String versionNo =
         sharedPref.getString(CURRENT_LAN_VERSION) ?? LanguageVersion;
-    await getLanguageList(versionNo).then((value) {
+    // Capped as well: the launch must not depend on this call answering.
+    await getLanguageList(versionNo).timeout(const Duration(seconds: 10)).then((value) {
       appStore.setLoading(false);
       app_update_check = value.rider_version;
       if (value.status == true) {

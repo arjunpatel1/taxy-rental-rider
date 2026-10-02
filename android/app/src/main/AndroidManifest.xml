@@ -50,6 +50,22 @@
             </intent-filter>
         </activity>
 
+        <!-- Facebook / Instagram ad reporting. Auto-init is off, so the SDK
+             does nothing at all until the app is told to start it with a real
+             app id; an empty id can then never crash the app on launch. -->
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+        <meta-data
+            android:name="com.facebook.sdk.ClientToken"
+            android:value="@string/facebook_client_token" />
+        <meta-data
+            android:name="com.facebook.sdk.AutoInitEnabled"
+            android:value="false" />
+        <meta-data
+            android:name="com.facebook.sdk.AutoLogAppEventsEnabled"
+            android:value="false" />
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

@@ -1,3 +1,5 @@
+import 'package:facebook_app_events/facebook_app_events.dart';
+import 'BrandTheme.dart';
 import 'dart:ui' as ui;
 import 'SoundService.dart';
 
@@ -51,9 +53,11 @@ InputDecoration inputDecoration(BuildContext context,
     disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(defaultRadius),
         borderSide: BorderSide(color: dividerColor)),
+    // The focused field picks up the brand colour; a black ring looked like
+    // a mistake next to blue buttons and blue headers.
     focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(defaultRadius),
-        borderSide: BorderSide(color: Colors.black)),
+        borderSide: BorderSide(color: BrandTokens.blue, width: 1.6)),
     enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(defaultRadius),
         borderSide: BorderSide(color: dividerColor)),
@@ -61,10 +65,15 @@ InputDecoration inputDecoration(BuildContext context,
         borderRadius: BorderRadius.circular(defaultRadius),
         borderSide: BorderSide(color: Colors.red)),
     alignLabelWithHint: alignWithHint,
-    filled: false,
+    // Filled fields on a soft page read as one tidy form rather than a set
+    // of floating outlines, and give the label somewhere to sit.
+    filled: true,
+    fillColor: Colors.white,
     isDense: true,
+    contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 16),
     labelText: label ?? "Sample Text",
-    labelStyle: primaryTextStyle(),
+    labelStyle: primaryTextStyle(color: BrandTokens.inkSoft),
+    floatingLabelStyle: primaryTextStyle(color: BrandTokens.blue),
     suffixIcon: suffixIcon,
   );
 }
@@ -230,8 +239,36 @@ DateTime? _parseServerDate(String date) {
       DateTime.tryParse(value)?.toLocal();
 }
 
-Widget emptyWidget() {
-  return Center(child: Image.asset(noDataImg, width: 150, height: 250));
+/// Shown where a list has nothing in it.
+///
+/// This used to be a stock "NO Data" road-sign picture, which looked like it
+/// belonged to another app. A quiet icon and a line of text sit better and
+/// leave room to say what the screen will show once there is something.
+Widget emptyWidget([String? message]) {
+  // Centred, because callers drop this straight into a Stack or an
+  // expanded list area and expect it to sit in the middle.
+  return Center(
+    child: Padding(
+    padding: EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          height: 76,
+          width: 76,
+          decoration: BoxDecoration(color: BrandTokens.blueSoft, shape: BoxShape.circle),
+          child: Icon(Icons.inbox_rounded, size: 36, color: BrandTokens.blue),
+        ),
+        SizedBox(height: 14),
+        Text(
+          message ?? 'Nothing here yet',
+          textAlign: TextAlign.center,
+          style: boldTextStyle(size: 15, color: BrandTokens.inkSoft),
+        ),
+      ],
+    ),
+    ),
+  );
 }
 
 String statusTypeIcon({String? type}) {
@@ -826,6 +863,8 @@ Color paymentStatusColor(String paymentStatus) {
 Future<void> getAppSettingsData() async {
   await getAppSetting().then((value) {
     sharedPref.setString("reference_amount", value.reference_amount ?? "0");
+    // Ad tracking is switched on from admin, so no new build is needed.
+    setupFacebookTracking(settings: value.facebookTracking);
     // alert tones chosen by admin
     final sound = value.soundSetting;
     if (sound != null) {
@@ -1080,4 +1119,30 @@ Widget _roundActionIcon(IconData icon) {
     child:
         Icon(icon, size: 20, color: isSos ? Color(0xFFD93025) : primaryColor),
   );
+}
+
+
+/// Starts Facebook/Instagram campaign reporting when the admin panel says to.
+///
+/// The app id and client token are set in admin (Facebook & Instagram Ads),
+/// so the ad account can be connected without building a new app. Auto-init
+/// is off in the manifest, so with nothing configured the SDK never starts,
+/// collects nothing and cannot break a launch. The constants in Constants.dart
+/// stay as a fallback for a build that ships its own credentials.
+Future<void> setupFacebookTracking({Map<String, dynamic>? settings}) async {
+  final appId = (settings?['app_id'] ?? '').toString().trim();
+  final token = (settings?['client_token'] ?? '').toString().trim();
+  final enabled = '${settings?['enabled'] ?? 0}' == '1';
+
+  final useRemote = enabled && appId.isNotEmpty && token.isNotEmpty;
+  if (!useRemote && !facebookTrackingConfigured) return;
+
+  try {
+    final events = FacebookAppEvents();
+    await events.setAutoLogAppEventsEnabled(true);
+    await events.setAdvertiserTracking(enabled: true);
+    await events.logEvent(name: 'app_open');
+  } catch (e) {
+    log('Facebook tracking not started: $e');
+  }
 }

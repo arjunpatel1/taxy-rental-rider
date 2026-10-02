@@ -66,6 +66,21 @@ class MainActivity : FlutterFragmentActivity() {
             }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "staxi/upi_payment")
             .setMethodCallHandler { call, result ->
+                // The UPI apps installed on this phone, so the rider can pick
+                // one inside the app. The system chooser is unreliable for UPI:
+                // on many phones it opens empty, or returns "cancelled" even
+                // after a payment went through.
+                if (call.method == "listUpiApps") {
+                    val probe = Intent(Intent.ACTION_VIEW, Uri.parse("upi://pay"))
+                    val apps = packageManager.queryIntentActivities(probe, 0).map {
+                        mapOf(
+                            "package" to it.activityInfo.packageName,
+                            "name" to it.loadLabel(packageManager).toString()
+                        )
+                    }
+                    result.success(apps)
+                    return@setMethodCallHandler
+                }
                 if (call.method != "pay") {
                     result.notImplemented()
                 } else if (pendingUpiResult != null) {
@@ -80,9 +95,17 @@ class MainActivity : FlutterFragmentActivity() {
                             result.error("NO_UPI_APP", "No UPI app found", null)
                             return@setMethodCallHandler
                         }
+                        // Sent straight to the app the rider picked when there is
+                        // one; a named package also stands a far better chance of
+                        // returning its result than the chooser does.
+                        val target = call.argument<String>("package")
+                        if (!target.isNullOrEmpty()) intent.setPackage(target)
                         pendingUpiResult = result
                         try {
-                            startActivityForResult(Intent.createChooser(intent, "Pay with UPI"), upiRequestCode)
+                            startActivityForResult(
+                                if (target.isNullOrEmpty()) Intent.createChooser(intent, "Pay with UPI") else intent,
+                                upiRequestCode
+                            )
                         } catch (error: ActivityNotFoundException) {
                             pendingUpiResult = null
                             result.error("NO_UPI_APP", "No UPI app found", null)

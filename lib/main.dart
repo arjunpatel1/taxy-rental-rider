@@ -51,6 +51,7 @@ void main() async {
   await appStore.setUserEmail(sharedPref.getString(USER_EMAIL) ?? '',
       isInitialization: true);
   await appStore.setUserProfile(sharedPref.getString(USER_PROFILE_PHOTO) ?? '');
+  setupFacebookTracking();
   firebaseMessagingSettings();
   try {
     initJsonFile();

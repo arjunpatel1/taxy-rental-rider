@@ -498,7 +498,15 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
       final available = (value.data ?? <ServicesListData>[])
           .where((service) => service.totalAmount != null)
           .toList();
-      available.sort((a, b) => a.totalAmount!.compareTo(b.totalAmount!));
+      // Categories with a driver come first, cheapest within each group, so
+      // the rider sees what they can actually book without scrolling past
+      // rows of unavailable vehicles.
+      available.sort((a, b) {
+        final aFree = (a.driversAvailable ?? 0) > 0 ? 0 : 1;
+        final bFree = (b.driversAvailable ?? 0) > 0 ? 0 : 1;
+        if (aFree != bFree) return aFree.compareTo(bFree);
+        return a.totalAmount!.compareTo(b.totalAmount!);
+      });
       serviceList.addAll(available);
       if (value.totalCoins != null) {
         totalCoins = value.totalCoins!;
@@ -627,7 +635,15 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
       final available = (value.data ?? <ServicesListData>[])
           .where((service) => service.totalAmount != null)
           .toList();
-      available.sort((a, b) => a.totalAmount!.compareTo(b.totalAmount!));
+      // Categories with a driver come first, cheapest within each group, so
+      // the rider sees what they can actually book without scrolling past
+      // rows of unavailable vehicles.
+      available.sort((a, b) {
+        final aFree = (a.driversAvailable ?? 0) > 0 ? 0 : 1;
+        final bFree = (b.driversAvailable ?? 0) > 0 ? 0 : 1;
+        if (aFree != bFree) return aFree.compareTo(bFree);
+        return a.totalAmount!.compareTo(b.totalAmount!);
+      });
       serviceList.addAll(available);
       if (value.totalCoins != null) {
         totalCoins = value.totalCoins!;
@@ -672,8 +688,9 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
       }
       setState(() {});
     }).catchError((error) {
+      // The code was refused: drop it so the fares go back to normal. The
+      // sheet is closed by its own button, not from here.
       if (promoCode.text.isNotEmpty) promoCode.clear();
-      Navigator.pop(context);
       appStore.setLoading(false);
       toast(error.toString());
     });
@@ -1601,18 +1618,27 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
       children: [
         Visibility(
           visible: serviceList.isNotEmpty,
-          child: Container(
-            decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(2 * defaultRadius),
-                    topRight: Radius.circular(2 * defaultRadius))),
-            child: SingleChildScrollView(
-              child:
-                  // true?bidBookingOption():
-                  isRideSelection == false && appStore.isRiderForAnother == "1"
-                      ? riderSelectionWidget()
-                      : serviceSelectWidget(),
+          // Capped so the panel cannot grow up behind the map's own buttons.
+          // On a tall screen it reached the top of the display, and the close
+          // and my-location buttons floating there swallowed every tap meant
+          // for the fare cards, including the fare breakdown button.
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.62,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(2 * defaultRadius),
+                      topRight: Radius.circular(2 * defaultRadius))),
+              child: SingleChildScrollView(
+                child:
+                    // true?bidBookingOption():
+                    isRideSelection == false && appStore.isRiderForAnother == "1"
+                        ? riderSelectionWidget()
+                        : serviceSelectWidget(),
+              ),
             ),
           ),
         ),
@@ -1800,12 +1826,48 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
     );
   }
 
+  /// No driver of this category is online near the pickup right now.
+  bool _isUnavailable(ServicesListData e) => (e.driversAvailable ?? 0) <= 0;
+
+  /// "No Bikes Available", "No Autos Available", "No Cabs Available".
+  String _unavailableLabel(ServicesListData e) {
+    switch ((e.vehicleType ?? '').toLowerCase()) {
+      case 'bike':
+        return 'No Bikes Available';
+      case 'auto':
+        return 'No Autos Available';
+      default:
+        return 'No Cabs Available';
+    }
+  }
+
+  /// Only a cab can be booked over the phone; support does not dispatch bikes
+  /// or autos, so an unavailable one simply cannot be booked.
+  bool _canCallToBook(ServicesListData e) =>
+      !['bike', 'auto'].contains((e.vehicleType ?? '').toLowerCase());
+
+  Future<void> _callSupportToBook() async {
+    final number = (appStore.settingModel.contactNumber ?? '')
+        .replaceAll(RegExp(r'[^0-9+]'), '');
+    if (number.isEmpty) {
+      toast('Support number is not available right now');
+      return;
+    }
+    try {
+      await launchUrl(Uri.parse('tel:$number'),
+          mode: LaunchMode.externalApplication);
+    } catch (e) {
+      toast('Could not open the dialer');
+    }
+  }
+
   /// Vehicle option in the booking sheet.
   Widget _vehicleCard(ServicesListData e) {
     final selected = selectedIndex == serviceList.indexOf(e);
     final fare = BookingFare(
         total: e.totalAmount ?? 0, discountedTotal: e.totalAmountAfterDiscount);
     final discounted = fare.hasDiscount;
+    final unavailable = _isUnavailable(e);
     return AnimatedContainer(
       duration: Duration(milliseconds: 180),
       width: 150,
@@ -1825,11 +1887,25 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                  child: commonCachedNetworkImage(e.serviceImage.validate(),
-                      height: 46,
-                      width: 90,
-                      fit: BoxFit.contain,
-                      alignment: Alignment.centerLeft)),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Opacity(
+                      opacity: unavailable ? 0.45 : 1,
+                      child: commonCachedNetworkImage(e.serviceImage.validate(),
+                          height: 46,
+                          width: 90,
+                          fit: BoxFit.contain,
+                          alignment: Alignment.centerLeft),
+                    ),
+                    if (unavailable)
+                      Positioned(
+                          right: 8,
+                          child: Icon(Icons.block_rounded,
+                              size: 26, color: BrandTokens.danger)),
+                  ],
+                ),
+              ),
               InkWell(
                 borderRadius: BorderRadius.circular(20),
                 onTap: () {
@@ -1881,6 +1957,33 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
             weight: FontWeight.w700,
             color: selected ? BrandTokens.blue : BrandTokens.ink,
           ),
+          if (unavailable) ...[
+            SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+              decoration: BoxDecoration(
+                color: BrandTokens.danger.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: BrandTokens.danger.withValues(alpha: 0.35)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.block_rounded, size: 12, color: BrandTokens.danger),
+                  SizedBox(width: 3),
+                  // Wraps rather than truncating: "No Bikes Avail..." told the
+                  // rider nothing useful on a narrow card.
+                  Flexible(
+                    child: Text(_unavailableLabel(e),
+                        maxLines: 2,
+                        textAlign: TextAlign.center,
+                        style: boldTextStyle(size: 10, color: BrandTokens.danger)),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (promoCode.text.isNotEmpty && e.discountAmount == 0)
             SizedBox(height: 14),
         ],
@@ -2126,10 +2229,15 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
                                         textStyle:
                                             boldTextStyle(color: Colors.white),
                                         color: primaryColor,
-                                        onTap: () {
-                                          if (promoCode.text.isNotEmpty) {
-                                            getCouponNewService();
-                                          } else {
+                                        onTap: () async {
+                                          // Applying an offer used to leave
+                                          // this sheet open over the fares, so
+                                          // it looked like nothing happened.
+                                          if (promoCode.text.trim().isNotEmpty) {
+                                            await getCouponNewService();
+                                          }
+                                          if (context.mounted &&
+                                              Navigator.canPop(context)) {
                                             Navigator.pop(context);
                                           }
                                         },
@@ -2387,24 +2495,86 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
               ),
           ],
         ),
-        Padding(
-          padding: EdgeInsets.only(left: 16, right: 16, bottom: 0),
-          child: AppButtonWidget(
-            onTap: () {
-              if (mSelectServiceAmount != null &&
-                  paymentMethodType != CASH_WALLET &&
-                  paymentMethodType == WALLET &&
-                  double.parse(mSelectServiceAmount!) >
-                      mTotalAmount.toDouble()) {
-                return toast(language.noBalanceValidate);
-              }
-              saveBookingData();
-            },
-            text: language.bookNow,
-            textStyle: boldTextStyle(color: Colors.white),
-            width: MediaQuery.of(context).size.width,
-          ),
-        ),
+        // A category with no driver online cannot be booked in the app: Book
+        // Now would only start a search that times out. A cab can still be
+        // arranged by phone, so support is offered there; bikes and autos are
+        // not dispatched over the phone, so they offer nothing.
+        Builder(builder: (_) {
+          final chosen = (selectedIndex >= 0 && selectedIndex < serviceList.length)
+              ? serviceList[selectedIndex]
+              : null;
+          final unavailable = chosen != null && _isUnavailable(chosen);
+
+          if (unavailable && _canCallToBook(chosen)) {
+            return Padding(
+              padding: EdgeInsets.only(left: 16, right: 16, bottom: 0),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: _callSupportToBook,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: BrandTokens.danger.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: BrandTokens.danger.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                            color: BrandTokens.danger, shape: BoxShape.circle),
+                        child: Icon(Icons.call_rounded, color: Colors.white, size: 20),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Call to Book',
+                                style: boldTextStyle(size: 16, color: BrandTokens.danger)),
+                            SizedBox(height: 2),
+                            Text('Our support team will help you book a ride immediately.',
+                                style: secondaryTextStyle(size: 12)),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded, color: BrandTokens.danger),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+
+          if (unavailable) {
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(_unavailableLabel(chosen),
+                  textAlign: TextAlign.center,
+                  style: boldTextStyle(size: 14, color: BrandTokens.danger)),
+            );
+          }
+
+          return Padding(
+            padding: EdgeInsets.only(left: 16, right: 16, bottom: 0),
+            child: AppButtonWidget(
+              onTap: () {
+                if (mSelectServiceAmount != null &&
+                    paymentMethodType != CASH_WALLET &&
+                    paymentMethodType == WALLET &&
+                    double.parse(mSelectServiceAmount!) >
+                        mTotalAmount.toDouble()) {
+                  return toast(language.noBalanceValidate);
+                }
+                saveBookingData();
+              },
+              text: language.bookNow,
+              textStyle: boldTextStyle(color: Colors.white),
+              width: MediaQuery.of(context).size.width,
+            ),
+          );
+        }),
         if (appStore.isBidEnable == "1" && schduleRideDateTime == null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),

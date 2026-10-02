@@ -53,7 +53,9 @@ class BrandTheme {
 
     return base.copyWith(
       primaryColor: BrandTokens.blue,
-      scaffoldBackgroundColor: Colors.white,
+      // A soft page behind white cards: the app mixed plain white pages
+      // with the newer grey ones, which read as two different apps.
+      scaffoldBackgroundColor: BrandTokens.page,
       canvasColor: Colors.white,
       cardColor: Colors.white,
       dividerColor: BrandTokens.line,

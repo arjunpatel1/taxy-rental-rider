@@ -138,18 +138,19 @@ class CouPonWidgetState extends State<CouPonWidget> {
                                             maxLines: 3,
                                             overflow: TextOverflow.ellipsis,
                                             style: boldTextStyle(size: 14))),
+                                    // Picks this offer for the trip; it
+                                    // does not copy text, so it shows a tick.
                                     MaterialButton(
                                         onPressed: () {
                                           String codeData = data.code!;
                                           Navigator.pop(context, codeData);
-                                          toast(language.copied);
                                         },
                                         color: primaryColor,
                                         shape: BeveledRectangleBorder(
                                             borderRadius:
                                                 BorderRadius.circular(6)),
-                                        child: Icon(Icons.content_copy,
-                                            size: 18, color: Colors.white)),
+                                        child: Icon(Icons.check_rounded,
+                                            size: 20, color: Colors.white)),
                                   ],
                                 ),
                                 // SizedBox(height: 8),

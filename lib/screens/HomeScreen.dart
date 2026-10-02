@@ -1,5 +1,6 @@
 
 import '../components/AnimatedTaxiRoad.dart';
+import '../utils/BrandTheme.dart';
 import '../manage_imports.dart';
 
 /// Rider home dashboard shown after login: greeting, "where to", wallet / points,
@@ -104,7 +105,7 @@ class HomeScreenState extends State<HomeScreen> {
       },
       child: Scaffold(
       key: _scaffoldKey,
-      backgroundColor: Color(0xFFF4F6F9),
+      backgroundColor: BrandTokens.page,
       drawer: DrawerComponent(onClose: (_) {}),
       appBar: AppBar(
         toolbarHeight: 0,
@@ -124,12 +125,16 @@ class HomeScreenState extends State<HomeScreen> {
           children: [
             _header(),
             if (_hasActiveRide) _activeRideBanner(),
-            _statsRow(),
-            _sectionTitle('Services'),
+            // The review account sees booking and nothing else: no wallet or
+            // points tiles, no referral banner, no ride history.
+            if (!_isDemoAccount) _statsRow(),
+            _sectionTitle('Book a ride'),
             _quickActions(),
-            _referBanner(),
-            _sectionTitle('Recent rides', actionLabel: 'See all', onAction: () => _open(RideListScreen())),
-            _recentRides(),
+            if (!_isDemoAccount) ...[
+              _referBanner(),
+              _sectionTitle('Recent rides', actionLabel: 'See all', onAction: () => _open(RideListScreen())),
+              _recentRides(),
+            ],
             SizedBox(height: 24),
           ],
         ),
@@ -410,12 +415,17 @@ class HomeScreenState extends State<HomeScreen> {
   /// is kept out of the review account's view as well.
   bool get _hideWallet => (sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) == 1;
 
+  /// The Play review account demonstrates booking a taxi and nothing else.
+  /// Everything beside the three booking tiles is hidden for it.
+  bool get _isDemoAccount => (sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) == 1;
+
   Widget _quickActions() {
     final actions = [
       _QuickAction('Local Booking', Icons.local_taxi_rounded, Color(0xFFE3ECFF), brandBlue, () => _openBooking(rideTypeLocal)),
       _QuickAction('Rental Booking', Icons.timer_outlined, Color(0xFFE8F0FE), brandBlue, () => _openBooking(rideTypeRental)),
       _QuickAction('Outstation Booking', Icons.alt_route_rounded, Color(0xFFE6F6FF), brandLightBlue, () => _openBooking(rideTypeOutstation)),
-      _QuickAction('Ride Later', Icons.event_available_rounded, Color(0xFFEDF2FF), Color(0xFF3B5BDB), () => _open(ScheduleRideListScreen())),
+      if (!_isDemoAccount)
+        _QuickAction('Ride Later', Icons.event_available_rounded, Color(0xFFEDF2FF), Color(0xFF3B5BDB), () => _open(ScheduleRideListScreen())),
       if (!_hideBillPayServices) ...[
         _QuickAction('Mobile Recharge', Icons.phone_iphone_rounded, Color(0xFFEDE7FF), Color(0xFF5B3DF5), () => _open(MobileRechargeScreen())),
         _QuickAction('DTH Recharge', Icons.satellite_alt_rounded, Color(0xFFF3E8FF), Color(0xFF7048E8),
@@ -424,21 +434,30 @@ class HomeScreenState extends State<HomeScreen> {
             () => _open(RechargeScreen(title: 'Google Play Recharge', serviceTypes: ['Google Play']))),
         _QuickAction('Bill Payment', Icons.receipt_long_rounded, Color(0xFFFFF4E6), Color(0xFFE8590C), () => _open(BillPaymentScreen())),
       ],
-      _QuickAction('My Rides', Icons.directions_car_filled_rounded, Color(0xFFF1F3F5), Color(0xFF495057), () => _open(RideListScreen())),
-      _QuickAction('Reward', Icons.card_giftcard_rounded, Color(0xFFE0F2EF), Color(0xFF12836B), () => _open(RewardListScreen())),
-      _QuickAction('Refer and Earn', Icons.group_add_rounded, Color(0xFFE9F8EF), Color(0xFF1E9E57), () => _open(ReferEarnScreen())),
-      _QuickAction('SOS', Icons.sos_rounded, Color(0xFFFDE8E8), Color(0xFFD93025), () => _open(EmergencyContactScreen())),
+      if (!_isDemoAccount) ...[
+        _QuickAction('My Rides', Icons.directions_car_filled_rounded, Color(0xFFF1F3F5), Color(0xFF495057), () => _open(RideListScreen())),
+        _QuickAction('Reward', Icons.card_giftcard_rounded, Color(0xFFE0F2EF), Color(0xFF12836B), () => _open(RewardListScreen())),
+        _QuickAction('Refer and Earn', Icons.group_add_rounded, Color(0xFFE9F8EF), Color(0xFF1E9E57), () => _open(ReferEarnScreen())),
+        _QuickAction('SOS', Icons.sos_rounded, Color(0xFFFDE8E8), Color(0xFFD93025), () => _open(EmergencyContactScreen())),
+      ],
     ];
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16),
-      child: GridView.count(
-        crossAxisCount: 4,
+      // The tiles keep their height whatever the screen width, and the
+      // app fits more of them across on a wide screen. A fixed column
+      // count with an aspect ratio stretched each tile into a tall
+      // empty box in landscape and on tablets.
+      child: Builder(builder: (context) {
+        final usable = MediaQuery.of(context).size.width - 32;
+        final columns = (usable / 110).floor().clamp(4, 8);
+        return GridView.count(
+        crossAxisCount: columns,
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.74,
+        childAspectRatio: (usable / columns) / 118,
         children: actions.map((a) {
           return Material(
             color: Colors.white,
@@ -470,7 +489,8 @@ class HomeScreenState extends State<HomeScreen> {
             ),
           );
         }).toList(),
-      ),
+      );
+      }),
     );
   }
 
@@ -601,8 +621,12 @@ class HomeScreenState extends State<HomeScreen> {
       unselectedItemColor: textSecondaryColor,
       selectedLabelStyle: TextStyle(fontWeight: FontWeight.w700),
       onTap: (index) {
-        // The wallet tab is absent for a review account, so the items after it
-        // shift down by one.
+        // The review account has only Home and Account, so its second tab is
+        // the account page; a normal account keeps Rides, Wallet and Account.
+        if (_isDemoAccount) {
+          if (index == 1) _open(SettingScreen());
+          return;
+        }
         if (index == 1) {
           _open(RideListScreen());
         } else if (index == 2) {
@@ -613,7 +637,8 @@ class HomeScreenState extends State<HomeScreen> {
       },
       items: [
         BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Rides'),
+        if (!_isDemoAccount)
+          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Rides'),
         if (!_hideWallet)
           BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_rounded), label: 'Wallet'),
         BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Account'),

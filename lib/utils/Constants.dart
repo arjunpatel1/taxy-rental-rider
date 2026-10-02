@@ -280,3 +280,13 @@ double? defaultInkWellRadius;
 Color? defaultInkWellSplashColor;
 Color? defaultInkWellHoverColor;
 Color? defaultInkWellHighlightColor;
+
+//region Facebook / Instagram ad campaigns
+// Meta for Developers -> your app -> Settings -> Basic. Until both are filled
+// in, the SDK stays switched off: nothing is collected and nothing is sent, so
+// a half-configured build cannot crash or leak anything.
+const facebookAppId = '';
+const facebookClientToken = '';
+bool get facebookTrackingConfigured =>
+    facebookAppId.isNotEmpty && facebookClientToken.isNotEmpty;
+//endregion

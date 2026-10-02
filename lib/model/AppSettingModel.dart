@@ -2,6 +2,8 @@ import '../manage_imports.dart';
 
 class AppSettingModel {
   Map<String, dynamic>? soundSetting;
+  /// Facebook/Instagram ad credentials, set in the admin panel.
+  Map<String, dynamic>? facebookTracking;
   SettingModel? settingModel;
   List<RideSetting>? rideSetting;
   List<WalletSetting>? walletSetting;
@@ -43,6 +45,9 @@ class AppSettingModel {
       });
     }
     soundSetting = json['sound_setting'] is Map ? Map<String, dynamic>.from(json['sound_setting']) : null;
+    facebookTracking = json['facebook_tracking'] != null
+        ? Map<String, dynamic>.from(json['facebook_tracking'])
+        : null;
     currencySetting = json['currency_setting'] != null
         ? new CurrencySetting.fromJson(json['currency_setting'])
         : null;

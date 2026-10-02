@@ -81,44 +81,48 @@ class _DrawerComponentState extends State<DrawerComponent> {
                         Navigator.pop(context);
                         launchScreen(context, WalletScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
                       }),
-                DrawerWidget(
-                    title: language.bankInfo,
-                    iconData: ic_update_bank_info,
-                    onTap: () {
-                      Navigator.pop(context);
-                      launchScreen(context, BankInfoScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
-                    }),
-                DrawerWidget(
-                    title: language.emergencyContacts,
-                    iconData: ic_emergency_contact,
-                    onTap: () {
-                      Navigator.pop(context);
-                      launchScreen(context, EmergencyContactScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
-                    }),
-                DrawerWidget(
-                    paddingApply: true,
-                    title: language.refer_and_earn,
-                    iconData: ic_earn,
-                    onTap: () {
-                      Navigator.pop(context);
-                      launchScreen(context, ReferEarnScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
-                    }),
-                DrawerWidget(
-                    paddingApply: true,
-                    title: 'Coin History',
-                    iconData: ic_earn,
-                    onTap: () {
-                      Navigator.pop(context);
-                      launchScreen(context, CoinWalletListScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
-                    }),
-                DrawerWidget(
-                    paddingApply: true,
-                    title: language.earned_reward,
-                    iconData: ic_reward,
-                    onTap: () {
-                      Navigator.pop(context);
-                      launchScreen(context, RewardListScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
-                    }),
+                // A review account demonstrates booking only; stored value,
+                // referrals and rewards are not part of that walkthrough.
+                if ((sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) != 1) ...[
+                  DrawerWidget(
+                      title: language.bankInfo,
+                      iconData: ic_update_bank_info,
+                      onTap: () {
+                        Navigator.pop(context);
+                        launchScreen(context, BankInfoScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+                      }),
+                  DrawerWidget(
+                      title: language.emergencyContacts,
+                      iconData: ic_emergency_contact,
+                      onTap: () {
+                        Navigator.pop(context);
+                        launchScreen(context, EmergencyContactScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+                      }),
+                  DrawerWidget(
+                      paddingApply: true,
+                      title: language.refer_and_earn,
+                      iconData: ic_earn,
+                      onTap: () {
+                        Navigator.pop(context);
+                        launchScreen(context, ReferEarnScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+                      }),
+                  DrawerWidget(
+                      paddingApply: true,
+                      title: 'Coin History',
+                      iconData: ic_earn,
+                      onTap: () {
+                        Navigator.pop(context);
+                        launchScreen(context, CoinWalletListScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+                      }),
+                  DrawerWidget(
+                      paddingApply: true,
+                      title: language.earned_reward,
+                      iconData: ic_reward,
+                      onTap: () {
+                        Navigator.pop(context);
+                        launchScreen(context, RewardListScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+                      }),
+                ],
                 DrawerWidget(
                     paddingApply: true,
                     title: language.lblfaq,

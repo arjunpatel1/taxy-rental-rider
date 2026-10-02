@@ -154,7 +154,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: brandBlue,
         iconTheme: IconThemeData(color: Colors.white),
         title: Text(language.editProfile,
-            style: boldTextStyle(color: brandBlack)),
+            style: boldTextStyle(color: Colors.white)),
         actions: [
           if (widget.isGoogle!)
             IconButton(
@@ -176,51 +176,62 @@ class EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Stack(
-                    children: [
-                      profileImage(),
-                      if (sharedPref.getString(LOGIN_TYPE) != LoginTypeGoogle)
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Container(
-                            margin: EdgeInsets.only(top: 60, left: 80),
-                            height: 35,
-                            width: 35,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(30),
-                                color: primaryColor),
-                            child: IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) {
-                                    return ImageSourceDialog(
-                                      onCamera: () async {
-                                        Navigator.pop(context);
-                                        imageProfile = await ImagePicker()
-                                            .pickImage(
-                                                source: ImageSource.camera,
-                                                imageQuality: 100);
-                                        setState(() {});
-                                      },
-                                      onGallery: () async {
-                                        Navigator.pop(context);
-                                        imageProfile = await ImagePicker()
-                                            .pickImage(
-                                                source: ImageSource.gallery,
-                                                imageQuality: 100);
-                                        setState(() {});
-                                      },
-                                    );
-                                  },
-                                );
-                              },
-                              icon: Icon(Icons.edit,
-                                  color: Colors.white, size: 20),
+                  // The avatar used to be nudged into place with fixed
+                  // margins, which left it off-centre on most screens. It is
+                  // centred properly now, with the edit badge pinned to it.
+                  Center(
+                    // Sized to the avatar itself, so the edit badge sits
+                    // on its corner instead of drifting to the screen edge.
+                    child: SizedBox(
+                      height: 104,
+                      width: 104,
+                      child: Stack(
+                      clipBehavior: Clip.none,
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        profileImage(),
+                        if (sharedPref.getString(LOGIN_TYPE) != LoginTypeGoogle)
+                          Positioned(
+                            right: -2,
+                            bottom: -2,
+                            child: Container(
+                              height: 38,
+                              width: 38,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: primaryColor,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) {
+                                      return ImageSourceDialog(
+                                        onCamera: () async {
+                                          Navigator.pop(context);
+                                          imageProfile = await ImagePicker().pickImage(
+                                              source: ImageSource.camera, imageQuality: 100);
+                                          setState(() {});
+                                        },
+                                        onGallery: () async {
+                                          Navigator.pop(context);
+                                          imageProfile = await ImagePicker().pickImage(
+                                              source: ImageSource.gallery, imageQuality: 100);
+                                          setState(() {});
+                                        },
+                                      );
+                                    },
+                                  );
+                                },
+                                icon: Icon(Icons.edit, color: Colors.white, size: 18),
+                              ),
                             ),
                           ),
-                        )
-                    ],
+                      ],
+                    ),
+                    ),
                   ),
                   SizedBox(height: 20),
                   AppTextField(

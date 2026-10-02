@@ -127,19 +127,58 @@ class ReviewScreenState extends State<ReviewScreen> {
               width: selected ? 2 : 1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        // Stacked, so a two-word option like "Wallet + Cash" wraps onto its
+        // own second line instead of having the last word clipped away.
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 20, color: selected ? primaryColor : Colors.grey),
-            SizedBox(width: 8),
+            SizedBox(height: 6),
             Text(label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
                 style: selected
-                    ? boldTextStyle(color: primaryColor, size: 14)
-                    : primaryTextStyle(size: 14)),
+                    ? boldTextStyle(color: primaryColor, size: 13)
+                    : primaryTextStyle(size: 13)),
           ],
         ),
       ),
     );
+  }
+
+  /// Settles a wallet or wallet+cash trip for real.
+  ///
+  /// Recording the payment type alone left the trip unpaid, so the rider was
+  /// sent back to the same screen again and again with nothing debited. The
+  /// wallet share is charged through the payment endpoint, which debits the
+  /// rider, pays the driver and closes the trip; a cash remainder is still
+  /// collected by the driver.
+  Future<bool> _payFromWallet() async {
+    final walletShare = payMethod == 'wallet' ? _fare : _walletPart;
+    final req = {
+      'ride_request_id': widget.rideRequest.id,
+      'rider_id': widget.rideRequest.riderId,
+      'datetime': DateTime.now().toString(),
+      'total_amount': _fare,
+      'payment_type': payMethod == 'wallet' ? WALLET : 'split',
+      'txn_id': '',
+      'payment_status': PAID,
+      'transaction_detail': '',
+      if (payMethod == 'split') 'wallet_amount': walletShare,
+      if (payMethod == 'split') 'cash_amount': _fare - walletShare,
+    };
+    try {
+      await savePayment(req);
+      await rideService.updateStatusOfRide(
+        rideID: widget.rideRequest.id,
+        req: {'on_stream_api_call': 0, 'payment_type': payMethod},
+      );
+      return true;
+    } catch (e) {
+      log('Wallet payment failed: $e');
+      toast(e.toString());
+      return false;
+    }
   }
 
   Future<void> _savePaymentChoice() async {
@@ -173,7 +212,19 @@ class ReviewScreenState extends State<ReviewScreen> {
     hideKeyboard(context);
     appStore.setLoading(true);
     if (widget.rideRequest.paymentStatus != PAID) {
-      await _savePaymentChoice();
+      if (payMethod == 'cash') {
+        // The driver collects the fare; only the choice needs recording.
+        await _savePaymentChoice();
+      } else {
+        // Wallet and wallet+cash are charged for real here. Recording the
+        // choice alone left the trip unpaid and the rider stuck on this
+        // screen with nothing debited.
+        final paid = await _payFromWallet();
+        if (!paid) {
+          appStore.setLoading(false);
+          return;
+        }
+      }
     }
     appStore.setLoading(false);
     if (widget.schedule_ride == true) {
@@ -302,7 +353,7 @@ class ReviewScreenState extends State<ReviewScreen> {
                             child: IgnorePointer(
                               ignoring: walletBalance <= 0,
                               child: _payOption(
-                                label: 'Wallet + Cash',
+                                label: 'Wallet +\nCash',
                                 icon: Icons.call_split_rounded,
                                 selected: payMethod == 'split',
                                 onTap: () => setState(() => payMethod = 'split'),

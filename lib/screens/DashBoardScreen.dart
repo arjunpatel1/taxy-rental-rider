@@ -816,7 +816,17 @@ class DashBoardScreenState extends State<DashBoardScreen>
     LiveStream().on(CHANGE_LANGUAGE, (p0) {
       setState(() {});
     });
-    return Scaffold(
+    // This screen is opened with the stack cleared (after a cancellation, or
+    // from Home), so a plain back press had nothing to pop and closed the app.
+    // Back belongs on the dashboard instead.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop || !mounted) return;
+        launchScreen(context, HomeScreen(),
+            isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
+      },
+      child: Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
@@ -1224,6 +1234,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
             ),
           ),
         ],
+      ),
       ),
     );
   }

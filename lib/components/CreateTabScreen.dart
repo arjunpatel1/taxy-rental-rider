@@ -83,13 +83,12 @@ class CreateTabScreenState extends State<CreateTabScreen> with AutomaticKeepAliv
           ? ListView(
               physics: AlwaysScrollableScrollPhysics(),
               children: [
-                SizedBox(height: 60),
-                emptyWidget(),
-                Text(
-                  error != null ? 'Could not load rides. Pull down to try again.' : _emptyText(),
-                  style: secondaryTextStyle(size: 14),
-                  textAlign: TextAlign.center,
-                ),
+                SizedBox(height: 40),
+                // One message, not two: the shared empty state carries
+                // the wording for this tab.
+                emptyWidget(error != null
+                    ? 'Could not load rides. Pull down to try again.'
+                    : _emptyText()),
               ],
             )
           : AnimationLimiter(

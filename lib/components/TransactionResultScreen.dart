@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import '../utils/BrandTheme.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -164,7 +165,7 @@ class _TransactionResultScreenState extends State<TransactionResultScreen> with 
                           child: Container(
                             width: double.infinity,
                             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(color: Color(0xFFF4F6F9), borderRadius: BorderRadius.circular(16)),
+                            decoration: BoxDecoration(color: BrandTokens.page, borderRadius: BorderRadius.circular(16)),
                             child: Column(
                               children: widget.details
                                   .map((row) => Padding(

@@ -169,7 +169,7 @@ class BidingscreenState extends State<Bidingscreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(language.lblRide + " #${widget.ride_id}", style: primaryTextStyle(color: brandBlack)),
+            child: Text(language.lblRide + " #${widget.ride_id}", style: primaryTextStyle(color: Colors.white)),
           )
         ],
       ),

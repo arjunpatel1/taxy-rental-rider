@@ -24,7 +24,7 @@ class AboutScreenState extends State<AboutScreen> {
         backgroundColor: brandBlue,
         iconTheme: IconThemeData(color: Colors.white),
         title: Text(language.aboutUs,
-            style: boldTextStyle(color: brandBlack)),
+            style: boldTextStyle(color: Colors.white)),
       ),
       body: Container(
         alignment: Alignment.center,

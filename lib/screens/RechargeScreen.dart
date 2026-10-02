@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import '../utils/BrandTheme.dart';
 
 /// Mobile recharge / bill payment: pick an operator, enter the number and amount,
 /// pay from the wallet. The surcharge set by admin is shown before paying.
@@ -523,7 +524,7 @@ class _RechargeScreenState extends State<RechargeScreen> {
     final total = _amount + _surcharge;
 
     return Scaffold(
-      backgroundColor: Color(0xFFF4F6F9),
+      backgroundColor: BrandTokens.page,
       appBar: AppBar(
         title: Text(widget.title, style: boldTextStyle(color: Colors.white)),
         backgroundColor: brandBlue,

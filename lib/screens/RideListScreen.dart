@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import '../utils/BrandTheme.dart';
 
 const RIDES_ACTIVE = 'active';
 
@@ -17,7 +18,7 @@ class RideListScreenState extends State<RideListScreen> {
     return DefaultTabController(
       length: riderStatus.length,
       child: Scaffold(
-        backgroundColor: Color(0xFFF4F6F9),
+        backgroundColor: BrandTokens.page,
         appBar: AppBar(
           elevation: 0,
           backgroundColor: brandBlue,

@@ -1,4 +1,5 @@
 import '../network/UpiPaymentResult.dart';
+import '../utils/BrandTheme.dart';
 
 import '../manage_imports.dart';
 
@@ -62,6 +63,52 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
 
   num get _amount => num.tryParse(amountController.text.trim()) ?? 0;
 
+  /// Lets the rider choose which UPI app to pay from.
+  ///
+  /// Returns the package to open, null to fall back to the system chooser, or
+  /// 'none' when the phone has no UPI app at all.
+  Future<String?> _chooseUpiApp() async {
+    List<Map<String, String>> apps = [];
+    try {
+      final raw = await const MethodChannel('staxi/upi_payment')
+          .invokeListMethod<dynamic>('listUpiApps');
+      apps = (raw ?? [])
+          .map((e) => Map<String, String>.from(
+              (e as Map).map((k, v) => MapEntry('$k', '$v'))))
+          .where((e) => (e['package'] ?? '').isNotEmpty)
+          .toList();
+    } catch (e) {
+      log('UPI app list unavailable: $e');
+      return null;
+    }
+
+    if (apps.isEmpty) return 'none';
+    if (apps.length == 1) return apps.first['package'];
+    if (!mounted) return null;
+
+    return showModalBottomSheet<String>(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text('Pay with', style: boldTextStyle(size: 16)),
+            ),
+            ...apps.map((app) => ListTile(
+                  leading: Icon(Icons.account_balance_wallet_outlined, color: brandBlue),
+                  title: Text(app['name'] ?? app['package']!, style: primaryTextStyle()),
+                  onTap: () => Navigator.pop(context, app['package']),
+                )),
+            SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _startTopup() async {
     if (busy) return;
     if (_amount < 1) {
@@ -77,8 +124,20 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
 
       if (Platform.isAndroid) {
         try {
+          // The rider picks the app here. The system chooser opens empty on
+          // some phones, and often reports "cancelled" even after a payment
+          // went through; a named package behaves far better.
+          final chosen = await _chooseUpiApp();
+          if (chosen == 'none') {
+            _showManualPay(data);
+            if (mounted) setState(() => busy = false);
+            return;
+          }
           final response = await const MethodChannel('staxi/upi_payment')
-              .invokeMapMethod<String, dynamic>('pay', {'uri': uri.toString()});
+              .invokeMapMethod<String, dynamic>('pay', {
+            'uri': uri.toString(),
+            if (chosen != null) 'package': chosen,
+          });
           if (!mounted) return;
           final payment = UpiPaymentResult.fromNative(response ?? {});
           utrController.text = payment.utr ?? '';
@@ -103,34 +162,89 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
     if (mounted) setState(() => busy = false);
   }
 
-  /// No UPI app installed: show the UPI id so the rider can pay from another device.
+  /// No UPI app on this phone: show the UPI id so the rider can pay from
+  /// another device, and say why they are seeing this instead of their UPI app.
   void _showManualPay(Map<String, dynamic> data) {
+    final upiId = '${data['upi_id']}';
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Pay to this UPI ID', style: boldTextStyle()),
+        title: Text('No UPI app on this phone', style: boldTextStyle(size: 17)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SelectableText('${data['upi_id']}',
-                style: boldTextStyle(size: 16, color: brandBlue)),
-            SizedBox(height: 6),
-            Text('${data['payee_name']}', style: secondaryTextStyle()),
-            SizedBox(height: 10),
-            Text('Amount: $currencySymbol${data['amount']}',
-                style: primaryTextStyle()),
-            Text('Reference: ${data['reference']}',
-                style: secondaryTextStyle(size: 12)),
+            Text(
+              'Pay from a UPI app on another phone using the details below, then tap "I have paid".',
+              style: secondaryTextStyle(size: 13),
+            ),
+            SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: BrandTokens.fill,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: BrandTokens.line),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SelectableText(upiId,
+                            style: boldTextStyle(size: 16, color: brandBlue)),
+                      ),
+                      TextButton.icon(
+                        onPressed: () async {
+                          await Clipboard.setData(ClipboardData(text: upiId));
+                          toast('UPI ID copied');
+                        },
+                        icon: Icon(Icons.copy_rounded, size: 16),
+                        label: Text('Copy'),
+                      ),
+                    ],
+                  ),
+                  Text('${data['payee_name']}', style: secondaryTextStyle(size: 12)),
+                  SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Amount', style: secondaryTextStyle(size: 13)),
+                      Text('$currencySymbol${data['amount']}', style: boldTextStyle(size: 15)),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Reference', style: secondaryTextStyle(size: 13)),
+                      Flexible(
+                        child: Text('${data['reference']}',
+                            textAlign: TextAlign.right,
+                            style: secondaryTextStyle(size: 12)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
         actions: [
           TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Close'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: brandBlue),
             onPressed: () {
               Navigator.pop(context);
               _askPaymentResult();
             },
-            child: Text('I have paid'),
+            child: Text('I have paid', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -170,7 +284,19 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
           // Only the rider saying so closes a top-up as failed; the UPI app's
           // own verdict is not reliable enough to lose a real payment over.
           TextButton(
-              onPressed: () => _finishTopup('user_cancelled'),
+              onPressed: () async {
+                // Asked twice on purpose: a mis-tap here writes off money
+                // the rider may actually have sent.
+                final sure = await showConfirmDialogCustom(
+                  context,
+                  title: 'Mark this payment as not made?',
+                  subTitle: 'Only do this if no money left your account.',
+                  positiveText: 'Yes, nothing was paid',
+                  negativeText: 'Back',
+                  onAccept: (_) {},
+                );
+                if (sure == true) _finishTopup('user_cancelled');
+              },
               child: Text('Not paid')),
           ElevatedButton(
             onPressed: () => _finishTopup('submitted'),
@@ -402,7 +528,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF4F6F9),
+      backgroundColor: BrandTokens.page,
       appBar: AppBar(
         title: Text('Add money', style: boldTextStyle(color: Colors.white)),
         backgroundColor: brandBlue,

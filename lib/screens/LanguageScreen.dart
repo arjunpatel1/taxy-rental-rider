@@ -19,7 +19,7 @@ class LanguageScreenState extends State<LanguageScreen> {
         backgroundColor: brandBlue,
         iconTheme: IconThemeData(color: Colors.white),
         title: Text(language.language,
-            style: boldTextStyle(color: brandBlack)),
+            style: boldTextStyle(color: Colors.white)),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),

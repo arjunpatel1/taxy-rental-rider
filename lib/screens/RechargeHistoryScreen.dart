@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import '../utils/BrandTheme.dart';
 
 /// Past recharges and bill payments of the rider.
 class RechargeHistoryScreen extends StatefulWidget {
@@ -117,7 +118,7 @@ class _RechargeHistoryScreenState extends State<RechargeHistoryScreen> {
   Widget build(BuildContext context) {
     final visible = _visible;
     return Scaffold(
-      backgroundColor: Color(0xFFF4F6F9),
+      backgroundColor: BrandTokens.page,
       appBar: AppBar(
         title: Text('Recharge history', style: boldTextStyle(color: Colors.white)),
         backgroundColor: brandBlue,

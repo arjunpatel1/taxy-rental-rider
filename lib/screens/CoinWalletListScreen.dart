@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import '../utils/BrandTheme.dart';
 
 class CoinWalletListScreen extends StatefulWidget {
   const CoinWalletListScreen({super.key});
@@ -65,7 +66,7 @@ class _CoinWalletListScreenState extends State<CoinWalletListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF4F6F9),
+      backgroundColor: BrandTokens.page,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: brandBlue,

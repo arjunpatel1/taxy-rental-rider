@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import '../utils/BrandTheme.dart';
 
 /// Mobile (prepaid) recharge, PhonePe-style: type the number, the operator and circle are
 /// detected automatically, plans load inline, pick one and pay from the wallet.
@@ -413,7 +414,7 @@ class _MobileRechargeScreenState extends State<MobileRechargeScreen> {
         .toList();
 
     return Scaffold(
-      backgroundColor: Color(0xFFF4F6F9),
+      backgroundColor: BrandTokens.page,
       appBar: AppBar(
         title: Text('Mobile Recharge'),
         actions: [

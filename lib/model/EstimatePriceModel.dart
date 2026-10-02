@@ -85,6 +85,9 @@ class ServicesListData {
 
   /// car / bike / auto
   String? vehicleType;
+  /// Drivers of this category online near the pickup. Zero means the rider
+  /// cannot book it in the app and is offered a phone booking instead.
+  num? driversAvailable;
 
   /// GST included in totalAmount (vehicle's GST %).
   num? gstAmount;
@@ -153,6 +156,7 @@ class ServicesListData {
     this.distanceUnit,
     this.dropoffDistanceInKm,
     this.vehicleType,
+    this.driversAvailable,
     this.gstAmount,
     this.gstPercent,
     this.tripFareData,
@@ -206,6 +210,7 @@ class ServicesListData {
       description: json['description'],
       couponData: json['coupon_data'] != null ? CouponData.fromJson(json['coupon_data']) : null,
       vehicleType: json['vehicle_type'],
+      driversAvailable: num.tryParse('${json['drivers_available'] ?? 0}') ?? 0,
       gstAmount: json['gst_amount'],
       gstPercent: json['gst_percent'],
       tripFareData: json['trip_fare_data'] is Map ? Map<String, dynamic>.from(json['trip_fare_data']) : null,

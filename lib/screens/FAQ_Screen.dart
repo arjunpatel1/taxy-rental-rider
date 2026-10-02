@@ -62,7 +62,7 @@ class _FAQScreenState extends State<FAQScreen> {
         backgroundColor: brandBlue,
         iconTheme: IconThemeData(color: Colors.white),
         title:
-            Text(language.lblfaq, style: boldTextStyle(color: brandBlack)),
+            Text(language.lblfaq, style: boldTextStyle(color: Colors.white)),
       ),
       body: ListView.builder(
         padding: EdgeInsets.zero,

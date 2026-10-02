@@ -1,6 +1,7 @@
 
 
 import '../manage_imports.dart';
+import '../utils/BrandTheme.dart';
 
 /// Mobile + WhatsApp OTP sign-in, shown inline on the login page (no dialog).
 /// Step 1 takes the number, step 2 the 6-digit code, with a resend timer.
@@ -174,7 +175,7 @@ class _MobileOtpSignInState extends State<MobileOtpSignIn> {
       height: 52,
       textStyle: boldTextStyle(size: 18),
       decoration: BoxDecoration(
-        color: Color(0xFFF4F6F9),
+        color: BrandTokens.page,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: dividerColor),
       ),

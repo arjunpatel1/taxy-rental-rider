@@ -166,7 +166,7 @@ class WebViewScreenState extends State<WebViewScreen> {
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
         title: Text("Paypal",
-            style: boldTextStyle(color: brandBlack)),
+            style: boldTextStyle(color: Colors.white)),
       ),
       // appBar: appBarWidget("",
       //     context: context,
