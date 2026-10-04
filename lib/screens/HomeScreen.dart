@@ -263,10 +263,15 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String _bannerSubtitle(String status) {
+  String _bannerSubtitle(String status, [dynamic ride]) {
     switch (status) {
       case COMPLETED:
-        return 'Pay and rate your driver';
+        // Rating happens on the trip page, not behind this banner, and
+        // a fare the driver already collected needs nothing from the
+        // rider. Promising "pay and rate" led to a screen with neither.
+        return '${ride?.paymentStatus}' == PAID
+            ? 'See your trip summary'
+            : 'Pay for your trip';
       case NEW_RIDE_REQUESTED:
         return 'Looking for nearby cabs';
       case IN_PROGRESS:
@@ -305,7 +310,7 @@ class HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(awaitingOutstation ? 'Outstation request received' : _bannerTitle(ride?.status ?? ''),
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
-                      Text(awaitingOutstation ? 'Our team is assigning a driver' : _bannerSubtitle(ride?.status ?? ''),
+                      Text(awaitingOutstation ? 'Our team is assigning a driver' : _bannerSubtitle(ride?.status ?? '', ride),
                           style: TextStyle(color: Colors.white70, fontSize: 13)),
                     ],
                   ),

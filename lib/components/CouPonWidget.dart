@@ -45,7 +45,7 @@ class CouPonWidgetState extends State<CouPonWidget> {
       if (currentPage == 1) {
         couponData.clear();
       }
-      couponData.addAll(value.data!);
+      couponData.addAll(value.data ?? []);
       setState(() {});
     }).catchError((error) {
       appStore.setLoading(false);

@@ -53,7 +53,7 @@ class AboutWidgetState extends State<AboutWidget> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(defaultRadius),
                       child: commonCachedNetworkImage(
-                          widget.userData!.profileImage.validate(),
+                          widget.userData?.profileImage.validate() ?? '',
                           height: 45,
                           width: 45,
                           fit: BoxFit.cover),
@@ -63,12 +63,12 @@ class AboutWidgetState extends State<AboutWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 4),
-                        Text(widget.userData!.firstName.validate(),
+                        Text(widget.userData?.firstName.validate() ?? '',
                             style: boldTextStyle(size: 14)),
                         SizedBox(height: 4),
                         // Riders call the driver, they never mail them, so the
                         // phone number is what belongs under the name here.
-                        Text(widget.userData!.contactNumber.validate(),
+                        Text(widget.userData?.contactNumber.validate() ?? '',
                             style: secondaryTextStyle()),
                       ],
                     ),
@@ -79,7 +79,7 @@ class AboutWidgetState extends State<AboutWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(language.carModel, style: primaryTextStyle(size: 14)),
-                    Text(widget.userData!.userDetail!.carModel!.validate(),
+                    Text(widget.userData?.userDetail?.carModel.validate() ?? '-',
                         style: secondaryTextStyle()),
                   ],
                 ),
@@ -92,7 +92,7 @@ class AboutWidgetState extends State<AboutWidget> {
                     Text(language.lblCarNumberPlate,
                         style: primaryTextStyle(size: 14)),
                     Text(
-                        widget.userData!.userDetail!.carPlateNumber!.validate(),
+                        widget.userData?.userDetail?.carPlateNumber.validate() ?? '-',
                         style: secondaryTextStyle()),
                   ],
                 ),

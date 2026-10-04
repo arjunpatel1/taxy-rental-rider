@@ -44,7 +44,7 @@ class EmergencyContactScreenState extends State<EmergencyContactScreen> {
       if (currentPage == 1) {
         contactNumber.clear();
       }
-      contactNumber.addAll(value.data!);
+      contactNumber.addAll(value.data ?? []);
       setState(() {});
     }).catchError((error) {
       appStore.setLoading(false);

@@ -37,11 +37,21 @@ class RideDetailScreenState extends State<RideDetailScreen> {
     );
     isChatHistory = await chatMessageService.isRideChatHistory(rideId: widget.orderId.toString());
     await rideDetail(orderId: widget.orderId).then((value) {
-      invoice_name = value.invoice_name!;
-      invoice_url = value.invoice_url!;
+      // Each of these could be absent on a real trip — an invoice that has
+      // not been issued, a trip with no history rows, a detail body the
+      // server could not build — and asserting them took the screen down
+      // with "Null check operator used on a null value".
+      if (value.data == null) {
+        appStore.setLoading(false);
+        toast('Could not load this trip. Please try again.');
+        setState(() {});
+        return;
+      }
+      invoice_name = value.invoice_name;
+      invoice_url = value.invoice_url;
       riderModel = value.data!;
       riderModel!.ride_has_bids = value.ride_has_bids;
-      rideHistory.addAll(value.rideHistory!);
+      rideHistory.addAll(value.rideHistory ?? []);
       if (value.driverRatting != null) {
         driverRatting = value.driverRatting!;
       }
@@ -50,8 +60,14 @@ class RideDetailScreenState extends State<RideDetailScreen> {
       }
       complaintData = value.complaintModel;
       payment = value.payment;
+      // A trip cancelled before anyone accepted it has no driver to look up.
+      if (riderModel!.driverId == null) {
+        appStore.setLoading(false);
+        setState(() {});
+        return;
+      }
       getDriverDetail(userId: riderModel!.driverId).then((value) {
-        userData = value.data!;
+        userData = value.data;
         setState(() {});
 
         appStore.setLoading(false);
@@ -123,12 +139,12 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                     SizedBox(height: 12),
                     if (riderModel!.otherRiderData != null) otherRiderInfoComponent(),
                     if (riderModel!.otherRiderData != null) SizedBox(height: 12),
-                    if (driverRatting!.comment != null) driverRatingDetailWidget(),
-                    if (driverRatting!.comment != null) SizedBox(height: 12),
+                    if (driverRatting?.comment != null) driverRatingDetailWidget(),
+                    if (driverRatting?.comment != null) SizedBox(height: 12),
                     addressComponent(),
                     SizedBox(height: 12),
                     priceDetailComponent(),
-                    if (riderModel!.extraChargesAmount != 0 && riderModel!.extraCharges!.isNotEmpty) ...[
+                    if ((riderModel!.extraChargesAmount ?? 0) != 0 && (riderModel!.extraCharges?.isNotEmpty ?? false)) ...[
                       SizedBox(height: 12),
                       extraChargeWidget(),
                     ],
@@ -374,7 +390,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                 children: [
                   Icon(Ionicons.person_outline, size: 18),
                   SizedBox(width: 8),
-                  Text(riderModel!.otherRiderData!.name.validate(), style: primaryTextStyle()),
+                  Text(riderModel!.otherRiderData?.name.validate() ?? '', style: primaryTextStyle()),
                 ],
               ),
               SizedBox(height: 10),
@@ -414,7 +430,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                     wrapAlignment: WrapAlignment.spaceBetween,
                     itemCount: 5,
                     itemSize: 16,
-                    initialRating: double.parse(riderRatting!.rating.toString()),
+                    initialRating: double.tryParse('${riderRatting?.rating ?? 0}') ?? 0,
                     itemPadding: EdgeInsets.symmetric(horizontal: 0),
                     itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
                     onRatingUpdate: (rating) {
@@ -496,7 +512,7 @@ class RideDetailScreenState extends State<RideDetailScreen> {
                         wrapAlignment: WrapAlignment.spaceBetween,
                         itemCount: 5,
                         itemSize: 16,
-                        initialRating: double.parse(driverRatting!.rating.toString()),
+                        initialRating: double.tryParse('${driverRatting?.rating ?? 0}') ?? 0,
                         itemPadding: EdgeInsets.symmetric(horizontal: 0),
                         itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
                         onRatingUpdate: (rating) {

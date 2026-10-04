@@ -41,7 +41,7 @@ class NotificationScreenState extends State<NotificationScreen>
       if (currentPage == 1) {
         notificationData.clear();
       }
-      notificationData.addAll(value.notificationData!);
+      notificationData.addAll(value.notificationData ?? []);
       setState(() {});
     }).catchError((error) {
       appStore.setLoading(false);

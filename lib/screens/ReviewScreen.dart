@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import 'RideDetailScreen.dart';
 import '../utils/BrandTheme.dart';
 import '../components/FareBreakdownCard.dart';
 
@@ -18,6 +19,11 @@ class ReviewScreenState extends State<ReviewScreen> {
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
   RideService rideService = RideService();
   TextEditingController reviewController = TextEditingController();
+  /// Stars the rider gives the driver. Rating had been taken off this
+  /// screen and never put anywhere else, so a rider could not rate at all
+  /// and the "trip completed" banner never cleared.
+  double _driverRating = 0;
+  bool _ratingSent = false;
   num rattingData = 0;
   int currentIndex = -1;
   /// How the rider settles this trip: cash, wallet, or part of each.
@@ -98,7 +104,9 @@ class ReviewScreenState extends State<ReviewScreen> {
             launchScreen(
                 context,
                 RidePaymentDetailScreen(
-                  rideId: value.id,
+                  // The ride's own id. The response has no top-level id, so
+                  // this was always null and the detail screen opened empty.
+                  rideId: value.onRideRequest?.id ?? value.id,
                 ),
                 isNewTask: true,
                 pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
@@ -200,6 +208,31 @@ class ReviewScreenState extends State<ReviewScreen> {
       // The rating still stands; the rider can change this from the trip page.
       log('Payment choice not saved: $e');
     }
+  }
+
+  /// Sends the rider's rating for this trip. Until this existed the server
+  /// never saw a rider rating, so every finished trip stayed "current" and the
+  /// home banner for it could not be cleared.
+  Future<void> _submitRating() async {
+    if (_driverRating <= 0) {
+      toast('Tap a star to rate your driver');
+      return;
+    }
+    hideKeyboard(context);
+    appStore.setLoading(true);
+    try {
+      await ratingReview(request: {
+        'ride_request_id': widget.rideRequest.id,
+        'rating': _driverRating,
+        'comment': reviewController.text.trim(),
+      });
+      if (!mounted) return;
+      setState(() => _ratingSent = true);
+      toast('Thanks for rating your driver');
+    } catch (e) {
+      toast(e.toString());
+    }
+    appStore.setLoading(false);
   }
 
   Future<void> userReviewData({bool? skip}) async {
@@ -403,13 +436,54 @@ class ReviewScreenState extends State<ReviewScreen> {
                     ),
                   ),
                   SizedBox(height: 16),
+                  // A fare the driver has already collected leaves nothing to
+                  // submit, so the button says what it does. Rating lives on
+                  // the trip page, and an unrated trip offers the way there
+                  // rather than leaving the rider to hunt for it.
                   AppButtonWidget(
-                    text: language.submit,
+                    text: widget.rideRequest.paymentStatus == PAID
+                        ? 'Done'
+                        : language.submit,
                     width: MediaQuery.of(context).size.width,
                     onTap: () {
                       userReviewData();
                     },
                   ),
+                  if (widget.rideRequest.isRiderRated != 1 && !_ratingSent) ...[
+                    SizedBox(height: 20),
+                    Text('Rate your driver', style: boldTextStyle(size: 15)),
+                    SizedBox(height: 10),
+                    Center(
+                      child: RatingBar.builder(
+                        direction: Axis.horizontal,
+                        glow: false,
+                        allowHalfRating: false,
+                        itemCount: 5,
+                        itemSize: 36,
+                        initialRating: _driverRating,
+                        itemPadding: EdgeInsets.symmetric(horizontal: 4),
+                        itemBuilder: (context, _) =>
+                            Icon(Icons.star, color: Colors.amber),
+                        onRatingUpdate: (value) =>
+                            setState(() => _driverRating = value),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    AppTextField(
+                      controller: reviewController,
+                      textFieldType: TextFieldType.OTHER,
+                      isValidationRequired: false,
+                      maxLines: 2,
+                      decoration: inputDecoration(context,
+                          label: 'Anything to say about the trip? (optional)'),
+                    ),
+                    SizedBox(height: 10),
+                    AppButtonWidget(
+                      text: 'Send rating',
+                      width: MediaQuery.of(context).size.width,
+                      onTap: _submitRating,
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -50,7 +50,7 @@ class ComplaintListScreenState extends State<ComplaintListScreen> {
       if (currentPage == 1) {
         complaintListData.clear();
       }
-      complaintListData.addAll(value.data!);
+      complaintListData.addAll(value.data ?? []);
       setState(() {});
     }).catchError((error) {
       appStore.setLoading(false);

@@ -53,7 +53,7 @@ class WithDrawScreenState extends State<WithDrawScreen> {
       if (currentPage == 1) {
         withDrawData.clear();
       }
-      withDrawData.addAll(value.data!);
+      withDrawData.addAll(value.data ?? []);
       setState(() {});
     }).catchError((error) {
       appStore.setLoading(false);

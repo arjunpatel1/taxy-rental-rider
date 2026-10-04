@@ -439,7 +439,17 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
                 ],
               );
             } else {
-              return SizedBox();
+              // The live trip feed has nothing yet, or could not be read at
+              // all. An empty page told the rider nothing and looked broken,
+              // so the trip is loaded from the server instead.
+              if (currentScreen != false) {
+                Future.delayed(Duration(seconds: 1), () {
+                  if (currentScreen == false) return;
+                  currentScreen = false;
+                  orderDetailApi();
+                });
+              }
+              return Center(child: loaderWidget());
             }
           }),
       bottomNavigationBar: paymentData != null && isShow == false

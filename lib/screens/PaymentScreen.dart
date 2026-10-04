@@ -63,7 +63,7 @@ class PaymentScreenState extends State<PaymentScreen> {
     appStore.setLoading(true);
     await getPaymentList().then((value) {
       appStore.setLoading(false);
-      paymentList.addAll(value.data!);
+      paymentList.addAll(value.data ?? []);
       selectedPaymentType = paymentList.first.type;
       if (paymentList.isNotEmpty) {
         paymentList.forEach((element) {

@@ -26,7 +26,7 @@ class AlertScreenState extends State<AlertScreen> {
     getCurrentUserLocation();
     appStore.setLoading(true);
     await getSosList(regionId: widget.regionId).then((value) {
-      sosListData.addAll(value.data!);
+      sosListData.addAll(value.data ?? []);
       appStore.setLoading(false);
       setState(() {});
     }).catchError((error) {
