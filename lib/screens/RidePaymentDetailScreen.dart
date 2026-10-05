@@ -125,13 +125,19 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
     // appStore.setLoading(true);
     await rideDetail(orderId: widget.rideId).then((value) async {
       riderModel = value.data;
+      if (riderModel == null) {
+        appStore.setLoading(false);
+        setState(() {});
+        return;
+      }
 
-      double distance = double.parse(
-        value.data!.dropoffDistanceInKm!.toStringAsFixed(digitAfterDecimal),
-      );
-
-      fareDistance = distance - value.data!.minimumDistance!.toDouble();
-      riderWalletBalance = value.riderWalletBalance!;
+      // These are routinely absent on a finished trip. Asserting them threw,
+      // the error was swallowed by the catch below, and the navigation that
+      // takes the rider home never ran: they were left looking at a screen
+      // that would not move after paying.
+      final distance = (riderModel!.dropoffDistanceInKm ?? 0).toDouble();
+      fareDistance = distance - (riderModel!.minimumDistance ?? 0).toDouble();
+      riderWalletBalance = value.riderWalletBalance ?? 0;
       if (value.ride_has_bids != null) {
         riderModel!.ride_has_bids = value.ride_has_bids;
       }
@@ -146,7 +152,7 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
         selectedPaymentMethod = 'cash';
       }
 
-      rideHistory = value.rideHistory!;
+      rideHistory = value.rideHistory ?? [];
       setState(() {});
       if (paymentData != null && paymentData!.paymentStatus == "paid") {
         isPaymentDone = true;
@@ -176,9 +182,20 @@ class RidePaymentDetailScreenState extends State<RidePaymentDetailScreen> {
         }
       }
     }).catchError((error, s) {
-      print("CheckError:::$error ::::$s");
-      toast(error.toString());
+      log("Trip detail could not be loaded: $error\n$s");
       appStore.setLoading(false);
+      // The trip is paid for and done. Failing to render its summary must not
+      // strand the rider on a screen that never moves, so they are taken home
+      // and can open the trip again from their rides.
+      if (!mounted) return;
+      toast('Could not load the trip summary.');
+      Future.delayed(Duration(seconds: 1), () {
+        if (!mounted || navigateDone) return;
+        navigateDone = true;
+        launchScreen(getContext, HomeScreen(),
+            isNewTask: true,
+            pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+      });
     });
   }
 

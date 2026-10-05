@@ -114,7 +114,14 @@ class ReviewScreenState extends State<ReviewScreen> {
         );
       }
     }).catchError((error) {
+      // Payment is already recorded by this point. If the trip cannot be
+      // reloaded the rider must still leave this screen, not sit on it.
       log(error.toString());
+      appStore.setLoading(false);
+      if (!mounted) return;
+      launchScreen(context, HomeScreen(),
+          isNewTask: true,
+          pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
     });
   }
 
@@ -163,17 +170,22 @@ class ReviewScreenState extends State<ReviewScreen> {
   /// collected by the driver.
   Future<bool> _payFromWallet() async {
     final walletShare = payMethod == 'wallet' ? _fare : _walletPart;
+    // When the balance covers the whole fare there is no cash to hand over,
+    // so it settles as a wallet payment. Sending it as a split asked the
+    // server to accept cash confirmed by the rider, which it refuses.
+    final cashShare = _fare - walletShare;
+    final settleAs = (payMethod == 'wallet' || cashShare <= 0) ? WALLET : 'split';
     final req = {
       'ride_request_id': widget.rideRequest.id,
       'rider_id': widget.rideRequest.riderId,
       'datetime': DateTime.now().toString(),
       'total_amount': _fare,
-      'payment_type': payMethod == 'wallet' ? WALLET : 'split',
+      'payment_type': settleAs,
       'txn_id': '',
       'payment_status': PAID,
       'transaction_detail': '',
-      if (payMethod == 'split') 'wallet_amount': walletShare,
-      if (payMethod == 'split') 'cash_amount': _fare - walletShare,
+      if (settleAs == 'split') 'wallet_amount': walletShare,
+      if (settleAs == 'split') 'cash_amount': cashShare,
     };
     try {
       await savePayment(req);
@@ -213,26 +225,19 @@ class ReviewScreenState extends State<ReviewScreen> {
   /// Sends the rider's rating for this trip. Until this existed the server
   /// never saw a rider rating, so every finished trip stayed "current" and the
   /// home banner for it could not be cleared.
-  Future<void> _submitRating() async {
-    if (_driverRating <= 0) {
-      toast('Tap a star to rate your driver');
-      return;
-    }
-    hideKeyboard(context);
-    appStore.setLoading(true);
+  /// Sends the rider's rating, if they gave one. A rating that fails must not
+  /// stop the payment: the trip still has to be settled.
+  Future<void> _sendRating() async {
     try {
       await ratingReview(request: {
         'ride_request_id': widget.rideRequest.id,
         'rating': _driverRating,
         'comment': reviewController.text.trim(),
       });
-      if (!mounted) return;
-      setState(() => _ratingSent = true);
-      toast('Thanks for rating your driver');
+      if (mounted) _ratingSent = true;
     } catch (e) {
-      toast(e.toString());
+      log('Rating could not be sent: $e');
     }
-    appStore.setLoading(false);
   }
 
   Future<void> userReviewData({bool? skip}) async {
@@ -244,6 +249,13 @@ class ReviewScreenState extends State<ReviewScreen> {
     }
     hideKeyboard(context);
     appStore.setLoading(true);
+
+    // Stars are optional: a rider who leaves them untouched just pays. One
+    // given is sent with the same tap, so there is nothing else to press.
+    if (_driverRating > 0 && !_ratingSent) {
+      await _sendRating();
+    }
+
     if (widget.rideRequest.paymentStatus != PAID) {
       if (payMethod == 'cash') {
         // The driver collects the fare; only the choice needs recording.
@@ -260,11 +272,24 @@ class ReviewScreenState extends State<ReviewScreen> {
       }
     }
     appStore.setLoading(false);
+    if (!mounted) return;
+
     if (widget.schedule_ride == true) {
       Navigator.pop(context);
-    } else {
-      getCurrentRequest();
+      return;
     }
+
+    // Straight home. The rider has seen the fare, chosen how to pay and, if
+    // they wanted, rated the driver — there is nothing further for them to do.
+    // Reloading the trip instead sent them to a live-tracking page for a trip
+    // that had already ended, which rendered empty and looked frozen.
+    toast(widget.rideRequest.paymentStatus == PAID
+        ? 'Thanks for riding with us'
+        : (payMethod == 'cash'
+            ? 'Please pay the driver $currencySymbol${_fare.toStringAsFixed(digitAfterDecimal)} in cash'
+            : 'Payment complete'));
+    launchScreen(context, HomeScreen(),
+        isNewTask: true, pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
   }
 
   @override
@@ -440,18 +465,13 @@ class ReviewScreenState extends State<ReviewScreen> {
                   // submit, so the button says what it does. Rating lives on
                   // the trip page, and an unrated trip offers the way there
                   // rather than leaving the rider to hunt for it.
-                  AppButtonWidget(
-                    text: widget.rideRequest.paymentStatus == PAID
-                        ? 'Done'
-                        : language.submit,
-                    width: MediaQuery.of(context).size.width,
-                    onTap: () {
-                      userReviewData();
-                    },
-                  ),
+                  // Rating sits above the one button that finishes the trip.
+                  // Two buttons asked the rider to submit twice, and rating is
+                  // optional: stars left untouched simply are not sent.
                   if (widget.rideRequest.isRiderRated != 1 && !_ratingSent) ...[
-                    SizedBox(height: 20),
-                    Text('Rate your driver', style: boldTextStyle(size: 15)),
+                    SizedBox(height: 18),
+                    Text('Rate your driver (optional)',
+                        style: boldTextStyle(size: 15)),
                     SizedBox(height: 10),
                     Center(
                       child: RatingBar.builder(
@@ -477,13 +497,17 @@ class ReviewScreenState extends State<ReviewScreen> {
                       decoration: inputDecoration(context,
                           label: 'Anything to say about the trip? (optional)'),
                     ),
-                    SizedBox(height: 10),
-                    AppButtonWidget(
-                      text: 'Send rating',
-                      width: MediaQuery.of(context).size.width,
-                      onTap: _submitRating,
-                    ),
                   ],
+                  SizedBox(height: 18),
+                  AppButtonWidget(
+                    text: widget.rideRequest.paymentStatus == PAID
+                        ? 'Done'
+                        : language.submit,
+                    width: MediaQuery.of(context).size.width,
+                    onTap: () {
+                      userReviewData();
+                    },
+                  ),
                 ],
               ),
             ),

@@ -17,11 +17,12 @@ class CarDetailWidgetState extends State<CarDetailWidget> {
   @override
   void initState() {
     super.initState();
-    if (widget.service.distanceUnit == DISTANCE_TYPE_KM) {
-      locationDistance = widget.service.dropoffDistanceInKm!.toDouble();
-    } else {
-      locationDistance = widget.service.dropoffDistanceInKm!.toDouble() * 0.621371;
-    }
+    // A service quoted without a distance would take the fare breakdown down
+    // with it; zero simply shows no distance rather than crashing the sheet.
+    final quotedKm = (widget.service.dropoffDistanceInKm ?? 0).toDouble();
+    locationDistance = widget.service.distanceUnit == DISTANCE_TYPE_KM
+        ? quotedKm
+        : quotedKm * 0.621371;
     locationDistance = double.parse(locationDistance.toStringAsFixed(digitAfterDecimal));
 
     double distance = double.parse(
