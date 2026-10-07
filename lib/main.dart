@@ -38,7 +38,12 @@ void main() async {
 
   // Android reads its Firebase config from android/app/google-services.json, iOS from GoogleService-Info.plist
   await Firebase.initializeApp();
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  FlutterError.onError = (errorDetails) {
+    // Reporting only to Crashlytics made build failures silent: a widget
+    // that threw left a blank screen with nothing in the device log.
+    FlutterError.presentError(errorDetails);
+    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+  };
   // async errors outside Flutter callbacks go to Crashlytics instead of being lost
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack);

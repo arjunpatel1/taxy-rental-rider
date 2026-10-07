@@ -69,7 +69,9 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
   /// not the payment went through, so a failed payment was being reported as
   /// paid and credited. Until that can be verified against the bank, it is
   /// left out of the list and riders pay with another app, or by UPI ID.
-  static const _unreliableUpiApps = ['com.phonepe'];
+  /// Package prefixes admin has switched off, sent with the top-up request.
+  /// Empty until the server answers, so nothing is hidden by guesswork.
+  List<String> _blockedUpiApps = const [];
 
   /// Lets the rider choose which UPI app to pay from.
   ///
@@ -84,7 +86,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
           .map((e) => Map<String, String>.from(
               (e as Map).map((k, v) => MapEntry('$k', '$v'))))
           .where((e) => (e['package'] ?? '').isNotEmpty)
-          .where((e) => !_unreliableUpiApps
+          .where((e) => !_blockedUpiApps
               .any((blocked) => (e['package'] ?? '').startsWith(blocked)))
           .toList();
     } catch (e) {
@@ -130,6 +132,11 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
     try {
       final data = await initiateWalletTopup(amount: _amount);
       pendingTopup = data;
+      // Admin decides which UPI apps may be used; honour that before asking.
+      final blocked = data['blocked_upi_packages'];
+      if (blocked is List) {
+        _blockedUpiApps = blocked.map((e) => '$e').toList();
+      }
       final uri = Uri.parse(data['upi_uri'].toString());
 
       if (Platform.isAndroid) {

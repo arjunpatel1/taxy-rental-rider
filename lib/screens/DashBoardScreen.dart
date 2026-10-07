@@ -812,6 +812,17 @@ class DashBoardScreenState extends State<DashBoardScreen>
   }
 
   @override
+  /// Where the map opens: the live position first, then the last one saved.
+  /// Null only before any fix on a first install.
+  LatLng? get _initialCamera {
+    final live = sourceLocation;
+    if (live != null) return live;
+    final lat = sharedPref.getDouble(LATITUDE);
+    final lng = sharedPref.getDouble(LONGITUDE);
+    if (lat != null && lng != null) return LatLng(lat, lng);
+    return null;
+  }
+
   Widget build(BuildContext context) {
     LiveStream().on(CHANGE_LANGUAGE, (p0) {
       setState(() {});
@@ -852,8 +863,10 @@ class DashBoardScreenState extends State<DashBoardScreen>
       ),
       body: Stack(
         children: [
-          if (sharedPref.getDouble(LATITUDE) != null &&
-              sharedPref.getDouble(LONGITUDE) != null)
+          // On a fresh install nothing is cached yet, and gating the map on
+          // those saved values leaves the rider on an empty screen until the
+          // app is restarted. The live position is used when there is one.
+          if (_initialCamera != null)
             GoogleMap(
               onMapCreated: (controller) {
                 mapController = controller;
@@ -868,9 +881,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
               markers: markers.map((e) => e).toSet(),
               polylines: _polyLines,
               initialCameraPosition: CameraPosition(
-                  target: sourceLocation ??
-                      LatLng(sharedPref.getDouble(LATITUDE)!,
-                          sharedPref.getDouble(LONGITUDE)!),
+                  target: _initialCamera!,
                   zoom: cameraZoom,
                   tilt: cameraTilt,
                   bearing: cameraBearing),
