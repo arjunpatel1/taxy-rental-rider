@@ -1,5 +1,6 @@
 package com.mighty.taxirider
 
+import android.content.pm.PackageManager
 import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
@@ -27,6 +28,25 @@ class MainActivity : FlutterFragmentActivity() {
             channel.enableVibration(true)
             channel.setSound(Uri.parse("android.resource://$packageName/raw/$sound"), attributes)
             manager.createNotificationChannel(channel)
+        }
+    }
+
+    /** A launcher icon as a base64 PNG the Dart side can draw directly. */
+    private fun encodeIcon(drawable: android.graphics.drawable.Drawable?): String? {
+        if (drawable == null) return null
+        return try {
+            val size = 96
+            val bitmap = android.graphics.Bitmap.createBitmap(
+                size, size, android.graphics.Bitmap.Config.ARGB_8888
+            )
+            val canvas = android.graphics.Canvas(bitmap)
+            drawable.setBounds(0, 0, size, size)
+            drawable.draw(canvas)
+            val out = java.io.ByteArrayOutputStream()
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+            android.util.Base64.encodeToString(out.toByteArray(), android.util.Base64.NO_WRAP)
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -71,11 +91,21 @@ class MainActivity : FlutterFragmentActivity() {
                 // on many phones it opens empty, or returns "cancelled" even
                 // after a payment went through.
                 if (call.method == "listUpiApps") {
+                    // CATEGORY_DEFAULT is added for you when an intent is
+                    // started, but not when it is queried: without it the probe
+                    // matched nothing and the phone looked as though it had no
+                    // UPI app at all, with three of them installed.
                     val probe = Intent(Intent.ACTION_VIEW, Uri.parse("upi://pay"))
-                    val apps = packageManager.queryIntentActivities(probe, 0).map {
+                        .addCategory(Intent.CATEGORY_DEFAULT)
+                    val apps = packageManager.queryIntentActivities(
+                        probe, PackageManager.MATCH_DEFAULT_ONLY
+                    ).map {
                         mapOf(
                             "package" to it.activityInfo.packageName,
-                            "name" to it.loadLabel(packageManager).toString()
+                            "name" to it.loadLabel(packageManager).toString(),
+                            // The app's own launcher icon, so each row in the
+                            // picker is recognisable rather than a grey glyph.
+                            "icon" to encodeIcon(it.loadIcon(packageManager))
                         )
                     }
                     result.success(apps)

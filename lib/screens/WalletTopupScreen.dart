@@ -1,4 +1,5 @@
 import '../network/UpiPaymentResult.dart';
+import 'dart:convert';
 import '../utils/BrandTheme.dart';
 
 import '../manage_imports.dart';
@@ -100,22 +101,87 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
 
     return showModalBottomSheet<String>(
       context: context,
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text('Pay with', style: boldTextStyle(size: 16)),
-            ),
-            ...apps.map((app) => ListTile(
-                  leading: Icon(Icons.account_balance_wallet_outlined, color: brandBlue),
-                  title: Text(app['name'] ?? app['package']!, style: primaryTextStyle()),
-                  onTap: () => Navigator.pop(context, app['package']),
-                )),
-            SizedBox(height: 8),
-          ],
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text('Pay with', style: boldTextStyle(size: 18)),
+              const SizedBox(height: 2),
+              Text('Choose the app you want to pay from',
+                  style: secondaryTextStyle(size: 12)),
+              const SizedBox(height: 14),
+              ...apps.map((app) {
+                final icon = app['icon'];
+                return InkWell(
+                  onTap: () => Navigator.pop(sheetContext, app['package']),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Row(
+                      children: [
+                        // The app's real icon, so it is recognised at a glance.
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: (icon != null && icon.isNotEmpty)
+                              ? Image.memory(base64Decode(icon),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Icon(
+                                      Icons.account_balance_wallet_outlined,
+                                      color: brandBlue))
+                              : Icon(Icons.account_balance_wallet_outlined,
+                                  color: brandBlue),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Text(app['name'] ?? app['package']!,
+                              style: boldTextStyle(size: 15)),
+                        ),
+                        Icon(Icons.chevron_right_rounded,
+                            color: Colors.grey.shade400),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(Icons.lock_outline_rounded,
+                      size: 14, color: Colors.grey.shade600),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'You pay in your own UPI app. We never see your PIN.',
+                      style: secondaryTextStyle(size: 11),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -145,6 +211,15 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
           // some phones, and often reports "cancelled" even after a payment
           // went through; a named package behaves far better.
           final chosen = await _chooseUpiApp();
+          // Dismissing the picker used to leave `chosen` null, and the
+          // native side then opened Android's own chooser - a second sheet
+          // listing every installed app, which is what the driver saw after
+          // tapping Google Pay. No choice now simply means no payment.
+          if (chosen == null) {
+            await _finishTopup('user_cancelled', closeDialog: false);
+            if (mounted) setState(() => busy = false);
+            return;
+          }
           if (chosen == 'none') {
             _showManualPay(data);
             if (mounted) setState(() => busy = false);
@@ -534,7 +609,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
       case 'awaiting_verification':
         return 'Verifying';
       case 'initiated':
-        return 'Started';
+        return 'Pending';
       case 'rejected':
         return 'Rejected';
       default:

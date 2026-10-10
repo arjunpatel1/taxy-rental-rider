@@ -1,9 +1,5 @@
-/// A device response is a report only. It never proves that money was received,
-/// and in practice it is often wrong: Google Pay has reported a paid
-/// transaction as failed, and PhonePe frequently returns nothing at all for one
-/// that succeeded. So this never concludes "failed" - the worst outcome is
-/// telling a rider who paid that their payment failed. Anything short of an
-/// explicit success is left pending for verification.
+/// Classifies the UPI app callback. Missing results stay pending; explicit
+/// failures override success. A callback is a report for server verification.
 class UpiPaymentResult {
   final String appStatus;
   final String? utr;
@@ -40,8 +36,10 @@ class UpiPaymentResult {
     final utr = values['approvalrefno'] ?? values['txnref'] ?? values['txnid'];
     final reference = (utr == null || utr.isEmpty) ? null : utr;
 
-    // Only an explicit success is reported as such; everything else, including
-    // an empty response or one the app calls a failure, is left for checking.
-    return UpiPaymentResult(status == 'success' ? 'submitted' : 'pending', reference);
+    // A non-success response code overrides a contradictory SUCCESS field.
+    final code = (values['responsecode'] ?? '').trim();
+    final failed = ['failure', 'failed', 'cancelled', 'canceled'].contains(status)
+        || (code.isNotEmpty && code != '00');
+    return UpiPaymentResult(failed ? 'failure' : status == 'success' ? 'submitted' : 'pending', reference);
   }
 }

@@ -1479,9 +1479,10 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
         body: Stack(
           alignment: Alignment.bottomCenter,
           children: [
-            if (sharedPref.getDouble(LATITUDE) != null &&
-                sharedPref.getDouble(LONGITUDE) != null)
-              SizedBox(
+            // The camera below opens on widget.sourceLatLog, so this map never
+            // needed a cached position. Gating on one only hid the estimate
+            // map on a first install, before anything had been saved.
+            SizedBox(
                 height: MediaQuery.of(context).size.height,
                 child: GoogleMap(
                   padding:

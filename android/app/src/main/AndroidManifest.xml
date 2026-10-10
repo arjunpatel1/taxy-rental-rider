@@ -74,9 +74,22 @@
 
     <!-- Android 11+ needs this to list the installed UPI apps for wallet top-up -->
     <queries>
+        <!-- Android 11 and later hide other apps unless they are declared
+             here. The intent filter alone was not enough on this phone:
+             the UPI list came back empty with three payment apps
+             installed, so the driver was told there were none. The named
+             packages are the ones admin can switch on. -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="upi" />
+            <data android:scheme="upi" android:host="pay" />
         </intent>
+        <package android:name="com.phonepe.app" />
+        <package android:name="net.one97.paytm" />
+        <package android:name="com.google.android.apps.nbu.paisa.user" />
+        <package android:name="com.mobikwik_new" />
+        <package android:name="in.org.npci.upiapp" />
+        <package android:name="in.amazon.mShop.android.shopping" />
+        <package android:name="com.dreamplug.androidapp" />
+        <package android:name="com.whatsapp" />
     </queries>
 </manifest>

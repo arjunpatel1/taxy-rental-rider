@@ -271,6 +271,15 @@ class ReviewScreenState extends State<ReviewScreen> {
         }
       }
     }
+    if (!_ratingSent) {
+      try {
+        await ratingReview(request: {'ride_request_id': widget.rideRequest.id, 'skip_rating': true});
+      } catch (error) {
+        appStore.setLoading(false);
+        toast('Could not finish the trip summary. Please try again.');
+        return;
+      }
+    }
     appStore.setLoading(false);
     if (!mounted) return;
 
