@@ -1,3 +1,4 @@
+import '../components/WalletBalanceCard.dart';
 import '../manage_imports.dart';
 import '../utils/BrandTheme.dart';
 
@@ -98,65 +99,12 @@ class WalletScreenState extends State<WalletScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    padding: EdgeInsets.all(20),
-                    margin: EdgeInsets.only(bottom: 18),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [brandBlue, Color(0xFF1760C8)]),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: brandBlue.withValues(alpha: 0.25), blurRadius: 16, offset: Offset(0, 8))],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(12)),
-                              child: Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 24),
-                            ),
-                            SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(language.availableBalance, style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
-                                SizedBox(height: 2),
-                                printAmountWidget(amount: totalAmount.toStringAsFixed(digitAfterDecimal), size: 26, color: Colors.white, weight: FontWeight.bold),
-                              ],
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 18),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Material(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(14),
-                                  onTap: () => launchScreen(context, WalletTopupScreen(currentBalance: totalAmount), pageRouteAnimation: PageRouteAnimation.Slide).then((_) => init()),
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 12),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.add_rounded, color: brandBlue, size: 20),
-                                        SizedBox(width: 6),
-                                        Text('Add money', style: boldTextStyle(color: brandBlue, size: 15)),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  WalletBalanceCard(
+                    title: language.availableBalance,
+                    amount: printAmountWidget(amount: totalAmount.toStringAsFixed(digitAfterDecimal), size: 26, color: Colors.white, weight: FontWeight.bold),
+                    onAddMoney: () => launchScreen(context, WalletTopupScreen(currentBalance: totalAmount), pageRouteAnimation: PageRouteAnimation.Slide).then((_) => init()),
                   ),
+                  const SizedBox(height: 18),
                   Text(language.recentTransactions, style: boldTextStyle(size: 16)),
                   AnimationLimiter(
                     child: ListView.builder(
@@ -218,7 +166,7 @@ class WalletScreenState extends State<WalletScreen> {
                                       ],
                                     ),
                                   ),
-                                  Column(
+                                  Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
@@ -249,7 +197,7 @@ class WalletScreenState extends State<WalletScreen> {
                                         ),
                                       ],
                                     ],
-                                  ),
+                                  ))),
                                 ],
                               ),
                             ),
@@ -271,7 +219,7 @@ class WalletScreenState extends State<WalletScreen> {
           ],
         );
       }),
-      bottomNavigationBar: Padding(
+      bottomNavigationBar: SafeArea(top: false, child: Padding(
         padding: EdgeInsets.all(16),
         child: Row(
           children: [
@@ -307,7 +255,7 @@ class WalletScreenState extends State<WalletScreen> {
             // led to a different, older flow for the same thing.
           ],
         ),
-      ),
+      )),
     );
   }
 }

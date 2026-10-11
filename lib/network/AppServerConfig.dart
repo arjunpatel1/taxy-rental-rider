@@ -1,13 +1,7 @@
-import '../manage_imports.dart';
+import 'package:flutter/foundation.dart';
 
 class AppServerConfig {
-  static String get baseUrl {
-    if (kReleaseMode) {
-      return 'https://staxi.co.in'; // Don't add slash at the end of the url
-    } else if (kProfileMode) {
-      return 'https://staxi.co.in'; // Don't add slash at the end of the url
-    } else {
-      return 'https://staxi.co.in'; // Don't add slash at the end of the url
-    }
-  }
+  static String get baseUrl => kReleaseMode
+      ? 'https://staxi.co.in'
+      : const String.fromEnvironment('STAXI_API_BASE_URL', defaultValue: 'https://staxi.co.in');
 }

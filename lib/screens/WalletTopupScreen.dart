@@ -1,3 +1,4 @@
+import '../components/WalletBalanceCard.dart';
 import '../network/UpiPaymentResult.dart';
 import 'dart:convert';
 import '../utils/BrandTheme.dart';
@@ -256,9 +257,10 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
 
   /// No UPI app on this phone: show the UPI id so the rider can pay from
   /// another device, and say why they are seeing this instead of their UPI app.
-  void _showManualPay(Map<String, dynamic> data) {
+  Future<void> _showManualPay(Map<String, dynamic> data) async {
     final upiId = '${data['upi_id']}';
-    showDialog(
+    var paymentClaimed = false;
+    await showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: Text('No UPI app on this phone', style: boldTextStyle(size: 17)),
@@ -333,6 +335,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: brandBlue),
             onPressed: () {
+              paymentClaimed = true;
               Navigator.pop(context);
               _askPaymentResult();
             },
@@ -341,6 +344,9 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
         ],
       ),
     );
+    if (!paymentClaimed && mounted && pendingTopup?['reference'] == data['reference']) {
+      await _finishTopup('user_cancelled', closeDialog: false);
+    }
   }
 
   void _askPaymentResult() {
@@ -630,32 +636,10 @@ class _WalletTopupScreenState extends State<WalletTopupScreen>
       body: ListView(
         padding: EdgeInsets.all(16),
         children: [
-          Container(
-            padding: EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [brandBlue, Color(0xFF1760C8)]),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.account_balance_wallet_rounded,
-                    color: Colors.white, size: 30),
-                SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Wallet balance',
-                        style: TextStyle(color: Colors.white70, fontSize: 13)),
-                    Text(
-                        '$currencySymbol${widget.currentBalance.toStringAsFixed(2)}',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800)),
-                  ],
-                ),
-              ],
-            ),
+          WalletBalanceCard(
+            title: 'Wallet balance',
+            amount: Text('$currencySymbol${widget.currentBalance.toStringAsFixed(2)}',
+              style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w700)),
           ),
           SizedBox(height: 18),
           Container(
