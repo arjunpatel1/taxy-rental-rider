@@ -200,7 +200,7 @@ class GoogleMapScreenState extends State<GoogleMapScreen> {
                   SizedBox(height: 10),
                   AppButtonWidget(
                     width: MediaQuery.of(context).size.width,
-                    onTap: selectedPosition == null && selectedAddress != "Fetching address..."
+                    onTap: selectedPosition == null || selectedAddress.isEmpty || selectedAddress == "Fetching address..."
                         ? null
                         : () {
                             Navigator.pop(context, {

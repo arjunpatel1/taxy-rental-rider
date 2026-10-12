@@ -1,4 +1,5 @@
 import '../manage_imports.dart';
+import '../utils/DebouncedLocationSearch.dart';
 import '../model/search_location_model.dart' hide Text;
 
 // ignore:must_be_immutable
@@ -8,10 +9,15 @@ class TripTypeLocationComponent extends StatefulWidget {
   String? pickupTimeValue;
   var tripDetail;
 
-  TripTypeLocationComponent({required this.trip_type, this.tripDetail, this.addressTitle, this.pickupTimeValue});
+  TripTypeLocationComponent(
+      {required this.trip_type,
+      this.tripDetail,
+      this.addressTitle,
+      this.pickupTimeValue});
 
   @override
-  TripTypeLocationComponentState createState() => TripTypeLocationComponentState();
+  TripTypeLocationComponentState createState() =>
+      TripTypeLocationComponentState();
 }
 
 class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
@@ -29,17 +35,72 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
   bool isDone = true;
 
   List<Suggestion> listAddress = [];
+  late final DebouncedLocationSearch<SearchLocationModel> _addressSearch;
+  String _addressTarget = 'source';
+  bool _sourceConfirmed = false;
+  bool _destinationConfirmed = false;
+
+  void _searchAddress(String value, String target) {
+    _addressTarget = target;
+    if (target == 'source')
+      _sourceConfirmed = false;
+    else if (target == 'destination')
+      _destinationConfirmed = false;
+    else {
+      multiDropFieldPosition = int.parse(target.split(':').last);
+      multiDropLatLng.remove(multiDropFieldPosition);
+    }
+    _addressSearch.update(value);
+  }
+
+  @override
+  void dispose() {
+    _addressSearch.dispose();
+    sourceLocation.dispose();
+    destinationLocation.dispose();
+    sourceFocus.dispose();
+    desFocus.dispose();
+    for (final controller in multipleDropPoints) {
+      controller.dispose();
+    }
+    for (final focus in multipleDropPointsFocus) {
+      focus.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
+    _addressSearch = DebouncedLocationSearch<SearchLocationModel>(
+      fetch: (query) => searchAddressRequest({
+        'search_text': query,
+        'language':
+            appStore.selectedLanguage.validate(value: defaultLanguageCode)
+      }),
+      onResult: (result) {
+        if (!mounted) return;
+        listAddress = result?.suggestions ?? [];
+        isDone = result != null;
+        setState(() {});
+      },
+      onError: (error) {
+        if (mounted) log(error);
+      },
+    );
     getCurrantLocation();
   }
 
   void getCurrantLocation() {
-    if (widget.trip_type == tripTypeRegular || widget.trip_type == tripTypeAirportDropoff) {
-      polylineSource = LatLng(sharedPref.getDouble(LATITUDE) ?? 0.0, sharedPref.getDouble(LONGITUDE) ?? 0.0);
+    if (widget.trip_type == tripTypeRegular ||
+        widget.trip_type == tripTypeAirportDropoff) {
+      polylineSource = LatLng(sharedPref.getDouble(LATITUDE) ?? 0.0,
+          sharedPref.getDouble(LONGITUDE) ?? 0.0);
+      _sourceConfirmed = true;
       sourceLocation.text = widget.addressTitle ?? "";
+      _sourceConfirmed = sourceLocation.text.isNotEmpty &&
+          polylineSource.latitude != 0 &&
+          polylineSource.longitude != 0;
       setState(() {});
     }
   }
@@ -68,7 +129,9 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                       margin: EdgeInsets.only(bottom: 16),
                       height: 5,
                       width: 70,
-                      decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(defaultRadius)),
+                      decoration: BoxDecoration(
+                          color: primaryColor,
+                          borderRadius: BorderRadius.circular(defaultRadius)),
                     ),
                   ),
                   SizedBox(height: 16),
@@ -77,7 +140,9 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                       Container(
                         padding: EdgeInsets.only(bottom: 16),
                         width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(color: primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(defaultRadius)),
+                        decoration: BoxDecoration(
+                            color: primaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(defaultRadius)),
                         child: Padding(
                           padding: EdgeInsets.all(12),
                           child: Column(
@@ -90,19 +155,34 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                                     Icons.near_me,
                                     color: Colors.green,
                                     shadows: [
-                                      BoxShadow(color: Colors.black, blurRadius: 1, offset: Offset(1.5, 1.5), spreadRadius: 5),
-                                      BoxShadow(color: Colors.white70, blurRadius: 1, offset: Offset(-1, -1), spreadRadius: 5),
+                                      BoxShadow(
+                                          color: Colors.black,
+                                          blurRadius: 1,
+                                          offset: Offset(1.5, 1.5),
+                                          spreadRadius: 5),
+                                      BoxShadow(
+                                          color: Colors.white70,
+                                          blurRadius: 1,
+                                          offset: Offset(-1, -1),
+                                          spreadRadius: 5),
                                     ],
                                   ),
                                   SizedBox(width: 4),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                            widget.trip_type == tripTypeAirportPickup || widget.trip_type == tripTypeAirportToZone
+                                            widget.trip_type ==
+                                                        tripTypeAirportPickup ||
+                                                    widget.trip_type ==
+                                                        tripTypeAirportToZone
                                                 ? '${language.selectAirport}'
-                                                : widget.trip_type == tripTypeZoneWise || widget.trip_type == tripTypeZoneToAirport
+                                                : widget.trip_type ==
+                                                            tripTypeZoneWise ||
+                                                        widget.trip_type ==
+                                                            tripTypeZoneToAirport
                                                     ? '${language.selectZone}'
                                                     : '${language.lblWhereAreYou}',
                                             style: secondaryTextStyle()),
@@ -113,61 +193,92 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                                               child: TextFormField(
                                                 controller: sourceLocation,
                                                 focusNode: sourceFocus,
-                                                readOnly: widget.trip_type == tripTypeAirportDropoff || widget.trip_type == tripTypeRegular ? false : true,
-                                                decoration: searchInputDecoration(hint: language.sourceLocation),
+                                                readOnly: widget.trip_type ==
+                                                            tripTypeAirportDropoff ||
+                                                        widget.trip_type ==
+                                                            tripTypeRegular
+                                                    ? false
+                                                    : true,
+                                                decoration:
+                                                    searchInputDecoration(
+                                                        hint: language
+                                                            .sourceLocation),
                                                 onTap: () async {
                                                   var pickUpDetails;
-                                                  if (widget.trip_type == tripTypeAirportPickup || widget.trip_type == tripTypeAirportToZone) {
-                                                    pickUpDetails = await launchScreen(context, ChooseAirportOrZoneScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
+                                                  if (widget.trip_type ==
+                                                          tripTypeAirportPickup ||
+                                                      widget.trip_type ==
+                                                          tripTypeAirportToZone) {
+                                                    pickUpDetails =
+                                                        await launchScreen(
+                                                            context,
+                                                            ChooseAirportOrZoneScreen(),
+                                                            pageRouteAnimation:
+                                                                PageRouteAnimation
+                                                                    .Slide);
                                                     if (pickUpDetails != null) {
                                                       setState(() {
-                                                        sourceId = pickUpDetails['id'];
-                                                        sourceLocation.text = pickUpDetails['name'];
-                                                        polylineSource = LatLng(double.parse(pickUpDetails['latitude_deg'].toString()), double.parse(pickUpDetails['longitude_deg'].toString()));
+                                                        sourceId =
+                                                            pickUpDetails['id'];
+                                                        sourceLocation.text =
+                                                            pickUpDetails[
+                                                                'name'];
+                                                        polylineSource = LatLng(
+                                                            double.parse(
+                                                                pickUpDetails[
+                                                                        'latitude_deg']
+                                                                    .toString()),
+                                                            double.parse(
+                                                                pickUpDetails[
+                                                                        'longitude_deg']
+                                                                    .toString()));
+                                                        _sourceConfirmed = true;
                                                       });
                                                     }
-                                                  } else if (widget.trip_type == tripTypeZoneWise || widget.trip_type == tripTypeZoneToAirport) {
-                                                    pickUpDetails = await launchScreen(
-                                                        context,
-                                                        ChooseAirportOrZoneScreen(
-                                                          zone_selection: true,
-                                                        ),
-                                                        pageRouteAnimation: PageRouteAnimation.Slide);
+                                                  } else if (widget.trip_type ==
+                                                          tripTypeZoneWise ||
+                                                      widget.trip_type ==
+                                                          tripTypeZoneToAirport) {
+                                                    pickUpDetails =
+                                                        await launchScreen(
+                                                            context,
+                                                            ChooseAirportOrZoneScreen(
+                                                              zone_selection:
+                                                                  true,
+                                                            ),
+                                                            pageRouteAnimation:
+                                                                PageRouteAnimation
+                                                                    .Slide);
                                                     if (pickUpDetails != null) {
                                                       setState(() {
-                                                        if (widget.trip_type == tripTypeZoneWise) {
-                                                          SourceZoneId = pickUpDetails['id'];
+                                                        if (widget.trip_type ==
+                                                            tripTypeZoneWise) {
+                                                          SourceZoneId =
+                                                              pickUpDetails[
+                                                                  'id'];
                                                         }
-                                                        sourceId = pickUpDetails['id'];
-                                                        sourceLocation.text = pickUpDetails['name'];
-                                                        polylineSource = LatLng(double.parse(pickUpDetails['latitude'].toString()), double.parse(pickUpDetails['longitude'].toString()));
+                                                        sourceId =
+                                                            pickUpDetails['id'];
+                                                        sourceLocation.text =
+                                                            pickUpDetails[
+                                                                'name'];
+                                                        polylineSource = LatLng(
+                                                            double.parse(
+                                                                pickUpDetails[
+                                                                        'latitude']
+                                                                    .toString()),
+                                                            double.parse(
+                                                                pickUpDetails[
+                                                                        'longitude']
+                                                                    .toString()));
+                                                        _sourceConfirmed = true;
                                                       });
                                                     }
                                                   }
                                                 },
-                                                onChanged: (val) {
-                                                  if (val.isNotEmpty) {
-                                                    if (val.length < 3) {
-                                                      isDone = false;
-                                                      listAddress.clear();
-                                                      setState(() {});
-                                                    } else {
-                                                      Map req = {
-                                                        "search_text": val,
-                                                        "language": appStore.selectedLanguage.validate(value: defaultLanguageCode),
-                                                      };
-                                                      searchAddressRequest(req).then((value) {
-                                                        isDone = true;
-                                                        listAddress = value.suggestions;
-                                                        setState(() {});
-                                                      }).catchError((error) {
-                                                        log(error);
-                                                      });
-                                                    }
-                                                  } else {
-                                                    setState(() {});
-                                                  }
-                                                },
+                                                onChanged: (val) =>
+                                                    _searchAddress(
+                                                        val, 'source'),
                                               ),
                                             ),
                                             IconButton(
@@ -177,20 +288,41 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                                                 sourceId = null;
                                                 SourceZoneId = null;
                                                 sourceLocation.clear();
+                                                _sourceConfirmed = false;
+                                                _addressSearch.cancel();
+                                                listAddress.clear();
 
                                                 destinationId = null;
                                                 destinationLocation.clear();
+                                                _destinationConfirmed = false;
+                                                _addressSearch.cancel();
+                                                listAddress.clear();
                                               },
                                               icon: Icon(Icons.cancel_outlined),
                                             ),
-                                            if (widget.trip_type == tripTypeRegular || widget.trip_type == tripTypeAirportDropoff)
+                                            if (widget.trip_type ==
+                                                    tripTypeRegular ||
+                                                widget.trip_type ==
+                                                    tripTypeAirportDropoff)
                                               IconButton.outlined(
                                                 iconSize: 18,
                                                 color: primaryColor,
                                                 onPressed: () async {
-                                                  var selectedPlace = await launchScreen(context, GoogleMapScreen(isDestination: true), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
-                                                  sourceLocation.text = selectedPlace['formatted_address'];
-                                                  polylineSource = selectedPlace['position'];
+                                                  var selectedPlace =
+                                                      await launchScreen(
+                                                          context,
+                                                          GoogleMapScreen(
+                                                              isDestination:
+                                                                  true),
+                                                          pageRouteAnimation:
+                                                              PageRouteAnimation
+                                                                  .SlideBottomTop);
+                                                  sourceLocation.text =
+                                                      selectedPlace[
+                                                          'formatted_address'];
+                                                  polylineSource =
+                                                      selectedPlace['position'];
+                                                  _sourceConfirmed = true;
                                                 },
                                                 icon: Icon(Icons.map_outlined),
                                               )
@@ -224,23 +356,38 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                                       Icons.location_on,
                                       color: Colors.red,
                                       shadows: [
-                                        BoxShadow(color: Colors.black, blurRadius: 1, offset: Offset(1.5, 1.5), spreadRadius: 5),
-                                        BoxShadow(color: Colors.white70, blurRadius: 1, offset: Offset(-1, -1), spreadRadius: 5),
+                                        BoxShadow(
+                                            color: Colors.black,
+                                            blurRadius: 1,
+                                            offset: Offset(1.5, 1.5),
+                                            spreadRadius: 5),
+                                        BoxShadow(
+                                            color: Colors.white70,
+                                            blurRadius: 1,
+                                            offset: Offset(-1, -1),
+                                            spreadRadius: 5),
                                       ],
                                     ),
                                     SizedBox(width: 4),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                              widget.trip_type == tripTypeAirportPickup
+                                              widget.trip_type ==
+                                                      tripTypeAirportPickup
                                                   ? '${language.lblDropOff}'
-                                                  : widget.trip_type == tripTypeZoneWise
+                                                  : widget.trip_type ==
+                                                          tripTypeZoneWise
                                                       ? '${language.selectZone}'
-                                                      : widget.trip_type == tripTypeAirportToZone
+                                                      : widget.trip_type ==
+                                                              tripTypeAirportToZone
                                                           ? '${language.selectZone}'
-                                                          : widget.trip_type == tripTypeAirportDropoff || widget.trip_type == tripTypeZoneToAirport
+                                                          : widget.trip_type ==
+                                                                      tripTypeAirportDropoff ||
+                                                                  widget.trip_type ==
+                                                                      tripTypeZoneToAirport
                                                               ? '${language.selectAirport}'
                                                               : '${language.lblDropOff}',
                                               style: secondaryTextStyle()),
@@ -248,61 +395,97 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                                             children: [
                                               Expanded(
                                                 child: TextFormField(
-                                                  controller: destinationLocation,
+                                                  controller:
+                                                      destinationLocation,
                                                   focusNode: desFocus,
                                                   autofocus: false,
-                                                  readOnly: widget.trip_type == tripTypeAirportPickup || widget.trip_type == tripTypeRegular ? false : true,
-                                                  decoration: searchInputDecoration(hint: language.destinationLocation),
+                                                  readOnly: widget.trip_type ==
+                                                              tripTypeAirportPickup ||
+                                                          widget.trip_type ==
+                                                              tripTypeRegular
+                                                      ? false
+                                                      : true,
+                                                  decoration: searchInputDecoration(
+                                                      hint: language
+                                                          .destinationLocation),
                                                   onTap: () async {
                                                     var dropDetails;
-                                                    if (widget.trip_type == tripTypeAirportDropoff || widget.trip_type == tripTypeZoneToAirport) {
-                                                      dropDetails = await launchScreen(context, ChooseAirportOrZoneScreen(), pageRouteAnimation: PageRouteAnimation.Slide);
-                                                      if (dropDetails != null) {
-                                                        destinationLocation.text = dropDetails['name'];
-                                                        destinationId = dropDetails['id'];
-                                                        polylineDestination = LatLng(double.parse(dropDetails['latitude_deg'].toString()), double.parse(dropDetails['longitude_deg'].toString()));
-                                                      }
-                                                    } else if (widget.trip_type == tripTypeZoneWise || widget.trip_type == tripTypeAirportToZone) {
-                                                      if (widget.trip_type == tripTypeZoneWise && sourceId == null) {
-                                                        toast('Please first select source location');
-                                                        return;
-                                                      }
+                                                    if (widget.trip_type ==
+                                                            tripTypeAirportDropoff ||
+                                                        widget.trip_type ==
+                                                            tripTypeZoneToAirport) {
                                                       dropDetails = await launchScreen(
                                                           context,
-                                                          ChooseAirportOrZoneScreen(
-                                                            zone_selection: true,
-                                                            zoneId: widget.trip_type == tripTypeZoneWise ? SourceZoneId : null,
-                                                          ),
-                                                          pageRouteAnimation: PageRouteAnimation.Slide);
+                                                          ChooseAirportOrZoneScreen(),
+                                                          pageRouteAnimation:
+                                                              PageRouteAnimation
+                                                                  .Slide);
                                                       if (dropDetails != null) {
-                                                        destinationId = dropDetails['id'];
-                                                        destinationLocation.text = dropDetails['name'];
-                                                        polylineDestination = LatLng(double.parse(dropDetails['latitude'].toString()), double.parse(dropDetails['longitude'].toString()));
+                                                        destinationLocation
+                                                                .text =
+                                                            dropDetails['name'];
+                                                        destinationId =
+                                                            dropDetails['id'];
+                                                        polylineDestination = LatLng(
+                                                            double.parse(dropDetails[
+                                                                    'latitude_deg']
+                                                                .toString()),
+                                                            double.parse(dropDetails[
+                                                                    'longitude_deg']
+                                                                .toString()));
+                                                        _destinationConfirmed =
+                                                            true;
+                                                      }
+                                                    } else if (widget
+                                                                .trip_type ==
+                                                            tripTypeZoneWise ||
+                                                        widget.trip_type ==
+                                                            tripTypeAirportToZone) {
+                                                      if (widget.trip_type ==
+                                                              tripTypeZoneWise &&
+                                                          sourceId == null) {
+                                                        toast(
+                                                            'Please first select source location');
+                                                        return;
+                                                      }
+                                                      dropDetails =
+                                                          await launchScreen(
+                                                              context,
+                                                              ChooseAirportOrZoneScreen(
+                                                                zone_selection:
+                                                                    true,
+                                                                zoneId: widget
+                                                                            .trip_type ==
+                                                                        tripTypeZoneWise
+                                                                    ? SourceZoneId
+                                                                    : null,
+                                                              ),
+                                                              pageRouteAnimation:
+                                                                  PageRouteAnimation
+                                                                      .Slide);
+                                                      if (dropDetails != null) {
+                                                        destinationId =
+                                                            dropDetails['id'];
+                                                        destinationLocation
+                                                                .text =
+                                                            dropDetails['name'];
+                                                        polylineDestination = LatLng(
+                                                            double.parse(
+                                                                dropDetails[
+                                                                        'latitude']
+                                                                    .toString()),
+                                                            double.parse(dropDetails[
+                                                                    'longitude']
+                                                                .toString()));
+                                                        _destinationConfirmed =
+                                                            true;
                                                       }
                                                     }
                                                     setState(() {});
                                                   },
-                                                  onChanged: (val) {
-                                                    if (val.isNotEmpty) {
-                                                      if (val.length < 3) {
-                                                        listAddress.clear();
-                                                        setState(() {});
-                                                      } else {
-                                                        Map req = {
-                                                          "search_text": val,
-                                                          "language": appStore.selectedLanguage.validate(value: defaultLanguageCode),
-                                                        };
-                                                        searchAddressRequest(req).then((value) {
-                                                          listAddress = value.suggestions;
-                                                          setState(() {});
-                                                        }).catchError((error) {
-                                                          log(error);
-                                                        });
-                                                      }
-                                                    } else {
-                                                      setState(() {});
-                                                    }
-                                                  },
+                                                  onChanged: (val) =>
+                                                      _searchAddress(
+                                                          val, 'destination'),
                                                 ),
                                               ),
                                               IconButton(
@@ -311,19 +494,43 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                                                 onPressed: () async {
                                                   destinationId = null;
                                                   destinationLocation.clear();
+                                                  _destinationConfirmed = false;
+                                                  _addressSearch.cancel();
+                                                  listAddress.clear();
                                                 },
-                                                icon: Icon(Icons.cancel_outlined),
+                                                icon:
+                                                    Icon(Icons.cancel_outlined),
                                               ),
-                                              if (widget.trip_type == tripTypeRegular || widget.trip_type == tripTypeAirportPickup)
+                                              if (widget.trip_type ==
+                                                      tripTypeRegular ||
+                                                  widget.trip_type ==
+                                                      tripTypeAirportPickup)
                                                 IconButton.outlined(
                                                   iconSize: 18,
                                                   color: primaryColor,
                                                   onPressed: () async {
-                                                    var selectedPlace = await launchScreen(context, GoogleMapScreen(isDestination: true), pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
-                                                    destinationLocation.text = selectedPlace['formatted_address'];
-                                                    polylineDestination = selectedPlace['position'];
+                                                    var selectedPlace =
+                                                        await launchScreen(
+                                                            context,
+                                                            GoogleMapScreen(
+                                                                isDestination:
+                                                                    true),
+                                                            pageRouteAnimation:
+                                                                PageRouteAnimation
+                                                                    .SlideBottomTop);
+                                                    if (selectedPlace == null ||
+                                                        !mounted) return;
+                                                    destinationLocation.text =
+                                                        selectedPlace[
+                                                            'formatted_address'];
+                                                    polylineDestination =
+                                                        selectedPlace[
+                                                            'position'];
+                                                    _destinationConfirmed =
+                                                        true;
                                                   },
-                                                  icon: Icon(Icons.map_outlined),
+                                                  icon:
+                                                      Icon(Icons.map_outlined),
                                                 )
                                             ],
                                           ),
@@ -333,20 +540,29 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                                     SizedBox(width: 4),
                                   ],
                                 ),
-                              if (multipleDropPoints.isNotEmpty) reorderedView(),
+                              if (multipleDropPoints.isNotEmpty)
+                                reorderedView(),
                             ],
                           ),
                         ),
                       ),
                     ],
                   ),
-                  if (appStore.isMultiDrop != null && appStore.isMultiDrop == "1" && widget.tripDetail['trip_type'] == 'regular')
+                  if (appStore.isMultiDrop != null &&
+                      appStore.isMultiDrop == "1" &&
+                      widget.tripDetail['trip_type'] == 'regular')
                     TextButton(
                         onPressed: () {
                           if (multipleDropPoints.isEmpty) {
                             hideKeyboard(context);
-                            multipleDropPoints = [TextEditingController(), TextEditingController()];
-                            multipleDropPointsFocus = [FocusNode(), FocusNode()];
+                            multipleDropPoints = [
+                              TextEditingController(),
+                              TextEditingController()
+                            ];
+                            multipleDropPointsFocus = [
+                              FocusNode(),
+                              FocusNode()
+                            ];
                           } else {
                             multipleDropPoints.add(TextEditingController());
                             multipleDropPointsFocus.add(FocusNode());
@@ -372,21 +588,31 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                           color: primaryColor,
                         ),
                         minLeadingWidth: 16,
-                        title: Text(mData.placePrediction.text.text, style: primaryTextStyle()),
+                        title: Text(mData.placePrediction.text.text,
+                            style: primaryTextStyle()),
                         onTap: () async {
-                          await searchAddressRequestPlaceId(mData.placePrediction.placeId).then((value) async {
+                          final target = _addressTarget;
+                          _addressSearch.cancel();
+                          await searchAddressRequestPlaceId(
+                                  mData.placePrediction.placeId)
+                              .then((value) async {
+                            if (!mounted || target != _addressTarget) return;
                             double lat = value.location.latitude;
                             double lng = value.location.longitude;
 
-                            if (sourceFocus.hasFocus) {
+                            if (target == 'source') {
                               sourceLocation.text = value.formattedAddress;
                               polylineSource = LatLng(lat, lng);
-                            } else if (desFocus.hasFocus) {
+                              _sourceConfirmed = true;
+                            } else if (target == 'destination') {
                               destinationLocation.text = value.formattedAddress;
                               polylineDestination = LatLng(lat, lng);
+                              _destinationConfirmed = true;
                             } else if (multipleDropPoints.isNotEmpty) {
-                              multiDropLatLng[multiDropFieldPosition] = LatLng(lat, lng);
-                              multipleDropPoints[multiDropFieldPosition].text = value.formattedAddress;
+                              multiDropLatLng[multiDropFieldPosition] =
+                                  LatLng(lat, lng);
+                              multipleDropPoints[multiDropFieldPosition].text =
+                                  value.formattedAddress;
                             }
 
                             listAddress.clear();
@@ -403,13 +629,25 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                     width: MediaQuery.of(context).size.width,
                     onTap: () async {
                       hideKeyboard(context);
-                      if (multipleDropPoints.isNotEmpty && List.generate(multipleDropPoints.length, (i) => i).any((i) => multiDropLatLng[i] == null)) {
-                        toast("Please select each drop location from the suggestions");
+                      if (!_sourceConfirmed ||
+                          (multipleDropPoints.isEmpty &&
+                              !_destinationConfirmed)) {
+                        toast(
+                            "Please select pickup and drop locations from the suggestions or map");
+                        return;
+                      }
+                      if (multipleDropPoints.isNotEmpty &&
+                          List.generate(multipleDropPoints.length, (i) => i)
+                              .any((i) => multiDropLatLng[i] == null)) {
+                        toast(
+                            "Please select each drop location from the suggestions");
                         return;
                       }
                       if (multipleDropPoints.isNotEmpty) {
                         var abc = {};
-                        polylineDestination = multiDropLatLng[multipleDropPoints.length - 1];
+                        polylineDestination =
+                            multiDropLatLng[multipleDropPoints.length - 1];
+                        _destinationConfirmed = true;
                         destinationLocation.text = multipleDropPoints.last.text;
                         for (int i = 0; i < multipleDropPoints.length; i++) {
                           abc[i] = multipleDropPoints[i].text;
@@ -427,27 +665,41 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                               is_taxi_service: true,
                               trip_type: widget.trip_type,
                             ),
-                            pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+                            pageRouteAnimation:
+                                PageRouteAnimation.SlideBottomTop);
                         multiDropLatLng.clear();
                         multipleDropPoints.clear();
                         multipleDropPointsFocus.clear();
                         multiDropFieldPosition = 0;
                         sourceLocation.clear();
+                        _sourceConfirmed = false;
+                        _addressSearch.cancel();
+                        listAddress.clear();
                         destinationLocation.clear();
-                      } else if (!sourceLocation.text.isEmptyOrNull && !destinationLocation.text.isEmptyOrNull) {
-                        if (widget.trip_type == tripTypeAirportPickup || widget.trip_type == tripTypeAirportToZone) {
-                          widget.tripDetail['airport_name'] = sourceLocation.text;
+                        _destinationConfirmed = false;
+                        _addressSearch.cancel();
+                        listAddress.clear();
+                      } else if (!sourceLocation.text.isEmptyOrNull &&
+                          !destinationLocation.text.isEmptyOrNull) {
+                        if (widget.trip_type == tripTypeAirportPickup ||
+                            widget.trip_type == tripTypeAirportToZone) {
+                          widget.tripDetail['airport_name'] =
+                              sourceLocation.text;
                           widget.tripDetail['pickup_airport_id'] = sourceId;
                           if (widget.trip_type == tripTypeAirportToZone) {
                             widget.tripDetail['drop_zone_id'] = destinationId;
-                            widget.tripDetail['zone_name'] = destinationLocation.text;
+                            widget.tripDetail['zone_name'] =
+                                destinationLocation.text;
                           }
-                        } else if (widget.trip_type == tripTypeAirportDropoff || widget.trip_type == tripTypeZoneToAirport) {
-                          widget.tripDetail['airport_name'] = destinationLocation.text;
+                        } else if (widget.trip_type == tripTypeAirportDropoff ||
+                            widget.trip_type == tripTypeZoneToAirport) {
+                          widget.tripDetail['airport_name'] =
+                              destinationLocation.text;
                           widget.tripDetail['drop_airport_id'] = destinationId;
                           if (widget.trip_type == tripTypeZoneToAirport) {
                             widget.tripDetail['pickup_zone_id'] = sourceId;
-                            widget.tripDetail['zone_name'] = sourceLocation.text;
+                            widget.tripDetail['zone_name'] =
+                                sourceLocation.text;
                           }
                         } else if (widget.trip_type == tripTypeZoneWise) {
                           widget.tripDetail['pickup_zone_id'] = sourceId;
@@ -464,9 +716,16 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                                 destinationLatLog: polylineDestination,
                                 sourceTitle: sourceLocation.text,
                                 destinationTitle: destinationLocation.text),
-                            pageRouteAnimation: PageRouteAnimation.SlideBottomTop);
+                            pageRouteAnimation:
+                                PageRouteAnimation.SlideBottomTop);
                         sourceLocation.clear();
+                        _sourceConfirmed = false;
+                        _addressSearch.cancel();
+                        listAddress.clear();
                         destinationLocation.clear();
+                        _destinationConfirmed = false;
+                        _addressSearch.cancel();
+                        listAddress.clear();
                       } else {
                         toast("Please Select Location");
                       }
@@ -474,7 +733,8 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(language.continueD, style: boldTextStyle(color: Colors.white)),
+                        Text(language.continueD,
+                            style: boldTextStyle(color: Colors.white)),
                       ],
                     ),
                   ),
@@ -504,8 +764,16 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                       Icons.location_on,
                       color: Colors.red,
                       shadows: [
-                        BoxShadow(color: Colors.black, blurRadius: 1, offset: Offset(1.5, 1.5), spreadRadius: 5),
-                        BoxShadow(color: Colors.white70, blurRadius: 1, offset: Offset(-1, -1), spreadRadius: 5),
+                        BoxShadow(
+                            color: Colors.black,
+                            blurRadius: 1,
+                            offset: Offset(1.5, 1.5),
+                            spreadRadius: 5),
+                        BoxShadow(
+                            color: Colors.white70,
+                            blurRadius: 1,
+                            offset: Offset(-1, -1),
+                            spreadRadius: 5),
                       ],
                     ),
                     SizedBox(width: 4),
@@ -517,36 +785,13 @@ class TripTypeLocationComponentState extends State<TripTypeLocationComponent> {
                             controller: multipleDropPoints[i],
                             focusNode: multipleDropPointsFocus[i],
                             autofocus: false,
-                            decoration: searchInputDecoration(hint: "${language.dropPoint} ${i + 1}"),
+                            decoration: searchInputDecoration(
+                                hint: "${language.dropPoint} ${i + 1}"),
                             onTap: () {
                               multiDropFieldPosition = i;
                               setState(() {});
                             },
-                            onChanged: (val) {
-                              if (val.isNotEmpty) {
-                                multiDropFieldPosition = i;
-                                try {
-                                  multiDropLatLng.remove(multiDropFieldPosition);
-                                } catch (e) {}
-                                if (val.length < 3) {
-                                  listAddress.clear();
-                                  setState(() {});
-                                } else {
-                                  Map req = {
-                                    "search_text": val,
-                                    "language": appStore.selectedLanguage.validate(value: defaultLanguageCode),
-                                  };
-                                  searchAddressRequest(req).then((value) {
-                                    listAddress = value.suggestions;
-                                    setState(() {});
-                                  }).catchError((error) {
-                                    log(error);
-                                  });
-                                }
-                              } else {
-                                setState(() {});
-                              }
-                            },
+                            onChanged: (val) => _searchAddress(val, 'multi:$i'),
                           ),
                         ],
                       ),
