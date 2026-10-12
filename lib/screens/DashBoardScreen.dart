@@ -823,6 +823,16 @@ class DashBoardScreenState extends State<DashBoardScreen>
     return null;
   }
 
+  void _returnHome() {
+    if (!mounted) return;
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      launchScreen(context, HomeScreen(),
+          isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
+    }
+  }
+
   Widget build(BuildContext context) {
     LiveStream().on(CHANGE_LANGUAGE, (p0) {
       setState(() {});
@@ -834,8 +844,7 @@ class DashBoardScreenState extends State<DashBoardScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop || !mounted) return;
-        launchScreen(context, HomeScreen(),
-            isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
+        _returnHome();
       },
       child: Scaffold(
       extendBodyBehindAppBar: true,
@@ -1269,6 +1278,16 @@ class DashBoardScreenState extends State<DashBoardScreen>
               borderRadius: BorderRadius.circular(defaultRadius),
             ),
             child: Icon(Icons.drag_handle),
+          ),
+        ),
+        Material(
+          color: Colors.white,
+          shape: CircleBorder(),
+          elevation: 1,
+          child: IconButton(
+            tooltip: 'Home',
+            icon: Icon(Icons.home_rounded, color: primaryColor),
+            onPressed: _returnHome,
           ),
         ),
         inkWellWidget(

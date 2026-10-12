@@ -1447,6 +1447,14 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
             ),
           ),
           actions: [
+            if (!isBooking)
+              IconButton(
+                tooltip: 'Home',
+                icon: Icon(Icons.home_rounded, color: primaryColor),
+                onPressed: () => launchScreen(context, HomeScreen(),
+                    isNewTask: true,
+                    pageRouteAnimation: PageRouteAnimation.Fade),
+              ),
             inkWellWidget(
               onTap: () async {
                 final geoPosition = await Geolocator.getCurrentPosition(
