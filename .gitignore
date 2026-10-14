@@ -5,3 +5,7 @@
 /.idea/
 /.dart_tool/
 
+
+# Generated Kotlin build sessions and JVM dumps
+android/.kotlin/
+*.hprof

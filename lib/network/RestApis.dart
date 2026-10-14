@@ -1,3 +1,4 @@
+import 'MultipartUpload.dart';
 import 'package:taxi_booking/model/PolyLineData.dart';
 import 'package:taxi_booking/model/search_location_model.dart';
 import 'package:taxi_booking/model/select_location_model.dart';
@@ -144,16 +145,14 @@ Future<MultipartRequest> getMultiPartRequest(String endPoint,
 Future sendMultiPartRequest(MultipartRequest multiPartRequest,
     {Function(dynamic)? onSuccess, Function(dynamic)? onError}) async {
   multiPartRequest.headers.addAll(buildHeaderTokens());
-
-  await multiPartRequest.send().then((res) {
-    res.stream.bytesToString().then(
-      (value) {
-        onSuccess?.call(jsonDecode(value));
-      },
-    );
-  }).catchError((error) {
-    onError?.call(error.toString());
-  });
+  dynamic data;
+  try {
+    data = await sendMultipartJson(multiPartRequest);
+  } catch (error) {
+    await onError?.call(error.toString());
+    return;
+  }
+  await onSuccess?.call(data);
 }
 
 /// Profile Update

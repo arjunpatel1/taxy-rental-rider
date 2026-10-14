@@ -1,5 +1,5 @@
 import '../manage_imports.dart';
-import 'RideDetailScreen.dart';
+import '../utils/CompletedTripSummary.dart';
 import '../utils/BrandTheme.dart';
 import '../components/FareBreakdownCard.dart';
 
@@ -31,8 +31,12 @@ class ReviewScreenState extends State<ReviewScreen> {
   /// Wallet balance, loaded once so the rider can see what they can cover.
   num walletBalance = 0;
   bool walletLoaded = false;
+  OnRideRequest? _finalTrip;
+  bool _fareReady = false;
+  bool _fareFailed = false;
+  OnRideRequest get _trip => _finalTrip ?? widget.rideRequest;
 
-  num get _fare => widget.rideRequest.totalAmount ?? 0;
+  num get _fare => _trip.totalAmount ?? 0;
   /// Wallet + cash always puts the whole balance towards the fare, never more
   /// than the fare itself; the rest is handed to the driver in cash.
   num get _walletPart => walletBalance >= _fare ? _fare : walletBalance;
@@ -82,6 +86,19 @@ class ReviewScreenState extends State<ReviewScreen> {
   void initState() {
     super.initState();
     if ((sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) != 1) _loadWallet();
+    _loadFinalTrip();
+  }
+
+  Future<void> _loadFinalTrip() async {
+    setState(() { _fareReady = false; _fareFailed = false; });
+    try {
+      final detail = await rideDetail(orderId: widget.rideRequest.id);
+      final finalTrip = completedTripSummary(widget.rideRequest, detail);
+      if (mounted) setState(() { _finalTrip = finalTrip; _fareReady = true; });
+    } catch (error) {
+      log('Final trip details unavailable: $error');
+      if (mounted) setState(() => _fareFailed = true);
+    }
   }
 
   Future<void> getCurrentRequest() async {
@@ -189,19 +206,25 @@ class ReviewScreenState extends State<ReviewScreen> {
     };
     try {
       await savePayment(req);
-      await rideService.updateStatusOfRide(
-        rideID: widget.rideRequest.id,
-        req: {'on_stream_api_call': 0, 'payment_type': payMethod},
-      );
-      return true;
     } catch (e) {
       log('Wallet payment failed: $e');
       toast(e.toString());
       return false;
     }
+    try {
+      await rideService.updateStatusOfRide(
+        rideID: widget.rideRequest.id,
+        req: {'on_stream_api_call': 0, 'payment_type': payMethod},
+      );
+    } catch (e) {
+      // The API has already settled the wallet. A failed live-screen update
+      // must not tell the customer their successful payment failed.
+      log('Paid trip live update unavailable: $e');
+    }
+    return true;
   }
 
-  Future<void> _savePaymentChoice() async {
+  Future<bool> _savePaymentChoice() async {
     try {
       await rideRequestUpdate(
         request: {
@@ -212,14 +235,20 @@ class ReviewScreenState extends State<ReviewScreen> {
         },
         rideId: widget.rideRequest.id,
       );
+    } catch (e) {
+      log('Payment choice not saved: $e');
+      toast('Could not save payment choice. Please retry.');
+      return false;
+    }
+    try {
       await rideService.updateStatusOfRide(
         rideID: widget.rideRequest.id,
         req: {'on_stream_api_call': 0, 'payment_type': payMethod},
       );
     } catch (e) {
-      // The rating still stands; the rider can change this from the trip page.
-      log('Payment choice not saved: $e');
+      log('Payment choice live update unavailable: $e');
     }
+    return true;
   }
 
   /// Sends the rider's rating for this trip. Until this existed the server
@@ -241,9 +270,13 @@ class ReviewScreenState extends State<ReviewScreen> {
   }
 
   Future<void> userReviewData({bool? skip}) async {
+    if (!_fareReady) {
+      toast('Please load the final fare before continuing');
+      return;
+    }
     // The rider only confirms how they are paying here; rating a driver moved
     // out of this screen because the fare is what they need at trip end.
-    if (widget.rideRequest.paymentStatus != PAID && payMethod == 'wallet' && !_walletCoversFare) {
+    if (_trip.paymentStatus != PAID && payMethod == 'wallet' && !_walletCoversFare) {
       toast('Your wallet balance is not enough for this trip');
       return;
     }
@@ -256,10 +289,13 @@ class ReviewScreenState extends State<ReviewScreen> {
       await _sendRating();
     }
 
-    if (widget.rideRequest.paymentStatus != PAID) {
+    if (_trip.paymentStatus != PAID) {
       if (payMethod == 'cash') {
         // The driver collects the fare; only the choice needs recording.
-        await _savePaymentChoice();
+        if (!await _savePaymentChoice()) {
+          appStore.setLoading(false);
+          return;
+        }
       } else {
         // Wallet and wallet+cash are charged for real here. Recording the
         // choice alone left the trip unpaid and the rider stuck on this
@@ -292,7 +328,7 @@ class ReviewScreenState extends State<ReviewScreen> {
     // they wanted, rated the driver — there is nothing further for them to do.
     // Reloading the trip instead sent them to a live-tracking page for a trip
     // that had already ended, which rendered empty and looked frozen.
-    toast(widget.rideRequest.paymentStatus == PAID
+    toast(_trip.paymentStatus == PAID
         ? 'Thanks for riding with us'
         : (payMethod == 'cash'
             ? 'Please pay the driver $currencySymbol${_fare.toStringAsFixed(digitAfterDecimal)} in cash'
@@ -352,7 +388,12 @@ class ReviewScreenState extends State<ReviewScreen> {
                   SizedBox(height: 18),
                   // The fare first: the rider's question at trip end is always
                   // how much to pay, so it is shown before anything else.
-                  Container(
+                  if (!_fareReady) ...[
+                    Text(_fareFailed ? 'Could not load the final fare.' : 'Loading final fare…', style: secondaryTextStyle()),
+                    if (_fareFailed)
+                      TextButton(onPressed: _loadFinalTrip, child: Text('Retry')),
+                  ],
+                  if (_fareReady) Container(
                     padding: EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: context.cardColor,
@@ -361,13 +402,13 @@ class ReviewScreenState extends State<ReviewScreen> {
                     ),
                     child: EstimateFareCard(
                       total: _fare,
-                      gst: num.tryParse('${widget.rideRequest.gstAmount ?? ''}') ?? 0,
-                      distance: num.tryParse('${widget.rideRequest.distance ?? ''}') ?? 0,
-                      distanceUnit: widget.rideRequest.distanceUnit,
-                      extraCharges: num.tryParse('${widget.rideRequest.extraChargesAmount ?? ''}') ?? 0,
+                      gst: num.tryParse('${_trip.gstAmount ?? ''}') ?? 0,
+                      distance: num.tryParse('${_trip.distance ?? ''}') ?? 0,
+                      distanceUnit: _trip.distanceUnit,
+                      extraCharges: num.tryParse('${_trip.extraChargesAmount ?? ''}') ?? 0,
                     ),
                   ),
-                  if (widget.rideRequest.paymentStatus != PAID &&
+                  if (_fareReady && _trip.paymentStatus != PAID &&
                       (sharedPref.getInt(IS_REVIEW_ACCOUNT) ?? 0) != 1) ...[
                     SizedBox(height: 12),
                     Row(
@@ -509,7 +550,7 @@ class ReviewScreenState extends State<ReviewScreen> {
                   ],
                   SizedBox(height: 18),
                   AppButtonWidget(
-                    text: widget.rideRequest.paymentStatus == PAID
+                    text: _trip.paymentStatus == PAID
                         ? 'Done'
                         : language.submit,
                     width: MediaQuery.of(context).size.width,

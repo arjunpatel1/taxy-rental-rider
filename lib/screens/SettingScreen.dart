@@ -1,3 +1,4 @@
+import 'HelpSupportScreen.dart';
 import '../manage_imports.dart';
 import '../utils/BrandTheme.dart';
 
@@ -73,15 +74,9 @@ class SettingScreenState extends State<SettingScreen> {
                         subtitle: PRIVACY_URL),
                     pageRouteAnimation: PageRouteAnimation.Slide);
               }),
-            if (appStore.mHelpAndSupport != null)
-              settingItemWidget(Ionicons.help_outline, language.helpSupport,
-                  () {
-                if (appStore.mHelpAndSupport != null) {
-                  launchUrl(Uri.parse(appStore.mHelpAndSupport!));
-                } else {
-                  toast(language.txtURLEmpty);
-                }
-              }),
+            settingItemWidget(Ionicons.help_outline, 'Help & Support', () {
+                  launchScreen(context, const HelpSupportScreen());
+                }),
             if (appStore.termsCondition != null)
               settingItemWidget(
                   Ionicons.document_outline, language.termsConditions, () {

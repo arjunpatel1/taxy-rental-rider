@@ -18,6 +18,8 @@ class HomeScreenState extends State<HomeScreen> {
   List<RiderModel> recentRides = [];
   CurrentRequestModel? currentRequest;
   bool isLoading = true;
+  Set<String> _enabledRechargeTypes = {};
+  bool _billPaymentsEnabled = false;
 
   bool get _hasActiveRide => currentRequest?.onRideRequest != null || currentRequest?.rideRequest != null;
 
@@ -32,7 +34,15 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _load() async {
+    // Fail closed: never keep stale service icons after admin disables them.
+    _enabledRechargeTypes = {};
+    _billPaymentsEnabled = false;
+    if (mounted) setState(() {});
     await Future.wait([
+      getRechargeServices().then((services) {
+        _enabledRechargeTypes = services.map((s) => '${s['service_type']}').toSet();
+        _billPaymentsEnabled = services.any((s) => s['is_recharge'] == false);
+      }).catchError((e) { log('available recharge services: $e'); }),
       getWalletData().then((value) {
         walletBalance = value.walletData?.totalAmount ?? 0;
       }).catchError((e) {
@@ -54,6 +64,7 @@ class HomeScreenState extends State<HomeScreen> {
         log('current ride: $e');
       }),
     ]);
+    if (!mounted) return;
     isLoading = false;
     setState(() {});
   }
@@ -436,11 +447,15 @@ class HomeScreenState extends State<HomeScreen> {
       if (!_isDemoAccount)
         _QuickAction('Ride Later', Icons.event_available_rounded, Color(0xFFEDF2FF), Color(0xFF3B5BDB), () => _open(ScheduleRideListScreen())),
       if (!_hideBillPayServices) ...[
+        if (_enabledRechargeTypes.contains('Prepaid'))
         _QuickAction('Mobile Recharge', Icons.phone_iphone_rounded, Color(0xFFEDE7FF), Color(0xFF5B3DF5), () => _open(MobileRechargeScreen())),
+        if (_enabledRechargeTypes.contains('DTH'))
         _QuickAction('DTH Recharge', Icons.satellite_alt_rounded, Color(0xFFF3E8FF), Color(0xFF7048E8),
             () => _open(RechargeScreen(title: 'DTH Recharge', serviceTypes: ['DTH']))),
+        if (_enabledRechargeTypes.contains('Google Play'))
         _QuickAction('Google Play Recharge', Icons.shop_rounded, Color(0xFFE6FCF5), Color(0xFF0CA678),
             () => _open(RechargeScreen(title: 'Google Play Recharge', serviceTypes: ['Google Play']))),
+        if (_billPaymentsEnabled)
         _QuickAction('Bill Payment', Icons.receipt_long_rounded, Color(0xFFFFF4E6), Color(0xFFE8590C), () => _open(BillPaymentScreen())),
       ],
       if (!_isDemoAccount) ...[

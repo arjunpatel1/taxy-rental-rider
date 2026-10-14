@@ -12,10 +12,13 @@ class RideDetailModel {
   int? ride_has_bids;
   num? riderWalletBalance;
   num? coinEarnings;
+  bool hasValidFinalFare = false;
 
   RideDetailModel({this.data, this.rideHistory, this.ride_has_bids, this.driverRatting, this.riderRatting, this.complaintModel, this.payment, this.invoice_url, this.invoice_name, this.riderWalletBalance, this.coinEarnings});
 
   factory RideDetailModel.fromJson(Map<String, dynamic> json) {
+    final rawFare = json['data'] is Map ? json['data']['total_amount'] : null;
+    final parsedFare = num.tryParse('$rawFare');
     return RideDetailModel(
       data: json['data'] != null ? RiderModel.fromJson(json['data']) : null,
       invoice_url: json['invoice_url'] != null ? json['invoice_url'] : null,
@@ -28,7 +31,7 @@ class RideDetailModel {
       payment: json['payment'] != null ? Payment.fromJson(json['payment']) : null,
       riderWalletBalance: json['rider_wallet_balance'],
       coinEarnings: json['coin_earnings'],
-    );
+    )..hasValidFinalFare = parsedFare != null && parsedFare.isFinite && parsedFare >= 0;
   }
 
   Map<String, dynamic> toJson() {

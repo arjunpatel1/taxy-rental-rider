@@ -3,6 +3,7 @@ import '../components/NoServiceView.dart';
 import '../manage_imports.dart';
 import '../utils/BrandTheme.dart';
 import '../utils/BookingFare.dart';
+import '../utils/VehicleAvailability.dart';
 
 // ignore: must_be_immutable
 class Newestimateridelistwidget extends StatefulWidget {
@@ -1836,7 +1837,12 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
   }
 
   /// No driver of this category is online near the pickup right now.
-  bool _isUnavailable(ServicesListData e) => (e.driversAvailable ?? 0) <= 0;
+  bool _isUnavailable(ServicesListData e) {
+    return vehicleUnavailable(
+      tripType: (widget.tripDetail?["trip_type"] ?? widget.trip_type)?.toString(),
+      drivers: e.driversAvailable,
+    );
+  }
 
   /// "No Bikes Available", "No Autos Available", "No Cabs Available".
   String _unavailableLabel(ServicesListData e) {
