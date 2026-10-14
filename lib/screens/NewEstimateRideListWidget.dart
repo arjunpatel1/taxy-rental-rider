@@ -1,5 +1,6 @@
 import 'NoCabsScreen.dart';
 import '../components/NoServiceView.dart';
+import '../components/LocalTripLimitView.dart';
 import '../manage_imports.dart';
 import '../utils/BrandTheme.dart';
 import '../utils/BookingFare.dart';
@@ -495,7 +496,8 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
       serviceList.clear();
       // A city trip dropping outside the service area is an outstation
       // journey; the rider is told to switch rather than shown no fares.
-      outsideCityMessage = value.outsideCity ? value.message : null;
+      outsideCityMessage = value.outsideCity
+          ? (value.message ?? 'Selected location is out of the city limit.') : null;
       final available = (value.data ?? <ServicesListData>[])
           .where((service) => service.totalAmount != null)
           .toList();
@@ -1664,8 +1666,22 @@ class NewestimateridelistwidgetState extends State<Newestimateridelistwidget>
             // outside every region: say so and offer a call, with no retry,
             // since searching the same place again cannot succeed. A genuine
             // load failure still gets its retry.
-            child: serviceLoadError == null
-                ? NoServiceView(
+            child: serviceLoadError == null && outsideCityMessage != null
+                ? LocalTripLimitView(
+                    onOutstation: () {
+                      setState(() {
+                        widget.is_taxi_service = true;
+                        widget.trip_type = tripTypeValueOutstationOneway;
+                        widget.tripDetail = {
+                          ...?widget.tripDetail,
+                          'trip_type': tripTypeValueOutstationOneway,
+                        };
+                      });
+                      getNewService();
+                    },
+                    onChangeDrop: () => Navigator.pop(context),
+                  )
+                : serviceLoadError == null ? NoServiceView(
                     outsideArea: true,
                     titleOverride: outsideCityMessage != null
                         ? 'Outstation trip needed'
